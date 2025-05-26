@@ -1,2 +1,6 @@
 .venv/
 poetry.lock
+bdd.sql
+settings.json
+__pycache__
+.env
