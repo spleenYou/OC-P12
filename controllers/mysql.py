@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from .models import Base, EpicUser
+from .models import Base, EpicUser, Department
 
 
 class Mysql:
@@ -26,3 +26,22 @@ class Mysql:
 
     def user_exists(self, login, password):
         return True
+
+    def get_department_list(self):
+        return [d[0] for d in self.session.query(Department.name).all()]
+
+    def add_user(self, name, email, password, employee_number, department_id):
+        self.session.add(
+            EpicUser(
+                name=name,
+                email=email,
+                password=password,
+                employee_number=employee_number,
+                department_id=department_id
+            )
+        )
+        try:
+            self.session.commit()
+            return True
+        except Exception:
+            return False
