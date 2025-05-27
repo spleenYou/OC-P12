@@ -4,3 +4,4 @@ bdd.sql
 settings.json
 __pycache__
 .env
+.coverage

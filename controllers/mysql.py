@@ -31,17 +31,18 @@ class Mysql:
         return [d[0] for d in self.session.query(Department.name).all()]
 
     def add_user(self, name, email, password, employee_number, department_id):
-        self.session.add(
-            EpicUser(
-                name=name,
-                email=email,
-                password=password,
-                employee_number=employee_number,
-                department_id=department_id
-            )
-        )
         try:
+            self.session.add(
+                EpicUser(
+                    name=name,
+                    email=email,
+                    password=password,
+                    employee_number=employee_number,
+                    department_id=department_id
+                )
+            )
             self.session.commit()
             return True
         except Exception:
+            self.session.rollback()
             return False

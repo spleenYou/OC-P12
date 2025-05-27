@@ -1,6 +1,5 @@
 from sqlalchemy import Column, Integer, String, Date, ForeignKey, Numeric, Boolean, Text, func
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, declarative_base
 
 Base = declarative_base()
 
@@ -21,7 +20,7 @@ class EpicUser(Base):
     name = Column(String(100), nullable=False)
     email = Column(String(255), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
-    employee_number = Column(Integer, nullable=False)
+    employee_number = Column(Integer, unique=True, nullable=False)
     department_id = Column(Integer, ForeignKey('departments.id'), nullable=False)
     date_creation = Column(Date, default=func.current_date())
     department = relationship('Department', back_populates='users')
