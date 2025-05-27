@@ -7,7 +7,9 @@ class Controller:
 
     def first_launch(self):
         if self.engine.has_epic_users():
+            print('ok')
             return True
+        print('nok')
         return False
 
     def user_is_logged(self):

@@ -5,7 +5,7 @@ from sqlalchemy.orm import relationship
 Base = declarative_base()
 
 
-class Departments(Base):
+class Department(Base):
     __tablename__ = 'departments'
 
     id = Column(Integer, primary_key=True)
@@ -22,7 +22,7 @@ class EpicUser(Base):
     email = Column(String(255), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
     employee_number = Column(Integer, nullable=False)
-    department_id = Column(Integer, ForeignKey('department.id'), nullable=False)
+    department_id = Column(Integer, ForeignKey('departments.id'), nullable=False)
     date_creation = Column(Date, default=func.current_date())
     department = relationship('Department', back_populates='users')
     clients = relationship('Client', back_populates='commercial_contact')
@@ -40,7 +40,7 @@ class Client(Base):
     entreprise_name = Column(String(255))
     date_creation = Column(Date, default=func.current_date())
     date_last_update = Column(Date, default=func.current_date(), onupdate=func.current_date())
-    commercial_contact_id = Column(Integer, ForeignKey('epic_user.id'), nullable=False)
+    commercial_contact_id = Column(Integer, ForeignKey('epic_users.id'), nullable=False)
     commercial_contact = relationship('EpicUser', back_populates='clients')
     contracts = relationship('Contract', back_populates='client')
     events = relationship('Event', back_populates='client')
@@ -50,8 +50,8 @@ class Contract(Base):
     __tablename__ = 'contracts'
 
     id = Column(Integer, primary_key=True)
-    client_id = Column(Integer, ForeignKey('client.id'), nullable=False)
-    commercial_id = Column(Integer, ForeignKey('epic_user.id'), nullable=False)
+    client_id = Column(Integer, ForeignKey('clients.id'), nullable=False)
+    commercial_id = Column(Integer, ForeignKey('epic_users.id'), nullable=False)
     total_amount = Column(Numeric(10, 2))
     rest_amount = Column(Numeric(10, 2))
     date_creation = Column(Date, default=func.current_date())
@@ -65,11 +65,11 @@ class Event(Base):
     __tablename__ = 'events'
 
     id = Column(Integer, primary_key=True)
-    contract_id = Column(Integer, ForeignKey('contract.id'), nullable=False)
-    client_id = Column(Integer, ForeignKey('client.id'), nullable=False)
+    contract_id = Column(Integer, ForeignKey('contracts.id'), nullable=False)
+    client_id = Column(Integer, ForeignKey('clients.id'), nullable=False)
     date_creation = Column(Date, default=func.current_date())
     date_stop = Column(Date)
-    support_contact_id = Column(Integer, ForeignKey('epic_user.id'), nullable=False)
+    support_contact_id = Column(Integer, ForeignKey('epic_users.id'), nullable=False)
     location = Column(String(255))
     attendees = Column(Integer)
     notes = Column(Text)
@@ -82,7 +82,7 @@ class Permission(Base):
     __tablename__ = 'permissions'
 
     id = Column(Integer, primary_key=True)
-    department_id = Column(Integer, ForeignKey('department.id'), unique=True)
+    department_id = Column(Integer, ForeignKey('departments.id'), unique=True)
     create_client = Column(Boolean, default=False)
     update_client = Column(Boolean, default=False)
     delete_client = Column(Boolean, default=False)

@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from .models import Base
+from .models import Base, EpicUser
 
 
 class Mysql:
@@ -18,10 +18,11 @@ class Mysql:
         return create_engine(db_url)
 
     def create_session(self):
-        return sessionmaker(bind=self.engine)()
+        Session = sessionmaker(bind=self.engine)
+        return Session()
 
     def has_epic_users(self):
-        pass
+        return self.session.query(EpicUser).count()
 
     def user_exists(self, login, password):
         return True
