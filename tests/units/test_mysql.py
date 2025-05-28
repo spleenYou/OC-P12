@@ -53,7 +53,7 @@ class TestMysql:
         assert mysql_instance.has_epic_users() == 1
 
     def test_get_department_list(self, mysql_instance):
-        departments = ["RH", "Informatique", "Marketing"]
+        departments = ["Commercial", "Support", "Management"]
         for name in departments:
             mysql_instance.session.add(Department(name=name))
         mysql_instance.session.commit()
@@ -67,3 +67,12 @@ class TestMysql:
             password=epic_user_information['password']
         )
         assert result is True
+
+    def test_user_non_exists(self, mysql_instance, department, epic_user, epic_user_information):
+        mysql_instance.session.add(department)
+        mysql_instance.session.add(epic_user)
+        result = mysql_instance.user_exists(
+            email=epic_user_information['email'],
+            password=epic_user_information['password'] + "e"
+        )
+        assert result is False
