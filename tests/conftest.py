@@ -30,8 +30,8 @@ def controller_no_user():
 
 
 @pytest.fixture
-def controller():
-    return Controller(prompt.Prompt, show.Show, Mysql)
+def controller(mysql_instance):
+    return Controller(prompt.Prompt, show.Show, lambda: mysql_instance)
 
 
 @pytest.fixture(scope="function")

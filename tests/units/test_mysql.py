@@ -31,8 +31,8 @@ class TestMysql:
         assert result is True
         assert mysql_instance.has_epic_users() == 1
 
-    def test_add_user_duplicate_email(self, mysql_instance):
-        dept = Department(name="Marketing")
+    def test_add_user_duplicate_email(self, mysql_instance, department):
+        dept = department
         mysql_instance.session.add(dept)
         mysql_instance.session.commit()
         mysql_instance.add_user(
@@ -66,7 +66,7 @@ class TestMysql:
             email=epic_user_information['email'],
             password=epic_user_information['password']
         )
-        assert result is True
+        assert result == 1
 
     def test_user_non_exists(self, mysql_instance, department, epic_user, epic_user_information):
         mysql_instance.session.add(department)
@@ -75,4 +75,4 @@ class TestMysql:
             email=epic_user_information['email'],
             password=epic_user_information['password'] + "e"
         )
-        assert result is False
+        assert result is None

@@ -25,11 +25,12 @@ class Mysql:
         return self.session.query(EpicUser).count()
 
     def user_exists(self, email, password):
-        if self.session.query(EpicUser) \
-            .with_entities(EpicUser.email, EpicUser.password) \
-                .filter(EpicUser.email == email, EpicUser.password == password).count():
-            return True
-        return False
+        user_id = self.session.query(EpicUser) \
+            .with_entities(EpicUser.id) \
+            .filter(EpicUser.email == email, EpicUser.password == password).count()
+        if user_id:
+            return user_id
+        return None
 
     def get_department_list(self):
         return [d[0] for d in self.session.query(Department.name).all()]
