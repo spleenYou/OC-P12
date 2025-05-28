@@ -29,6 +29,11 @@ def controller_no_user():
     return ctrl, db
 
 
+@pytest.fixture
+def controller():
+    return Controller(prompt.Prompt, show.Show, Mysql)
+
+
 @pytest.fixture(scope="function")
 def sqlalchemy_declarative_base():
     return Base

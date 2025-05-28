@@ -8,6 +8,7 @@ class Controller:
     def first_launch(self):
         if not self.db.has_epic_users():
             self.create_user()
+        return None
 
     def user_is_logged(self):
         if not self.user_logged:

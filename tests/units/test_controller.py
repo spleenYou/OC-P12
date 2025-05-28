@@ -11,3 +11,10 @@ class Test_controller:
         ctrl, db = controller_no_user
         ctrl.first_launch()
         assert db.user_created is True
+
+    def test_user_is_logged_fail(self, controller, epic_user_information, monkeypatch, capsys):
+        monkeypatch.setattr('builtins.input', lambda _: epic_user_information['email'])
+        monkeypatch.setattr('views.prompt.getpass', lambda prompt: epic_user_information['password'])
+        controller.user_is_logged()
+        captured = capsys.readouterr()
+        assert "Sorry, your login/password are unknown" in captured.out
