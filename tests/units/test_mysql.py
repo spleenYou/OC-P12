@@ -1,4 +1,4 @@
-from controllers.models import Department, EpicUser
+from controllers.models import Department
 from controllers.mysql import Mysql
 
 
@@ -10,22 +10,15 @@ class TestMysql:
     def test_has_no_epic_users(self, mysql_instance):
         assert mysql_instance.has_epic_users() == 0
 
-    def test_has_epic_users(self, mysql_instance):
-        dept = Department(name="Commercial")
+    def test_has_epic_users(self, mysql_instance, department, epic_user):
+        dept = department
         mysql_instance.session.add(dept)
-        user = EpicUser(
-            name="Test",
-            email="test@example.com",
-            password="secret",
-            employee_number=1,
-            department_id=dept.id
-        )
-        mysql_instance.session.add(user)
+        mysql_instance.session.add(epic_user)
         mysql_instance.session.commit()
         assert mysql_instance.has_epic_users() == 1
 
-    def test_add_user_success(self, mysql_instance):
-        dept = Department(name="Management")
+    def test_add_user_success(self, mysql_instance, department, epic_user):
+        dept = department
         mysql_instance.session.add(dept)
         mysql_instance.session.commit()
         result = mysql_instance.add_user(
@@ -66,6 +59,11 @@ class TestMysql:
         mysql_instance.session.commit()
         assert mysql_instance.get_department_list() == departments
 
-    def test_user_exists(self, mysql_instance):
-        # to-do
-        assert mysql_instance.user_exists("test", "test") is True
+    def test_user_exists(self, mysql_instance, department, epic_user, epic_user_information):
+        mysql_instance.session.add(department)
+        mysql_instance.session.add(epic_user)
+        result = mysql_instance.user_exists(
+            email=epic_user_information['email'],
+            password=epic_user_information['password']
+        )
+        assert result is True

@@ -1,6 +1,6 @@
 import pytest
 from sqlalchemy import create_engine
-from controllers.models import Base
+from controllers.models import Base, EpicUser, Department
 from controllers.mysql import Mysql
 
 
@@ -25,3 +25,30 @@ def mysql_instance(monkeypatch):
             return create_engine('sqlite:///:memory:')
 
     return TestMysql()
+
+
+@pytest.fixture
+def department():
+    return Department(name="Commercial")
+
+
+@pytest.fixture
+def epic_user():
+    return EpicUser(
+        name="Test",
+        email="test@example.com",
+        password="secret",
+        employee_number=1,
+        department_id=1
+    )
+
+
+@pytest.fixture
+def epic_user_information():
+    return {
+        'name': "Test",
+        'email': "test@example.com",
+        'password': "secret",
+        'employee_number': 1,
+        'department_id': 1
+    }
