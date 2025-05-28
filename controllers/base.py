@@ -11,8 +11,9 @@ class Controller:
 
     def user_is_logged(self):
         if not self.user_logged:
-            login, password = self.prompt.ask_user_loggin_information()
-            if self.db.user_exists(login, password):
+            email = self.prompt.for_email()
+            password = self.prompt.for_password()
+            if self.db.user_exists(email, password):
                 self.show.logged_ok()
                 self.user_logged = True
             else:

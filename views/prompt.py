@@ -5,11 +5,6 @@ class Prompt:
     def __init__(self):
         pass
 
-    def ask_user_loggin_information(self):
-        login = input('Entrez votre login ? ')
-        password = getpass('Entrez votre mot de passe : ')
-        return login, password
-
     def for_name(self):
         name = input('Veuillez écrire votre nom : ')
         return name
