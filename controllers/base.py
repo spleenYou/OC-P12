@@ -13,6 +13,7 @@ class Controller:
         return None
 
     def user_is_logged(self):
+        self.show.login_message()
         if not self._user_logged:
             email = self.prompt.for_email()
             password = self.prompt.for_password()

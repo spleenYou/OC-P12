@@ -36,7 +36,6 @@ class Mysql:
         user_information = self.session.query(EpicUser) \
             .with_entities(EpicUser.id, EpicUser.password) \
             .filter(EpicUser.email == email).first()
-        print(user_information)
         if (user_information is not None and self.password_verification(password, user_information[1])):
             return user_information[0]
         return None

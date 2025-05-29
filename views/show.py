@@ -10,3 +10,6 @@ class Show:
 
     def first_launch(self):
         print('Premier lancement. Création du premier utilisateur')
+
+    def login_message(self):
+        print('*** Connection ***')

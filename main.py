@@ -11,7 +11,6 @@ def main():
         print('ok')
     else:
         print('nok')
-    input('')
 
 
 if __name__ == "__main__":
