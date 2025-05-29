@@ -12,6 +12,13 @@ class Mysql:
         self.engine = self.create_engine()
         Base.metadata.create_all(bind=self.engine)
         self.session = self.create_session()
+        self.password_hasher = PasswordHasher(
+            time_cost=int(os.getenv('TIME_COST')),
+            memory_cost=int(os.getenv('MEMORY_COST')),
+            parallelism=int(os.getenv('PARALLELISM')),
+            hash_len=int(os.getenv('HASH_LEN')),
+            salt_len=int(os.getenv('SALT_LEN'))
+        )
 
     def create_engine(self):
         db_url = (f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:"
@@ -54,22 +61,10 @@ class Mysql:
             return False
 
     def hash_password(self, password):
-        return PasswordHasher(
-            time_cost=4,
-            memory_cost=65536,
-            parallelism=1,
-            hash_len=32,
-            salt_len=16
-        ).hash(password)
+        return self.password_hasher.hash(password)
 
     def password_verification(self, password, hash_password):
         try:
-            return PasswordHasher(
-                time_cost=4,
-                memory_cost=65536,
-                parallelism=1,
-                hash_len=32,
-                salt_len=16
-            ).verify(hash_password, password)
+            return self.password_hasher.verify(hash_password, password)
         except Exception:
             return False
