@@ -9,7 +9,7 @@ class Controller:
     def first_launch(self):
         if not self.db.has_epic_users():
             self.show.first_launch()
-            self.create_user()
+            self.create_user(department_id=3)
         return None
 
     def user_is_logged(self):
@@ -24,12 +24,15 @@ class Controller:
                 self.show.logged_nok()
         return self._user_logged
 
-    def create_user(self):
+    def create_user(self, department_id=None):
         name = self.prompt.for_name()
         email = self.prompt.for_email()
         password = self.prompt.for_password()
         employee_number = self.prompt.for_employee_number()
-        department_id = self.prompt.for_department(self.db.get_department_list())
+        if department_id is None:
+            department_id = self.prompt.for_department(self.db.get_department_list())
+        else:
+            department_id = 3
         if self.db.add_user(name, email, password, employee_number, department_id):
             # Show a message
             return True

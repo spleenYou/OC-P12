@@ -41,7 +41,7 @@ class Mysql:
         return None
 
     def get_department_list(self):
-        return [d[0] for d in self.session.query(Department.name).all()]
+        return [d[0] for d in self.session.query(Department.name).order_by(Department.id).all()]
 
     def add_user(self, name, email, password, employee_number, department_id):
         try:
