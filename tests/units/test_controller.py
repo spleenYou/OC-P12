@@ -67,8 +67,8 @@ class Test_controller:
 
     def test_password_verification(self, controller, epic_user_information):
         hash_password = controller.hash_password(epic_user_information['password'])
-        assert controller.verify_password(epic_user_information['password'], hash_password) is True
+        assert controller.password_verification(epic_user_information['password'], hash_password) is True
 
     def test_password_verification_fail(self, controller, epic_user_information):
         hash_password = controller.hash_password(epic_user_information['password'] + "e")
-        assert controller.verify_password(epic_user_information['password'], hash_password) is False
+        assert controller.password_verification(epic_user_information['password'], hash_password) is False
