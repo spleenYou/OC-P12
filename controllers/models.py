@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey, Numeric, Boolean, Text, func
+from sqlalchemy import Column, Integer, String, Date, ForeignKey, Numeric, Boolean, Text, func, event
 from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.schema import DDL
 
 Base = declarative_base()
 
@@ -96,3 +97,23 @@ class Permission(Base):
     delete_user = Column(Boolean, default=False)
     update_support_on_event = Column(Boolean, default=False)
     department = relationship('Department', back_populates='permissions')
+
+
+event.listen(
+    Department.__table__,
+    'after_create',
+    DDL("""INSERT INTO departments (id, name) VALUES (1, "Commercial"), (2, "Support"), (3, "Management")""")
+)
+
+
+event.listen(
+    Permission.__table__,
+    'after_create',
+    DDL("""INSERT INTO permissions
+    (id, department_id, create_client, update_client, delete_client, create_contract, update_contract, delete_contract,
+    create_event, update_event, delete_event, create_user, update_user, delete_user, update_support_on_event)
+    VALUES
+    (1, 1, True, True, True, False, True, True, True, False, True, False, False, False, False),
+    (2, 2, False, False, False, False, False, False, False, True, True, False, False, False, False),
+    (3, 3, False, False, False, True, True, True, False, False, False, True, True, True, True)""")
+)
