@@ -32,3 +32,23 @@ class Test_controller:
         assert controller.user_is_logged() is True
         captured = capsys.readouterr()
         assert "Hello :)" in captured.out
+
+    def test_create_user_fail(self, controller, epic_user_information, monkeypatch, capsys):
+        inputs = iter([
+            epic_user_information['name'],
+            epic_user_information['email'],
+            epic_user_information['employee_number'],
+            epic_user_information['department_id'],
+            epic_user_information['name'] + "e",
+            epic_user_information['email'],
+            epic_user_information['employee_number'] + 1,
+            epic_user_information['department_id']
+        ])
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('views.prompt.getpass', lambda prompt: epic_user_information['password'])
+        controller.create_user()
+        result = controller.create_user()
+        assert result is False
+        # ToDo : Add message if fail
+        # captured = capsys.readouterr()
+        # assert "Hello :)" in captured.out
