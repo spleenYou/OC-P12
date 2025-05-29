@@ -1,5 +1,6 @@
 from controllers.models import Department
 from controllers.mysql import Mysql
+import re
 
 
 class TestMysql:
@@ -76,3 +77,18 @@ class TestMysql:
             password=epic_user_information['password'] + "e"
         )
         assert result is None
+
+    def test_hash_password(self, mysql_instance, epic_user_information):
+        hash_password = mysql_instance.hash_password(epic_user_information['password'])
+        assert re.search(
+            "[$]{1}argon2id[$]{1}v=19[$]{1}m=65536,t=4,p=1[$]{1}[+.\x00-9a-zA-Z]{22}[$]{1}[+.\x00-9a-zA-Z]{43}",
+            hash_password
+        ) is not None
+
+    def test_password_verification(self, mysql_instance, epic_user_information):
+        hash_password = mysql_instance.hash_password(epic_user_information['password'])
+        assert mysql_instance.password_verification(epic_user_information['password'], hash_password) is True
+
+    def test_password_verification_fail(self, mysql_instance, epic_user_information):
+        hash_password = mysql_instance.hash_password(epic_user_information['password'] + "e")
+        assert mysql_instancecontroller.password_verification(epic_user_information['password'], hash_password) is False

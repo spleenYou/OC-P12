@@ -1,6 +1,3 @@
-from argon2 import PasswordHasher
-
-
 class Controller:
     def __init__(self, prompt, show, db):
         self.prompt = prompt()
@@ -37,24 +34,3 @@ class Controller:
             return True
         # Show a message if not
         return False
-
-    def hash_password(self, password):
-        return PasswordHasher(
-            time_cost=4,
-            memory_cost=65536,
-            parallelism=1,
-            hash_len=32,
-            salt_len=16
-        ).hash(password)
-
-    def password_verification(self, password, hash_password):
-        try:
-            return PasswordHasher(
-                time_cost=4,
-                memory_cost=65536,
-                parallelism=1,
-                hash_len=32,
-                salt_len=16
-            ).verify(hash_password, password)
-        except Exception:
-            return False

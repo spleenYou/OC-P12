@@ -1,6 +1,3 @@
-import re
-
-
 class Test_controller:
     def test_first_launch(self, controller, mysql_instance, epic_user_information, monkeypatch, capsys, department):
         mysql_instance.session.add(department)
@@ -57,18 +54,3 @@ class Test_controller:
         # ToDo : Add message if fail
         # captured = capsys.readouterr()
         # assert "Hello :)" in captured.out
-
-    def test_hash_password(self, controller, epic_user_information):
-        hash_password = controller.hash_password(epic_user_information['password'])
-        assert re.search(
-            "[$]{1}argon2id[$]{1}v=19[$]{1}m=65536,t=4,p=1[$]{1}[+.\x00-9a-zA-Z]{22}[$]{1}[+.\x00-9a-zA-Z]{43}",
-            hash_password
-        ) is not None
-
-    def test_password_verification(self, controller, epic_user_information):
-        hash_password = controller.hash_password(epic_user_information['password'])
-        assert controller.password_verification(epic_user_information['password'], hash_password) is True
-
-    def test_password_verification_fail(self, controller, epic_user_information):
-        hash_password = controller.hash_password(epic_user_information['password'] + "e")
-        assert controller.password_verification(epic_user_information['password'], hash_password) is False
