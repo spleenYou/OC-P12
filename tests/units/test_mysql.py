@@ -60,10 +60,16 @@ class TestMysql:
         mysql_instance.session.commit()
         assert mysql_instance.get_department_list() == departments
 
-    def test_user_exists(self, mysql_instance, department, epic_user, epic_user_information):
+    def test_user_exists(self, mysql_instance, department, epic_user_information):
         mysql_instance.session.add(department)
-        mysql_instance.session.add(epic_user)
-        result = mysql_instance.user_exists(
+        mysql_instance.add_user(
+            name=epic_user_information['name'],
+            email=epic_user_information['email'],
+            password=epic_user_information['password'],
+            employee_number=epic_user_information['employee_number'],
+            department_id=epic_user_information['department_id']
+        )
+        result = mysql_instance.check_user_login(
             email=epic_user_information['email'],
             password=epic_user_information['password']
         )
@@ -72,7 +78,7 @@ class TestMysql:
     def test_user_non_exists(self, mysql_instance, department, epic_user, epic_user_information):
         mysql_instance.session.add(department)
         mysql_instance.session.add(epic_user)
-        result = mysql_instance.user_exists(
+        result = mysql_instance.check_user_login(
             email=epic_user_information['email'],
             password=epic_user_information['password'] + "e"
         )

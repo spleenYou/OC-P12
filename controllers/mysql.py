@@ -32,12 +32,13 @@ class Mysql:
     def has_epic_users(self):
         return self.session.query(EpicUser).count()
 
-    def user_exists(self, email, password):
-        user_id = self.session.query(EpicUser) \
-            .with_entities(EpicUser.id) \
-            .filter(EpicUser.email == email, EpicUser.password == password).count()
-        if user_id:
-            return user_id
+    def check_user_login(self, email, password):
+        user_information = self.session.query(EpicUser) \
+            .with_entities(EpicUser.id, EpicUser.password) \
+            .filter(EpicUser.email == email).first()
+        print(user_information)
+        if (user_information is not None and self.password_verification(password, user_information[1])):
+            return user_information[0]
         return None
 
     def get_department_list(self):
@@ -49,7 +50,7 @@ class Mysql:
                 EpicUser(
                     name=name,
                     email=email,
-                    password=password,
+                    password=self.hash_password(password),
                     employee_number=employee_number,
                     department_id=department_id
                 )
