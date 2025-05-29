@@ -64,3 +64,11 @@ class Test_controller:
             "[$]{1}argon2id[$]{1}v=19[$]{1}m=65536,t=4,p=1[$]{1}[+.\x00-9a-zA-Z]{22}[$]{1}[+.\x00-9a-zA-Z]{43}",
             hash_password
         ) is not None
+
+    def test_password_verification(self, controller, epic_user_information):
+        hash_password = controller.hash_password(epic_user_information['password'])
+        assert controller.verify_password(epic_user_information['password'], hash_password) is True
+
+    def test_password_verification_fail(self, controller, epic_user_information):
+        hash_password = controller.hash_password(epic_user_information['password'] + "e")
+        assert controller.verify_password(epic_user_information['password'], hash_password) is False
