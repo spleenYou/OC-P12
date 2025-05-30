@@ -32,7 +32,7 @@ class Controller:
         if department_id is None:
             department_id = self.prompt.for_department(self.db.get_department_list())
         else:
-            department_id = 3
+            department_id = department_id
         if self.db.add_user(name, email, password, employee_number, department_id):
             # Show a message
             return True

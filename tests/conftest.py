@@ -4,6 +4,7 @@ from controllers.models import Base, EpicUser, Department
 from controllers.mysql import Mysql
 from controllers.base import Controller
 from views import show, prompt
+from controllers.authentication import Authentication
 
 
 @pytest.fixture
@@ -56,3 +57,12 @@ def epic_user_information():
         'employee_number': 1,
         'department_id': 1
     }
+
+
+@pytest.fixture
+def authentication(monkeypatch, tmp_path):
+    dovenv_path = tmp_path / '.env'
+    dovenv_path.write_text("")
+    a = Authentication()
+    a.dotenv_path = str(dovenv_path)
+    return a

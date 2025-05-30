@@ -1,11 +1,9 @@
 class Test_controller:
     def test_first_launch(self, controller, mysql_instance, epic_user_information, monkeypatch, capsys, department):
-        mysql_instance.session.add(department)
         inputs = iter([
             epic_user_information['name'],
             epic_user_information['email'],
-            epic_user_information['employee_number'],
-            epic_user_information['department_id']
+            epic_user_information['employee_number']
         ])
         monkeypatch.setattr('builtins.input', lambda _: next(inputs))
         monkeypatch.setattr('views.prompt.getpass', lambda prompt: epic_user_information['password'])
@@ -35,7 +33,6 @@ class Test_controller:
         assert "Hello :)" in captured.out
 
     def test_create_user_fail(self, controller, mysql_instance, department, epic_user_information, monkeypatch, capsys):
-        mysql_instance.session.add(department)
         inputs = iter([
             epic_user_information['name'],
             epic_user_information['email'],
