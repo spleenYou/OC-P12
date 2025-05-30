@@ -43,3 +43,12 @@ class TestAuthentication:
             name=lambda path, key: secret if key == 'SECRET_KEY' else token
         )
         assert authentication.check_token() == 1
+
+    def test_check_token_valid_fail(self, monkeypatch, authentication):
+        secret = 'my_secret_key'
+        token = self.make_token(secret=secret, exp=datetime.utcnow() - timedelta(hours=1))
+        monkeypatch.setattr(
+            target='controllers.authentication.get_key',
+            name=lambda path, key: secret if key == 'SECRET_KEY' else token
+        )
+        assert authentication.check_token() is None

@@ -34,7 +34,7 @@ class Mysql:
 
     def check_user_login(self, email, password):
         user_information = self.session.query(EpicUser) \
-            .with_entities(EpicUser.id, EpicUser.password) \
+            .with_entities(EpicUser.employee_number, EpicUser.password) \
             .filter(EpicUser.email == email).first()
         if (user_information is not None and self.password_verification(password, user_information[1])):
             return user_information[0]

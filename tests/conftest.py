@@ -9,7 +9,7 @@ from controllers.authentication import Authentication
 
 @pytest.fixture
 def controller(mysql_instance):
-    return Controller(prompt.Prompt, show.Show, lambda: mysql_instance)
+    return Controller(prompt.Prompt, show.Show, lambda: mysql_instance, Authentication)
 
 
 @pytest.fixture(scope="function")

@@ -1,5 +1,4 @@
 import jwt
-from jwt.exceptions import ExpiredSignatureError
 from datetime import datetime, timedelta
 import secrets
 from dotenv import set_key, load_dotenv, find_dotenv, get_key
@@ -36,5 +35,5 @@ class Authentication:
                 algorithms=['HS256']
             )
             return token['employee_number']
-        except ExpiredSignatureError:
-            return False
+        except Exception:
+            return None
