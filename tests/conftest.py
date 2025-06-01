@@ -9,8 +9,27 @@ from controllers.permission import Permission
 
 
 @pytest.fixture
-def controller(mysql_instance):
-    return Controller(prompt.Prompt, show.Show, lambda: mysql_instance, Authentication, Permission)
+def controller(mysql_instance, epic_user_information):
+    return Controller(
+        prompt.Prompt,
+        show.Show,
+        lambda: mysql_instance,
+        Authentication,
+        Permission,
+        epic_user_information['email']
+    )
+
+
+@pytest.fixture
+def controller_without_login(mysql_instance, epic_user_information):
+    return Controller(
+        prompt.Prompt,
+        show.Show,
+        lambda: mysql_instance,
+        Authentication,
+        Permission,
+        None
+    )
 
 
 @pytest.fixture(scope="function")

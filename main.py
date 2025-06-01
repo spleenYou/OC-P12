@@ -1,3 +1,4 @@
+import argparse
 from controllers.base import Controller
 from views.prompt import Prompt
 from views.show import Show
@@ -7,12 +8,11 @@ from controllers.permission import Permission
 
 
 def main():
-    app = Controller(Prompt, Show, Mysql, Authentication, Permission)
-    app.first_launch()
-    if app.user_is_logged():
-        print('ok')
-    else:
-        print('nok')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('login', nargs='?', default=None, help="Email needed as login")
+    args = parser.parse_args()
+    app = Controller(Prompt, Show, Mysql, Authentication, Permission, args.login)
+    app.start()
 
 
 if __name__ == "__main__":

@@ -1,39 +1,34 @@
 class Controller:
-    def __init__(self, prompt, show, db, auth, permission):
+    def __init__(self, prompt, show, db, auth, permission, login):
         self.prompt = prompt()
         self.show = show()
         self.db = db()
         self.auth = auth()
         self.permissions = permission(self.db)
-        self._user_logged = False
         self.permission_level = None
+        self.login = login
 
-    def first_launch(self):
-        if not self.db.has_epic_users():
+    def start(self):
+        self.show.start()
+        if not self.login:
+            self.login = self.prompt.for_email()
+        if self.db.has_epic_users() == 0:
             self.show.first_launch()
             self.auth.generate_secret_key()
             self.create_user(department_id=3)
-        return None
+        password = self.prompt.for_password()
+        self.permission_level = self.db.check_user_login(self.login, password)
+        if self.permission_level is not None:
+            self.auth.generate_token(self.permission_level)
+            self.show.logged_ok()
+        else:
+            self.show.logged_nok()
 
-    def user_is_logged(self):
-        self.show.login_message()
-        if not self._user_logged:
-            self.permission_level = self.auth.check_token()
-            if self.permission_level is None:
-                email = self.prompt.for_email()
-                password = self.prompt.for_password()
-                self.permission_level = self.db.check_user_login(email, password)
-                if self.permission_level is not None:
-                    self.show.logged_ok()
-                    self.auth.generate_token(self.permission_level)
-                    self._user_logged = True
-                else:
-                    self.show.logged_nok()
-        return self._user_logged
-
-    def create_user(self, department_id=None):
+    def create_user(self, ask_email=None, department_id=None):
         name = self.prompt.for_name()
-        email = self.prompt.for_email()
+        email = self.login
+        if ask_email:
+            email = self.prompt.for_email()
         password = self.prompt.for_password()
         employee_number = self.prompt.for_employee_number()
         if department_id is None:
@@ -43,5 +38,6 @@ class Controller:
         if self.db.add_user(name, email, password, employee_number, department_id):
             # Show a message
             return True
-        # Show a message if not
-        return False
+        else:
+            # Show a message if not
+            return False
