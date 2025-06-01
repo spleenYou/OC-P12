@@ -10,7 +10,7 @@ from controllers.permission import Permission
 
 @pytest.fixture
 def controller(mysql_instance):
-    return Controller(prompt.Prompt, show.Show, lambda: mysql_instance, Authentication)
+    return Controller(prompt.Prompt, show.Show, lambda: mysql_instance, Authentication, Permission)
 
 
 @pytest.fixture(scope="function")
