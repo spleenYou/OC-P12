@@ -19,7 +19,7 @@ class Authentication:
             'TOKEN',
             jwt.encode(
                 payload={
-                    'employee_number': employee_number,
+                    'permission_level': employee_number,
                     'exp': datetime.now() + timedelta(hours=2)
                 },
                 key=get_key(self.dotenv_path, 'SECRET_KEY')

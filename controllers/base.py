@@ -5,7 +5,7 @@ class Controller:
         self.db = db()
         self.auth = auth()
         self._user_logged = False
-        self.employee_number = None
+        self.permission_level = None
 
     def first_launch(self):
         if not self.db.has_epic_users():
@@ -17,14 +17,14 @@ class Controller:
     def user_is_logged(self):
         self.show.login_message()
         if not self._user_logged:
-            self.employee_number = self.auth.check_token()
-            if self.employee_number is None:
+            self.permission_level = self.auth.check_token()
+            if self.permission_level is None:
                 email = self.prompt.for_email()
                 password = self.prompt.for_password()
-                self.employee_number = self.db.check_user_login(email, password)
-                if self.employee_number is not None:
+                self.permission_level = self.db.check_user_login(email, password)
+                if self.permission_level is not None:
                     self.show.logged_ok()
-                    self.auth.generate_token(self.employee_number)
+                    self.auth.generate_token(self.permission_level)
                     self._user_logged = True
                 else:
                     self.show.logged_nok()

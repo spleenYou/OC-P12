@@ -24,7 +24,7 @@ class TestAuthentication:
         assert authentication.generate_token(1) is True
         assert 'TOKEN' in written
         decoded = jwt.decode(written['TOKEN'], 'my_secret_key', algorithms=['HS256'])
-        assert decoded['employee_number'] == 1
+        assert decoded['permission_level'] == 1
         assert datetime.fromtimestamp(decoded['exp']) > datetime.now()
         assert datetime.fromtimestamp(decoded['exp']) < datetime.now() + timedelta(hours=4)
 
