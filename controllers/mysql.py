@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from .models import Base, EpicUser, Department
+from .models import Base, EpicUser, Department, Permission
 from argon2 import PasswordHasher
 
 
@@ -68,3 +68,6 @@ class Mysql:
             return self.password_hasher.verify(hash_password, password)
         except Exception:
             return False
+
+    def get_permissions(self):
+        return self.session.query(Permission).all()

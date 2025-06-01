@@ -1,9 +1,10 @@
 class Controller:
-    def __init__(self, prompt, show, db, auth):
+    def __init__(self, prompt, show, db, auth, permission):
         self.prompt = prompt()
         self.show = show()
         self.db = db()
         self.auth = auth()
+        self.permissions = permission(self.db)
         self._user_logged = False
         self.permission_level = None
 

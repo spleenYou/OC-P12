@@ -5,6 +5,7 @@ from controllers.mysql import Mysql
 from controllers.base import Controller
 from views import show, prompt
 from controllers.authentication import Authentication
+from controllers.permission import Permission
 
 
 @pytest.fixture
@@ -66,3 +67,9 @@ def authentication(monkeypatch, tmp_path):
     a = Authentication()
     a.dotenv_path = str(dovenv_path)
     return a
+
+
+@pytest.fixture
+def permissions():
+    db = Mysql()
+    return Permission(db)
