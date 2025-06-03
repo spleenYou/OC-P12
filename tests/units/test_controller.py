@@ -20,12 +20,12 @@ class Test_controller:
                 epic_user_information['password']
             ]
         )
-        empty_user.department_id = 3
         monkeypatch.setattr('views.prompt.getpass', lambda prompt: next(inputsPwd))
         controller.start(empty_user)
         captured = capsys.readouterr()
         assert 'Welcome on Epic Event !' in captured.out
         assert 'Premier lancement. Cr\xe9ation du premier utilisateur' in captured.out
+        assert 'Hello :)' in captured.out
 
     def test_start_with_login_and_logged_ok(self, controller, epic_user_information, empty_user, monkeypatch, capsys):
         inputs = iter(
@@ -83,6 +83,7 @@ class Test_controller:
             target='controllers.authentication.get_key',
             name=lambda path, key: secret if key == 'SECRET_KEY' else token
         )
+        controller.first_launch = False
         controller.user_info = empty_user
         controller.user_info.department_id = 3
         inputs = iter([
@@ -93,7 +94,7 @@ class Test_controller:
         ])
         monkeypatch.setattr('builtins.input', lambda _: next(inputs))
         monkeypatch.setattr('views.prompt.getpass', lambda prompt: epic_user_information['password'])
-        result = controller.add_user(ask_email=True)
+        result = controller.add_user()
         assert result is True
 
     def test_add_user_failed(self, controller, mysql_instance, epic_user_information, empty_user, monkeypatch, capsys):
