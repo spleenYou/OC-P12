@@ -1,6 +1,3 @@
-from controllers.models import EpicUser
-
-
 class Test_controller:
     def test_start_without_login_and_logged_ok(
             self,
@@ -67,6 +64,18 @@ class Test_controller:
         captured = capsys.readouterr()
         assert 'Sorry, your login/password are unknown' in captured.out
 
+    def test_add_user(self, controller, mysql_instance, epic_user_information, monkeypatch):
+        inputs = iter([
+            epic_user_information['name'],
+            epic_user_information['email'],
+            epic_user_information['employee_number'],
+            epic_user_information['department_id']
+        ])
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('views.prompt.getpass', lambda prompt: epic_user_information['password'])
+        result = controller.add_user(ask_email=True)
+        assert result is True
+
     def test_add_user_failed(self, controller, mysql_instance, epic_user_information, monkeypatch, capsys):
         inputs = iter([
             epic_user_information['name'],
@@ -89,15 +98,3 @@ class Test_controller:
         controller.add_user()
         result = controller.add_user()
         assert result is False
-
-    def test_add_user(self, controller, mysql_instance, epic_user_information, monkeypatch):
-        inputs = iter([
-            epic_user_information['name'],
-            epic_user_information['email'],
-            epic_user_information['employee_number'],
-            epic_user_information['department_id']
-        ])
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
-        monkeypatch.setattr('views.prompt.getpass', lambda prompt: epic_user_information['password'])
-        result = controller.add_user(ask_email=True)
-        assert isinstance(result, EpicUser) is True

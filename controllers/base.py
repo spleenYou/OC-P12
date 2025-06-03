@@ -17,10 +17,9 @@ class Controller:
         if self.db.has_epic_users() == 0:
             self.show.first_launch()
             self.auth.generate_secret_key()
-            self.user_info = self.add_user(department_id=3)
+            self.add_user(department_id=3)
         password = self.prompt.for_password()
         self.user_info = self.db.check_user_login(self.user_info.email, password)
-        print(self.user_info)
         if self.user_info:
             self.auth.generate_token(self.user_info.department_id)
             self.show.logged_ok()
@@ -39,16 +38,9 @@ class Controller:
             department_id = self.prompt.for_department(self.db.get_department_list())
         else:
             department_id = department_id
-        user = EpicUser(
-            name=name,
-            email=email,
-            password=self.db.hash_password(password),
-            employee_number=employee_number,
-            department_id=department_id
-        )
-        if self.db.add_in_db(user):
+        if self.db.add_epic_user(name, email, password, employee_number, department_id):
             # Show a message
-            return user
+            return True
         else:
             # Show a message if not
             return False
