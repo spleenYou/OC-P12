@@ -1,17 +1,14 @@
-from controllers.models import Client, EpicUser
-
-
 class Controller:
     def __init__(self, prompt, show, db, auth):
         self.prompt = prompt()
         self.show = show()
         self.db = db()
         self.auth = auth()
-        self.user_info = EpicUser()
+        self.user_info = None
 
-    def start(self, login):
+    def start(self, user):
         self.show.start()
-        self.user_info.email = login
+        self.user_info = user
         if not self.user_info.email:
             self.user_info.email = self.prompt.for_email()
         if self.db.has_epic_users() == 0:
@@ -45,17 +42,17 @@ class Controller:
             # Show a message if not
             return False
 
-    def add_client(self):
-        name = ""
-        email = ""
-        phone = ''
-        entreprise_name = ''
-        return self.db.add_in_db(
-            Client(
-                name=name,
-                email=email,
-                phone=phone,
-                entreprise_name=entreprise_name,
-                commercial_contact_id=self.user_info['id']
-            )
-        )
+    # def add_client(self):
+    #     name = ""
+    #     email = ""
+    #     phone = ''
+    #     entreprise_name = ''
+    #     return self.db.add_in_db(
+    #         Client(
+    #             name=name,
+    #             email=email,
+    #             phone=phone,
+    #             entreprise_name=entreprise_name,
+    #             commercial_contact_id=self.user_info['id']
+    #         )
+    #     )

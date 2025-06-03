@@ -3,6 +3,7 @@ class Test_controller:
             self,
             controller,
             epic_user_information,
+            empty_user,
             monkeypatch,
             capsys):
         inputs = iter(
@@ -20,12 +21,12 @@ class Test_controller:
             ]
         )
         monkeypatch.setattr('views.prompt.getpass', lambda prompt: next(inputsPwd))
-        controller.start(None)
+        controller.start(empty_user)
         captured = capsys.readouterr()
         assert 'Welcome on Epic Event !' in captured.out
         assert 'Premier lancement. Cr\xe9ation du premier utilisateur' in captured.out
 
-    def test_start_with_login_and_logged_ok(self, controller, epic_user_information, monkeypatch, capsys):
+    def test_start_with_login_and_logged_ok(self, controller, epic_user_information, empty_user, monkeypatch, capsys):
         inputs = iter(
             [
                 epic_user_information['name'],
@@ -38,14 +39,22 @@ class Test_controller:
                 epic_user_information['password']
             ]
         )
+        user = empty_user
+        user.email = epic_user_information['email']
         monkeypatch.setattr('builtins.input', lambda _: next(inputs))
         monkeypatch.setattr('views.prompt.getpass', lambda prompt: next(inputsPwd))
-        controller.start(epic_user_information['email'])
+        controller.start(user)
         captured = capsys.readouterr()
         assert 'Welcome on Epic Event !' in captured.out
         assert 'Premier lancement. Cr\xe9ation du premier utilisateur' in captured.out
 
-    def test_start_with_login_and_logged_failed(self, controller, epic_user_information, monkeypatch, capsys):
+    def test_start_with_login_and_logged_failed(
+            self,
+            controller,
+            epic_user_information,
+            empty_user,
+            monkeypatch,
+            capsys):
         inputs = iter(
             [
                 epic_user_information['name'],
@@ -59,8 +68,10 @@ class Test_controller:
                 epic_user_information['password'] + "e"
             ]
         )
+        user = empty_user
+        user.email = epic_user_information['email']
         monkeypatch.setattr('views.prompt.getpass', lambda prompt: next(inputsPwd))
-        controller.start(epic_user_information['email'])
+        controller.start(user)
         captured = capsys.readouterr()
         assert 'Sorry, your login/password are unknown' in captured.out
 
@@ -76,7 +87,8 @@ class Test_controller:
         result = controller.add_user(ask_email=True)
         assert result is True
 
-    def test_add_user_failed(self, controller, mysql_instance, epic_user_information, monkeypatch, capsys):
+    def test_add_user_failed(self, controller, mysql_instance, epic_user_information, empty_user, monkeypatch, capsys):
+        controller.user_info = empty_user
         inputs = iter([
             epic_user_information['name'],
             epic_user_information['email'],

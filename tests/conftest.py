@@ -1,6 +1,6 @@
 import pytest
 from sqlalchemy import create_engine
-from controllers.models import Base
+from controllers.models import Base, EpicUser
 from controllers.mysql import Mysql
 from controllers.base import Controller
 from views import show, prompt
@@ -47,6 +47,11 @@ def epic_user_information():
         'employee_number': 1,
         'department_id': 1
     }
+
+
+@pytest.fixture
+def empty_user():
+    return EpicUser()
 
 
 @pytest.fixture
