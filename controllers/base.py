@@ -12,13 +12,16 @@ class Controller:
     def start(self, login):
         self.show.start()
         self.user_info.email = login
+        if not self.user_info.email:
+            self.user_info.email = self.prompt.for_email()
         if self.db.has_epic_users() == 0:
             self.show.first_launch()
             self.auth.generate_secret_key()
             self.user_info = self.add_user(department_id=3)
         password = self.prompt.for_password()
-        self.user_info = self.db.check_user_login(login, password)
-        if self.user_info is not None:
+        self.user_info = self.db.check_user_login(self.user_info.email, password)
+        print(self.user_info)
+        if self.user_info:
             self.auth.generate_token(self.user_info.department_id)
             self.show.logged_ok()
         else:
@@ -26,7 +29,7 @@ class Controller:
 
     def add_user(self, ask_email=None, department_id=None):
         name = self.prompt.for_name()
-        if ask_email or not self.user_info.email:
+        if ask_email:
             email = self.prompt.for_email()
         else:
             email = self.user_info.email
@@ -39,7 +42,7 @@ class Controller:
         user = EpicUser(
             name=name,
             email=email,
-            password=password,
+            password=self.db.hash_password(password),
             employee_number=employee_number,
             department_id=department_id
         )
