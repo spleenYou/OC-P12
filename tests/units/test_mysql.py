@@ -1,6 +1,4 @@
 import re
-from datetime import datetime, timedelta
-import jwt
 from controllers.mysql import Mysql
 from controllers.models import EpicUser
 
@@ -41,17 +39,8 @@ class TestMysql:
         mysql_instance.session.commit()
         assert mysql_instance.has_epic_users() == 1
 
-    def make_token(self, secret, exp):
-        payload = {
-            'department_id': 1,
-            'exp': exp
-        }
-        return jwt.encode(payload=payload, key=secret, algorithm='HS256')
-
-    def test_add_in_db_ok(self, mysql_instance, epic_user_information, monkeypatch):
+    def test_add_in_db_ok(self, mysql_instance, epic_user_information, monkeypatch, secret, token):
         new_user = EpicUser(**epic_user_information)
-        secret = 'my_secret_key'
-        token = self.make_token(secret=secret, exp=datetime.utcnow() + timedelta(hours=1))
         monkeypatch.setattr(
             target='controllers.authentication.get_key',
             name=lambda path, key: secret if key == 'SECRET_KEY' else token
@@ -59,9 +48,7 @@ class TestMysql:
         result = mysql_instance.add_in_db(new_user)
         assert result == 1
 
-    def test_add_in_db_failed(self, mysql_instance, epic_user_information, monkeypatch):
-        secret = 'my_secret_key'
-        token = self.make_token(secret=secret, exp=datetime.utcnow() + timedelta(hours=1))
+    def test_add_in_db_failed(self, mysql_instance, epic_user_information, monkeypatch, secret, token):
         monkeypatch.setattr(
             target='controllers.authentication.get_key',
             name=lambda path, key: secret if key == 'SECRET_KEY' else token

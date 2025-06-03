@@ -6,6 +6,8 @@ from controllers.base import Controller
 from views import show, prompt
 from controllers.authentication import Authentication
 from controllers.permissions import Check_Permission
+import jwt
+from datetime import datetime, timedelta
 
 
 @pytest.fixture
@@ -67,3 +69,26 @@ def authentication(monkeypatch, tmp_path):
 def permissions():
     db = Mysql()
     return Check_Permission(db.get_permissions())
+
+
+def make_token(secret, exp):
+    payload = {
+        'department_id': 1,
+        'exp': exp
+    }
+    return jwt.encode(payload=payload, key=secret, algorithm='HS256')
+
+
+@pytest.fixture
+def secret():
+    return 'my_secret_key'
+
+
+@pytest.fixture
+def token(secret):
+    return make_token(secret=secret, exp=datetime.utcnow() + timedelta(hours=1))
+
+
+@pytest.fixture
+def invalid_token(secret):
+    return make_token(secret=secret, exp=datetime.utcnow() - timedelta(hours=1))

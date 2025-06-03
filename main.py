@@ -3,8 +3,8 @@ from controllers.base import Controller
 from views.prompt import Prompt
 from views.show import Show
 from controllers.mysql import Mysql
-from controllers.authentication import Authentication
 from controllers.models import EpicUser
+from controllers.authentication import Authentication
 
 
 def main():

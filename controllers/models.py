@@ -83,16 +83,16 @@ class Permission(Base):
 
     id = Column(Integer, primary_key=True)
     department_id = Column(Integer, ForeignKey('departments.id'), unique=True)
-    create_client = Column(Boolean, default=False)
+    add_client = Column(Boolean, default=False)
     update_client = Column(Boolean, default=False)
     delete_client = Column(Boolean, default=False)
-    create_contract = Column(Boolean, default=False)
+    add_contract = Column(Boolean, default=False)
     update_contract = Column(Boolean, default=False)
     delete_contract = Column(Boolean, default=False)
-    create_event = Column(Boolean, default=False)
+    add_event = Column(Boolean, default=False)
     update_event = Column(Boolean, default=False)
     delete_event = Column(Boolean, default=False)
-    create_user = Column(Boolean, default=False)
+    add_user = Column(Boolean, default=False)
     update_user = Column(Boolean, default=False)
     delete_user = Column(Boolean, default=False)
     update_support_on_event = Column(Boolean, default=False)
@@ -110,8 +110,8 @@ event.listen(
     Permission.__table__,
     'after_create',
     DDL("""INSERT INTO permissions
-    (id, department_id, create_client, update_client, delete_client, create_contract, update_contract, delete_contract,
-    create_event, update_event, delete_event, create_user, update_user, delete_user, update_support_on_event)
+    (id, department_id, add_client, update_client, delete_client, add_contract, update_contract, delete_contract,
+    add_event, update_event, delete_event, add_user, update_user, delete_user, update_support_on_event)
     VALUES
     (1, 1, True, True, True, False, True, True, True, False, True, False, False, False, False),
     (2, 2, False, False, False, False, False, False, False, True, True, False, False, False, False),

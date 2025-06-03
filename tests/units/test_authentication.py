@@ -28,27 +28,16 @@ class TestAuthentication:
         assert datetime.fromtimestamp(decoded['exp']) > datetime.now()
         assert datetime.fromtimestamp(decoded['exp']) < datetime.now() + timedelta(hours=4)
 
-    def make_token(self, secret, exp):
-        payload = {
-            'department_id': 1,
-            'exp': exp
-        }
-        return jwt.encode(payload=payload, key=secret, algorithm='HS256')
-
-    def test_check_token_valid(self, monkeypatch, authentication):
-        secret = 'my_secret_key'
-        token = self.make_token(secret=secret, exp=datetime.utcnow() + timedelta(hours=1))
+    def test_check_token_valid(self, monkeypatch, authentication, secret, token):
         monkeypatch.setattr(
             target='controllers.authentication.get_key',
             name=lambda path, key: secret if key == 'SECRET_KEY' else token
         )
         assert authentication.check_token() is True
 
-    def test_check_token_valid_fail(self, monkeypatch, authentication):
-        secret = 'my_secret_key'
-        token = self.make_token(secret=secret, exp=datetime.utcnow() - timedelta(hours=1))
+    def test_check_token_valid_fail(self, monkeypatch, authentication, secret, invalid_token):
         monkeypatch.setattr(
             target='controllers.authentication.get_key',
-            name=lambda path, key: secret if key == 'SECRET_KEY' else token
+            name=lambda path, key: secret if key == 'SECRET_KEY' else invalid_token
         )
         assert authentication.check_token() is False

@@ -2,41 +2,41 @@ class Check_Permission:
     def __init__(self, perms):
         self.permissions = perms
 
-    def can_create_client(self, permission_level):
-        return self.permissions[permission_level - 1].create_client
+    def add_client(self, permission_level):
+        return self.permissions[permission_level - 1].add_client
 
-    def can_update_client(self, permission_level):
+    def update_client(self, permission_level):
         return self.permissions[permission_level - 1].update_client
 
-    def can_delete_client(self, permission_level):
+    def delete_client(self, permission_level):
         return self.permissions[permission_level - 1].delete_client
 
-    def can_create_contract(self, permission_level):
-        return self.permissions[permission_level - 1].create_contract
+    def add_contract(self, permission_level):
+        return self.permissions[permission_level - 1].add_contract
 
-    def can_update_contract(self, permission_level):
+    def update_contract(self, permission_level):
         return self.permissions[permission_level - 1].update_contract
 
-    def can_delete_contract(self, permission_level):
+    def delete_contract(self, permission_level):
         return self.permissions[permission_level - 1].delete_contract
 
-    def can_create_event(self, permission_level):
-        return self.permissions[permission_level - 1].create_event
+    def add_event(self, permission_level):
+        return self.permissions[permission_level - 1].add_event
 
-    def can_update_event(self, permission_level):
+    def update_event(self, permission_level):
         return self.permissions[permission_level - 1].update_event
 
-    def can_delete_event(self, permission_level):
+    def delete_event(self, permission_level):
         return self.permissions[permission_level - 1].delete_event
 
-    def can_create_user(self, permission_level):
-        return self.permissions[permission_level - 1].create_user
+    def add_user(self, permission_level):
+        return self.permissions[permission_level - 1].add_user
 
-    def can_update_user(self, permission_level):
+    def update_user(self, permission_level):
         return self.permissions[permission_level - 1].update_user
 
-    def can_delete_user(self, permission_level):
+    def delete_user(self, permission_level):
         return self.permissions[permission_level - 1].delete_user
 
-    def can_update_support_on_event(self, permission_level):
+    def update_support_on_event(self, permission_level):
         return self.permissions[permission_level - 1].update_support_on_event

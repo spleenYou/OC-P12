@@ -2,10 +2,9 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from .models import Base, EpicUser, Department, Permission
+from .models import Base, EpicUser, Department, Permission, Client
 from argon2 import PasswordHasher
 from controllers.authentication import Authentication
-from controllers.permissions import Check_Permission
 from sqlalchemy.exc import IntegrityError
 
 
@@ -23,8 +22,6 @@ class Mysql:
             salt_len=int(os.getenv('SALT_LEN'))
         )
         self.auth = Authentication()
-        get_perms = self.get_permissions()
-        self.perms = Check_Permission(get_perms)
 
     def create_engine(self):
         db_url = (f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:"
@@ -57,6 +54,16 @@ class Mysql:
             department_id=department_id
         )
         return self.add_in_db(epic_user)
+
+    def add_client(self, name, email, phone, entreprise_name, commercial_contact_id):
+        client = Client(
+            name=name,
+            email=email,
+            phone=phone,
+            entreprise_name=entreprise_name,
+            commercial_contact_id=commercial_contact_id
+        )
+        return self.add_in_db(client)
 
     def add_in_db(self, element_to_add):
         try:

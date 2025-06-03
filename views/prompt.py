@@ -9,6 +9,14 @@ class Prompt:
         name = input('Veuillez écrire votre nom : ')
         return name
 
+    def for_client_name(self):
+        client_name = input('Veuillez écrire le nom du contact client : ')
+        return client_name
+
+    def for_entreprise_name(self):
+        entreprise_name = input('Veuillez écrire le nom de l\'entreprise : ')
+        return entreprise_name
+
     def for_email(self):
         email = input('Veuillez écrire votre email : ')
         return email
@@ -26,3 +34,7 @@ class Prompt:
             print(f'{index + 1} - {department}')
         department = input('Veuillez écrire votre le numéro de votre équipe : ')
         return department
+
+    def for_phone(self):
+        phone = input('Veuillez écrire le numéro de téléphone du client : ')
+        return phone
