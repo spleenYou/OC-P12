@@ -4,6 +4,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from .models import Base, EpicUser, Department, Permission
 from argon2 import PasswordHasher
+from controllers.authentication import Authentication
+from controllers.permissions import Check_Permission
+from sqlalchemy.exc import IntegrityError
 
 
 class Mysql:
@@ -19,6 +22,9 @@ class Mysql:
             hash_len=int(os.getenv('HASH_LEN')),
             salt_len=int(os.getenv('SALT_LEN'))
         )
+        self.auth = Authentication()
+        get_perms = self.get_permissions()
+        self.perms = Check_Permission(get_perms)
 
     def create_engine(self):
         db_url = (f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:"
@@ -34,31 +40,25 @@ class Mysql:
 
     def check_user_login(self, email, password):
         user_information = self.session.query(EpicUser) \
-            .with_entities(EpicUser.department_id, EpicUser.password) \
             .filter(EpicUser.email == email).first()
-        if (user_information is not None and self.password_verification(password, user_information[1])):
-            return user_information[0]
+        if (user_information is not None and self.password_verification(password, user_information.password)):
+            return user_information
         return None
 
     def get_department_list(self):
         return [d[0] for d in self.session.query(Department.name).order_by(Department.id).all()]
 
-    def add_user(self, name, email, password, employee_number, department_id):
+    def add_in_db(self, element_to_add):
         try:
-            self.session.add(
-                EpicUser(
-                    name=name,
-                    email=email,
-                    password=self.hash_password(password),
-                    employee_number=employee_number,
-                    department_id=department_id
-                )
-            )
+            self.session.add(element_to_add)
             self.session.commit()
             return True
-        except Exception:
+        except IntegrityError:
             self.session.rollback()
             return False
+
+    def get_permissions(self):
+        return self.session.query(Permission).all()
 
     def hash_password(self, password):
         return self.password_hasher.hash(password)
@@ -68,6 +68,3 @@ class Mysql:
             return self.password_hasher.verify(hash_password, password)
         except Exception:
             return False
-
-    def get_permissions(self):
-        return self.session.query(Permission).all()

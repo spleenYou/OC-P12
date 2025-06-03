@@ -1,7 +1,10 @@
+from controllers.models import EpicUser
+
+
 class Test_controller:
     def test_start_without_login_and_logged_ok(
             self,
-            controller_without_login,
+            controller,
             epic_user_information,
             monkeypatch,
             capsys):
@@ -20,32 +23,32 @@ class Test_controller:
             ]
         )
         monkeypatch.setattr('views.prompt.getpass', lambda prompt: next(inputsPwd))
-        controller_without_login.start()
+        controller.start(None)
         captured = capsys.readouterr()
         assert 'Welcome on Epic Event !' in captured.out
         assert 'Premier lancement. Cr\xe9ation du premier utilisateur' in captured.out
 
-    def test_start_and_logged_ok(self, controller, epic_user_information, monkeypatch, capsys):
+    def test_start_with_login_and_logged_ok(self, controller, epic_user_information, monkeypatch, capsys):
         inputs = iter(
             [
                 epic_user_information['name'],
                 epic_user_information['employee_number']
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
         inputsPwd = iter(
             [
                 epic_user_information['password'],
                 epic_user_information['password']
             ]
         )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
         monkeypatch.setattr('views.prompt.getpass', lambda prompt: next(inputsPwd))
-        controller.start()
+        controller.start(epic_user_information['email'])
         captured = capsys.readouterr()
         assert 'Welcome on Epic Event !' in captured.out
         assert 'Premier lancement. Cr\xe9ation du premier utilisateur' in captured.out
 
-    def test_start_and_logged_fail(self, controller, epic_user_information, monkeypatch, capsys):
+    def test_start_with_login_and_logged_failed(self, controller, epic_user_information, monkeypatch, capsys):
         inputs = iter(
             [
                 epic_user_information['name'],
@@ -60,16 +63,18 @@ class Test_controller:
             ]
         )
         monkeypatch.setattr('views.prompt.getpass', lambda prompt: next(inputsPwd))
-        controller.start()
+        controller.start(epic_user_information['email'])
         captured = capsys.readouterr()
         assert 'Sorry, your login/password are unknown' in captured.out
 
-    def test_create_user_fail(self, controller, mysql_instance, department, epic_user_information, monkeypatch, capsys):
+    def test_add_user_failed(self, controller, mysql_instance, epic_user_information, monkeypatch, capsys):
         inputs = iter([
             epic_user_information['name'],
+            epic_user_information['email'],
             epic_user_information['employee_number'],
             epic_user_information['department_id'],
             epic_user_information['name'] + "e",
+            epic_user_information['email'],
             epic_user_information['employee_number'] + 1,
             epic_user_information['department_id']
         ])
@@ -81,11 +86,11 @@ class Test_controller:
         )
         monkeypatch.setattr('builtins.input', lambda _: next(inputs))
         monkeypatch.setattr('views.prompt.getpass', lambda prompt: next(inputsPwd))
-        controller.create_user()
-        result = controller.create_user()
+        controller.add_user()
+        result = controller.add_user()
         assert result is False
 
-    def test_create_new_user(self, controller, mysql_instance, department, epic_user_information, monkeypatch, capsys):
+    def test_add_user(self, controller, mysql_instance, epic_user_information, monkeypatch):
         inputs = iter([
             epic_user_information['name'],
             epic_user_information['email'],
@@ -94,5 +99,5 @@ class Test_controller:
         ])
         monkeypatch.setattr('builtins.input', lambda _: next(inputs))
         monkeypatch.setattr('views.prompt.getpass', lambda prompt: epic_user_information['password'])
-        result = controller.create_user(ask_email=True)
-        assert result is True
+        result = controller.add_user(ask_email=True)
+        assert isinstance(result, EpicUser) is True

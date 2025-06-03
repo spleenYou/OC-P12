@@ -1,11 +1,11 @@
 import pytest
 from sqlalchemy import create_engine
-from controllers.models import Base, EpicUser, Department
+from controllers.models import Base
 from controllers.mysql import Mysql
 from controllers.base import Controller
 from views import show, prompt
 from controllers.authentication import Authentication
-from controllers.permission import Permission
+from controllers.permissions import Check_Permission
 
 
 @pytest.fixture
@@ -14,21 +14,7 @@ def controller(mysql_instance, epic_user_information):
         prompt.Prompt,
         show.Show,
         lambda: mysql_instance,
-        Authentication,
-        Permission,
-        epic_user_information['email']
-    )
-
-
-@pytest.fixture
-def controller_without_login(mysql_instance, epic_user_information):
-    return Controller(
-        prompt.Prompt,
-        show.Show,
-        lambda: mysql_instance,
-        Authentication,
-        Permission,
-        None
+        Authentication
     )
 
 
@@ -50,22 +36,6 @@ def mysql_instance(monkeypatch):
             return create_engine('sqlite:///:memory:')
 
     return TestMysql()
-
-
-@pytest.fixture
-def department():
-    return Department(name="Commercial")
-
-
-@pytest.fixture
-def epic_user():
-    return EpicUser(
-        name="Test",
-        email="test@example.com",
-        password="secret",
-        employee_number=1,
-        department_id=1
-    )
 
 
 @pytest.fixture
@@ -91,4 +61,4 @@ def authentication(monkeypatch, tmp_path):
 @pytest.fixture
 def permissions():
     db = Mysql()
-    return Permission(db)
+    return Check_Permission(db.get_permissions())

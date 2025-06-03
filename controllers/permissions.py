@@ -1,6 +1,6 @@
-class Permission:
-    def __init__(self, db):
-        self.permissions = db.get_permissions()
+class Check_Permission:
+    def __init__(self, perms):
+        self.permissions = perms
 
     def can_create_client(self, permission_level):
         return self.permissions[permission_level - 1].create_client

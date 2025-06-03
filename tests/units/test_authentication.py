@@ -30,7 +30,7 @@ class TestAuthentication:
 
     def make_token(self, secret, exp):
         payload = {
-            'employee_number': 1,
+            'department_id': 1,
             'exp': exp
         }
         return jwt.encode(payload=payload, key=secret, algorithm='HS256')
@@ -42,7 +42,7 @@ class TestAuthentication:
             target='controllers.authentication.get_key',
             name=lambda path, key: secret if key == 'SECRET_KEY' else token
         )
-        assert authentication.check_token() == 1
+        assert authentication.check_token() is True
 
     def test_check_token_valid_fail(self, monkeypatch, authentication):
         secret = 'my_secret_key'
@@ -51,4 +51,4 @@ class TestAuthentication:
             target='controllers.authentication.get_key',
             name=lambda path, key: secret if key == 'SECRET_KEY' else token
         )
-        assert authentication.check_token() is None
+        assert authentication.check_token() is False

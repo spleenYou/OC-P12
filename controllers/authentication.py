@@ -13,13 +13,13 @@ class Authentication:
         set_key(self.dotenv_path, 'SECRET_KEY', 'epicEvent-' + secrets.token_urlsafe(64))
         return True
 
-    def generate_token(self, employee_number):
+    def generate_token(self, department_id):
         set_key(
             self.dotenv_path,
             'TOKEN',
             jwt.encode(
                 payload={
-                    'permission_level': employee_number,
+                    'permission_level': department_id,
                     'exp': datetime.now() + timedelta(hours=2)
                 },
                 key=get_key(self.dotenv_path, 'SECRET_KEY')
@@ -29,11 +29,11 @@ class Authentication:
 
     def check_token(self):
         try:
-            token = jwt.decode(
+            jwt.decode(
                 jwt=get_key(self.dotenv_path, 'TOKEN'),
                 key=get_key(self.dotenv_path, 'SECRET_KEY'),
                 algorithms=['HS256']
             )
-            return token['employee_number']
+            return True
         except Exception:
-            return None
+            return False

@@ -1,43 +1,66 @@
+from controllers.models import Client, EpicUser
+
+
 class Controller:
-    def __init__(self, prompt, show, db, auth, permission, login):
+    def __init__(self, prompt, show, db, auth):
         self.prompt = prompt()
         self.show = show()
         self.db = db()
         self.auth = auth()
-        self.permissions = permission(self.db)
-        self.permission_level = None
-        self.login = login
+        self.user_info = EpicUser()
 
-    def start(self):
+    def start(self, login):
         self.show.start()
-        if not self.login:
-            self.login = self.prompt.for_email()
+        self.user_info.email = login
         if self.db.has_epic_users() == 0:
             self.show.first_launch()
             self.auth.generate_secret_key()
-            self.create_user(department_id=3)
+            self.user_info = self.add_user(department_id=3)
         password = self.prompt.for_password()
-        self.permission_level = self.db.check_user_login(self.login, password)
-        if self.permission_level is not None:
-            self.auth.generate_token(self.permission_level)
+        self.user_info = self.db.check_user_login(login, password)
+        if self.user_info is not None:
+            self.auth.generate_token(self.user_info.department_id)
             self.show.logged_ok()
         else:
             self.show.logged_nok()
 
-    def create_user(self, ask_email=None, department_id=None):
+    def add_user(self, ask_email=None, department_id=None):
         name = self.prompt.for_name()
-        email = self.login
-        if ask_email:
+        if ask_email or not self.user_info.email:
             email = self.prompt.for_email()
+        else:
+            email = self.user_info.email
         password = self.prompt.for_password()
         employee_number = self.prompt.for_employee_number()
         if department_id is None:
             department_id = self.prompt.for_department(self.db.get_department_list())
         else:
             department_id = department_id
-        if self.db.add_user(name, email, password, employee_number, department_id):
+        user = EpicUser(
+            name=name,
+            email=email,
+            password=password,
+            employee_number=employee_number,
+            department_id=department_id
+        )
+        if self.db.add_in_db(user):
             # Show a message
-            return True
+            return user
         else:
             # Show a message if not
             return False
+
+    def add_client(self):
+        name = ""
+        email = ""
+        phone = ''
+        entreprise_name = ''
+        return self.db.add_in_db(
+            Client(
+                name=name,
+                email=email,
+                phone=phone,
+                entreprise_name=entreprise_name,
+                commercial_contact_id=self.user_info['id']
+            )
+        )
