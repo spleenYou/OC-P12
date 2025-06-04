@@ -65,6 +65,9 @@ class Mysql:
         )
         return self.add_in_db(client)
 
+    def get_client_list(self):
+        return self.session.query(Client).all()
+
     def add_contract(self, client_id, commercial_id, total_amount, rest_amount):
         contract = Contract(
             client_id=client_id,

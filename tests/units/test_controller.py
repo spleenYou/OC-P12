@@ -207,6 +207,12 @@ class Test_controller:
         result = controller.add_client()
         assert result is False
 
+    def test_select_client_display(self, controller_with_user_and_client, capsys, monkeypatch):
+        monkeypatch.setattr('builtins.input', lambda _: 1)
+        controller_with_user_and_client.select_client()
+        captured = capsys.readouterr()
+        assert 'Liste des clients' in captured.out
+
     def test_add_contract(self, controller_with_user_and_client, empty_user, monkeypatch):
         monkeypatch.setattr('builtins.input', lambda _: 'management@example.com')
         monkeypatch.setattr('views.prompt.getpass', lambda _: 'management')

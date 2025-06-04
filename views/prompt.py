@@ -6,43 +6,39 @@ class Prompt:
         pass
 
     def for_name(self):
-        name = input('Veuillez écrire votre nom : ')
-        return name
+        return input('Veuillez écrire votre nom : ')
 
     def for_client_name(self):
-        client_name = input('Veuillez écrire le nom du contact client : ')
-        return client_name
+        return input('Veuillez écrire le nom du contact client : ')
 
     def for_entreprise_name(self):
-        entreprise_name = input('Veuillez écrire le nom de l\'entreprise : ')
-        return entreprise_name
+        return input('Veuillez écrire le nom de l\'entreprise : ')
 
     def for_email(self):
-        email = input('Veuillez écrire votre email : ')
-        return email
+        return input('Veuillez écrire votre email : ')
 
     def for_password(self):
-        password = getpass('Veuillez écrire votre mot de passe : ')
-        return password
+        return getpass('Veuillez écrire votre mot de passe : ')
 
     def for_employee_number(self):
-        employee_number = input('Veuillez écrire votre numéro d\'employé : ')
-        return employee_number
+        return input('Veuillez écrire votre numéro d\'employé : ')
 
     def for_department(self, department_list):
         for index, department in enumerate(department_list):
             print(f'{index + 1} - {department}')
-        department = input('Veuillez écrire votre le numéro de votre équipe : ')
-        return department
+        return input('Veuillez écrire votre le numéro de votre équipe : ')
 
     def for_phone(self):
-        phone = input('Veuillez écrire le numéro de téléphone du client : ')
-        return phone
+        return input('Veuillez écrire le numéro de téléphone du client : ')
 
     def for_total_amount(self):
-        total_amount = input('Veuillez indiquer le montant total du contrat : ')
-        return total_amount
+        return input('Veuillez indiquer le montant total du contrat : ')
 
     def for_rest_amount(self):
-        rest_amount = input('Veuillez indiquer le reste à payer pour ce contrat : ')
-        return rest_amount
+        return input('Veuillez indiquer le reste à payer pour ce contrat : ')
+
+    def for_select_client(self, client_list):
+        print('Liste des clients')
+        for index, client in enumerate(client_list):
+            print(f'{index + 1} - {client.entreprise_name}')
+        return input('Veuillez entrer le numéro du client : ')

@@ -75,6 +75,10 @@ class Controller:
         print(f'Add client not allowed {self.user_info.department_id}')
         return False
 
+    def select_client(self):
+        client_list = self.db.get_client_list()
+        return self.prompt.for_select_client(client_list)
+
     @check_token_and_permission
     def add_contract(self):
         if self.allows_to.add_contract(self.user_info.department_id):
