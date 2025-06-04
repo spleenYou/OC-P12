@@ -256,7 +256,7 @@ class Test_controller:
         controller_with_user_and_client.client = None
         inputs = iter(
             [
-                None,
+                0,
                 1000,
                 1000
             ]
@@ -288,3 +288,6 @@ class Test_controller:
         monkeypatch.setattr('builtins.input', lambda _: next(inputs))
         result = controller_with_user_and_client.add_contract()
         assert result is False
+
+    def test_add_event(self, controller_with_user_and_client, empty_user, monkeypatch):
+        pass
