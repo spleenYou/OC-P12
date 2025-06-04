@@ -128,6 +128,12 @@ class TestMysql:
         )
         assert result is True
 
+    def test_update_user_failed(self, mysql_instance):
+        result = mysql_instance.update_epic_user(
+            epic_user=None
+        )
+        assert result is False
+
     def test_get_epic_user_list(self, mysql_instance):
         mysql_instance.add_epic_user(
             name='test',
@@ -158,6 +164,16 @@ class TestMysql:
         assert result is True
         assert mysql_instance.has_epic_users() == 0
 
+    def test_delete_epic_user_failed(self, mysql_instance):
+        mysql_instance.add_epic_user(
+            name='test',
+            email='test@example.com',
+            password='password',
+            employee_number=1,
+            department_id=1
+        )
+        assert mysql_instance.delete_epic_user(None) is False
+
     def test_add_client(self, mysql_instance):
         result = mysql_instance.add_client(
             name='Antoine',
@@ -167,6 +183,62 @@ class TestMysql:
             commercial_contact_id=1
         )
         assert result is True
+
+    def test_update_client(self, mysql_instance, empty_client):
+        result = mysql_instance.update_client(
+            empty_client,
+            name='test',
+            email='test@example.com',
+            phone='0202020202',
+            entreprise_name='Entreprise A',
+            commercial_contact_id=1
+        )
+        assert result is True
+
+    def test_update_client_failed(self, mysql_instance):
+        result = mysql_instance.update_client(
+            None
+        )
+        assert result is False
+
+    def test_delete_client(self, mysql_instance, empty_client):
+        empty_client.id = 1
+        mysql_instance.add_client(
+            name='Antoine',
+            email='client@example.com',
+            phone='0202020202',
+            entreprise_name='Entreprise 1',
+            commercial_contact_id=1
+        )
+        clients = mysql_instance.get_client_list()
+        assert len(clients) == 1
+        assert mysql_instance.delete_client(clients[0]) is True
+        assert len(mysql_instance.get_client_list()) == 0
+
+    def test_delete_client_failed(self, mysql_instance, empty_client):
+        mysql_instance.add_client(
+            name='Antoine',
+            email='client@example.com',
+            phone='0202020202',
+            entreprise_name='Entreprise 1',
+            commercial_contact_id=1
+        )
+        assert mysql_instance.delete_client(None) is False
+
+    def test_get_client_list(self, mysql_instance):
+        mysql_instance.add_client(
+            name='test',
+            email='test@example.com',
+            phone='0202020202',
+            entreprise_name='Entreprise A',
+            commercial_contact_id=1
+        )
+        result = mysql_instance.get_client_list()
+        assert len(result) != 0
+        assert result[0].name == 'test'
+        assert result[0].email == 'test@example.com'
+        assert result[0].entreprise_name == 'Entreprise A'
+        assert result[0].commercial_contact_id == 1
 
     def test_add_contract(self, mysql_instance):
         result = mysql_instance.add_contract(

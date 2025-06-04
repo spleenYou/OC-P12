@@ -111,8 +111,51 @@ class Mysql:
         )
         return self.add_in_db(client)
 
+    def update_client(
+            self,
+            client,
+            name=None,
+            email=None,
+            phone=None,
+            entreprise_name=None,
+            commercial_contact_id=None):
+        if name:
+            client.name = name
+        if email:
+            client.email = email
+        if phone:
+            client.phone = phone
+        if entreprise_name:
+            client.entreprise_name = entreprise_name
+        if commercial_contact_id:
+            client.commercial_contact_id = commercial_contact_id
+        try:
+            self.session.query(Client).filter(Client.id == client.id).update(
+                {
+                    'name': client.name,
+                    'email': client.email,
+                    'phone': client.phone,
+                    'entreprise_name': client.entreprise_name,
+                    'commercial_contact_id': client.commercial_contact_id
+                }
+            )
+            self.session.commit()
+            return True
+        except Exception as ex:
+            print(ex)
+            return False
+
     def get_client_list(self):
         return self.session.query(Client).all()
+
+    def delete_client(self, client):
+        try:
+            self.session.delete(client)
+            self.session.commit()
+            return True
+        except Exception as ex:
+            print(ex)
+            return False
 
     def add_contract(self, client_id, commercial_id, total_amount, rest_amount):
         contract = Contract(
