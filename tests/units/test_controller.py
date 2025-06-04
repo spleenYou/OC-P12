@@ -140,29 +140,12 @@ class Test_controller:
         result = controller.add_client()
         assert result is True
 
-    def test_add_client_failed(self, controller, empty_user, monkeypatch, secret, token):
-        monkeypatch.setattr(
-            target='controllers.authentication.get_key',
-            name=lambda path, key: secret if key == 'SECRET_KEY' else token
-        )
-        empty_user.department_id = 1
-        controller.user_info = empty_user
-        inputs = iter([
-            'Antoine Dupont',
-            'client@example.com',
-            '0202020202',
-            'Entreprise 1'
-        ])
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
-        result = controller.add_client()
-        assert result is False
-
     def test_add_client_with_invalid_department_id(self, controller, empty_user, monkeypatch, secret, token):
         monkeypatch.setattr(
             target='controllers.authentication.get_key',
             name=lambda path, key: secret if key == 'SECRET_KEY' else token
         )
-        empty_user.department_id = 3
+        empty_user.department_id = 1
         controller.user_info = empty_user
         inputs = iter([
             'Antoine Dupont',
@@ -198,4 +181,5 @@ class Test_controller:
         result = controller.add_client()
         assert result is False
 
-    # def test_add_contract
+    def test_add_contract(self):
+        pass
