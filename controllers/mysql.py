@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from .models import Base, EpicUser, Department, Permission, Client, Contract
+from .models import Base, EpicUser, Department, Permission, Client, Contract, Event
 from argon2 import PasswordHasher
 from controllers.authentication import Authentication
 from sqlalchemy.exc import IntegrityError
@@ -55,6 +55,52 @@ class Mysql:
         )
         return self.add_in_db(epic_user)
 
+    def update_epic_user(
+            self,
+            epic_user,
+            name=None,
+            email=None,
+            password=None,
+            employee_number=None,
+            department_id=None):
+        if name:
+            epic_user.name = name
+        if email:
+            epic_user.email = email
+        if password:
+            epic_user.password = self.hash_password(password)
+        if employee_number:
+            epic_user.employee_number = employee_number
+        if department_id:
+            epic_user.department_id = department_id
+        try:
+            self.session.query(EpicUser).filter(EpicUser.id == epic_user.id).update(
+                {
+                    'name': epic_user.name,
+                    'email': epic_user.email,
+                    'password': epic_user.password,
+                    'employee_number': epic_user.employee_number,
+                    'department_id': epic_user.department_id
+                }
+            )
+            self.session.commit()
+            return True
+        except Exception as ex:
+            print(ex)
+            return False
+
+    def get_epic_user_list(self):
+        return self.session.query(EpicUser).all()
+
+    def delete_epic_user(self, epic_user):
+        try:
+            self.session.delete(epic_user)
+            self.session.commit()
+            return True
+        except Exception as ex:
+            print(ex)
+            return False
+
     def add_client(self, name, email, phone, entreprise_name, commercial_contact_id):
         client = Client(
             name=name,
@@ -76,6 +122,17 @@ class Mysql:
             rest_amount=rest_amount
         )
         return self.add_in_db(contract)
+
+    def add_event(self, contract_id, client_id, support_contact_id, location, attendees, notes):
+        event = Event(
+            contract_id=contract_id,
+            client_id=client_id,
+            support_contact_id=support_contact_id,
+            location=location,
+            attendees=attendees,
+            notes=notes
+        )
+        return self.add_in_db(event)
 
     def add_in_db(self, element_to_add):
         try:

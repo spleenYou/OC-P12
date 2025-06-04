@@ -106,3 +106,84 @@ class TestMysql:
     def test_password_verification_fail(self, mysql_instance, epic_user_information):
         hash_password = mysql_instance.hash_password(epic_user_information['password'] + "e")
         assert mysql_instance.password_verification(epic_user_information['password'], hash_password) is False
+
+    def test_add_user(self, mysql_instance):
+        result = mysql_instance.add_epic_user(
+            name='test',
+            email='test@example.com',
+            password='password',
+            employee_number=1,
+            department_id=1
+        )
+        assert result is True
+
+    def test_update_user(self, mysql_instance, empty_client):
+        result = mysql_instance.update_epic_user(
+            epic_user=empty_client,
+            name='test',
+            email='test@example.com',
+            password='password',
+            employee_number=1,
+            department_id=1
+        )
+        assert result is True
+
+    def test_get_epic_user_list(self, mysql_instance):
+        mysql_instance.add_epic_user(
+            name='test',
+            email='test@example.com',
+            password='password',
+            employee_number=1,
+            department_id=1
+        )
+        result = mysql_instance.get_epic_user_list()
+        assert len(result) != 0
+        assert result[0].name == 'test'
+        assert result[0].email == 'test@example.com'
+        assert mysql_instance.password_verification('password', result[0].password) is True
+        assert result[0].employee_number == 1
+        assert result[0].department_id == 1
+
+    def test_delete_epic_user(self, mysql_instance):
+        mysql_instance.add_epic_user(
+            name='test',
+            email='test@example.com',
+            password='password',
+            employee_number=1,
+            department_id=1
+        )
+        users = mysql_instance.get_epic_user_list()
+        assert mysql_instance.has_epic_users() == 1
+        result = mysql_instance.delete_epic_user(users[0])
+        assert result is True
+        assert mysql_instance.has_epic_users() == 0
+
+    def test_add_client(self, mysql_instance):
+        result = mysql_instance.add_client(
+            name='Antoine',
+            email='client@example.com',
+            phone='0202020202',
+            entreprise_name='Entreprise 1',
+            commercial_contact_id=1
+        )
+        assert result is True
+
+    def test_add_contract(self, mysql_instance):
+        result = mysql_instance.add_contract(
+            client_id=1,
+            commercial_id=1,
+            total_amount=1000,
+            rest_amount=1000
+        )
+        assert result is True
+
+    def test_add_event(self, mysql_instance):
+        result = mysql_instance.add_event(
+            contract_id=1,
+            client_id=1,
+            support_contact_id=1,
+            location='endroit',
+            attendees=100,
+            notes='Ne pas oublier'
+        )
+        assert result is True

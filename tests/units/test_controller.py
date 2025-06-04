@@ -290,4 +290,22 @@ class Test_controller:
         assert result is False
 
     def test_add_event(self, controller_with_user_and_client, empty_user, monkeypatch):
-        pass
+        ctrl = controller_with_user_and_client
+        monkeypatch.setattr('views.prompt.getpass', lambda _: 'commercial')
+        inputs = iter(
+            [
+                'commercial@example.com',
+                0,
+                1000,
+                1000,
+                1,
+                '1 rue de l\'entreprise 56000 vannes',
+                100,
+                'Super note'
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        ctrl.start(empty_user)
+        ctrl.add_contract()
+        result = ctrl.add_event()
+        assert result is True

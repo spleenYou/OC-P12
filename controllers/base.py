@@ -14,7 +14,7 @@ class Controller:
         self.first_launch = True
         self.client = None
 
-    def check_token_and_permission(function):
+    def check_token(function):
         @wraps(function)
         def func_check(self, *args, **kwargs):
             if not (self.first_launch or self.auth.check_token()):
@@ -42,7 +42,7 @@ class Controller:
         else:
             self.show.logged_nok()
 
-    @check_token_and_permission
+    @check_token
     def add_user(self):
         if self.allows_to.add_user(self.user_info.department_id):
             name = self.prompt.for_name()
@@ -57,7 +57,7 @@ class Controller:
             return result
         return False
 
-    @check_token_and_permission
+    @check_token
     def add_client(self):
         if self.allows_to.add_client(self.user_info.department_id):
             name = self.prompt.for_client_name()
@@ -82,7 +82,7 @@ class Controller:
             return client
         return None
 
-    @check_token_and_permission
+    @check_token
     def add_contract(self):
         if self.allows_to.add_contract(self.user_info.department_id):
             if self.client is None:
