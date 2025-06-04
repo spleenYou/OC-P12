@@ -173,3 +173,27 @@ class Test_controller:
         monkeypatch.setattr('builtins.input', lambda _: next(inputs))
         result = controller.add_client()
         assert result is False
+
+    def test_add_client_with_invalid_token_and_not_first_lauch_failed(
+            self,
+            controller,
+            empty_user,
+            monkeypatch,
+            secret,
+            invalid_token):
+        monkeypatch.setattr(
+            target='controllers.authentication.get_key',
+            name=lambda path, key: secret if key == 'SECRET_KEY' else invalid_token
+        )
+        empty_user.department_id = 3
+        controller.first_launch = False
+        controller.user_info = empty_user
+        inputs = iter([
+            'Antoine Dupont',
+            'client@example.com',
+            '0202020202',
+            'Entreprise 1'
+        ])
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        result = controller.add_client()
+        assert result is False
