@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from .models import Base, EpicUser, Department, Permission, Client
+from .models import Base, EpicUser, Department, Permission, Client, Contract
 from argon2 import PasswordHasher
 from controllers.authentication import Authentication
 from sqlalchemy.exc import IntegrityError
@@ -65,12 +65,22 @@ class Mysql:
         )
         return self.add_in_db(client)
 
+    def add_contract(self, client_id, commercial_id, total_amount, rest_amount):
+        contract = Contract(
+            client_id=client_id,
+            commercial_id=commercial_id,
+            total_amount=total_amount,
+            rest_amount=rest_amount
+        )
+        return self.add_in_db(contract)
+
     def add_in_db(self, element_to_add):
         try:
             self.session.add(element_to_add)
             self.session.commit()
             return True
-        except IntegrityError:
+        except IntegrityError as e:
+            print(f'IntegrityError : {e}')
             self.session.rollback()
             return False
 

@@ -38,3 +38,11 @@ class Prompt:
     def for_phone(self):
         phone = input('Veuillez écrire le numéro de téléphone du client : ')
         return phone
+
+    def for_total_amount(self):
+        total_amount = input('Veuillez indiquer le montant total du contrat : ')
+        return total_amount
+
+    def for_rest_amount(self):
+        rest_amount = input('Veuillez indiquer le reste à payer pour ce contrat : ')
+        return rest_amount

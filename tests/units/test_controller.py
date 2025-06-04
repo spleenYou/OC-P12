@@ -97,6 +97,32 @@ class Test_controller:
         result = controller.add_user()
         assert result is True
 
+    def test_add_user_wrong_department(
+            self,
+            controller,
+            mysql_instance,
+            epic_user_information,
+            empty_user, token,
+            secret,
+            monkeypatch):
+        monkeypatch.setattr(
+            target='controllers.authentication.get_key',
+            name=lambda path, key: secret if key == 'SECRET_KEY' else token
+        )
+        controller.first_launch = False
+        controller.user_info = empty_user
+        controller.user_info.department_id = 1
+        inputs = iter([
+            epic_user_information['name'],
+            epic_user_information['email'],
+            epic_user_information['employee_number'],
+            epic_user_information['department_id']
+        ])
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('views.prompt.getpass', lambda prompt: epic_user_information['password'])
+        result = controller.add_user()
+        assert result is False
+
     def test_add_user_failed(self, controller, mysql_instance, epic_user_information, empty_user, monkeypatch, capsys):
         controller.user_info = empty_user
         empty_user.department_id = 3
@@ -128,7 +154,7 @@ class Test_controller:
             name=lambda path, key: secret if key == 'SECRET_KEY' else token
         )
         empty_user.id = 1
-        empty_user.department_id = 3
+        empty_user.department_id = 1
         controller.user_info = empty_user
         inputs = iter([
             'Antoine Dupont',
@@ -145,7 +171,7 @@ class Test_controller:
             target='controllers.authentication.get_key',
             name=lambda path, key: secret if key == 'SECRET_KEY' else token
         )
-        empty_user.department_id = 1
+        empty_user.department_id = 3
         controller.user_info = empty_user
         inputs = iter([
             'Antoine Dupont',
@@ -181,5 +207,40 @@ class Test_controller:
         result = controller.add_client()
         assert result is False
 
-    def test_add_contract(self):
-        pass
+    def test_add_contract(self, controller_with_user_and_client, empty_user, monkeypatch):
+        monkeypatch.setattr('builtins.input', lambda _: 'management@example.com')
+        monkeypatch.setattr('views.prompt.getpass', lambda _: 'management')
+        controller_with_user_and_client.start(empty_user)
+        inputs = iter(
+            [
+                1000,
+                1000
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        result = controller_with_user_and_client.add_contract()
+        assert result is True
+
+    def test_add_contract_with_wrong_department(
+            self,
+            controller_with_user_and_client,
+            empty_user,
+            monkeypatch,
+            secret,
+            token):
+        monkeypatch.setattr(
+            target='controllers.authentication.get_key',
+            name=lambda path, key: secret if key == 'SECRET_KEY' else token
+        )
+        monkeypatch.setattr('builtins.input', lambda _: 'commercial@example.com')
+        monkeypatch.setattr('views.prompt.getpass', lambda _: 'commercial')
+        controller_with_user_and_client.start(empty_user)
+        inputs = iter(
+            [
+                1000,
+                1000
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        result = controller_with_user_and_client.add_contract()
+        assert result is False
