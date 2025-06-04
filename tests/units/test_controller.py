@@ -219,7 +219,7 @@ class Test_controller:
         client = controller_with_user_and_client.select_client()
         assert client is None
 
-    def test_add_contract(self, controller_with_user_and_client, empty_user, monkeypatch):
+    def test_add_contract_with_known_client(self, controller_with_user_and_client, empty_user, monkeypatch):
         monkeypatch.setattr('builtins.input', lambda _: 'management@example.com')
         monkeypatch.setattr('views.prompt.getpass', lambda _: 'management')
         controller_with_user_and_client.start(empty_user)
@@ -232,6 +232,38 @@ class Test_controller:
         monkeypatch.setattr('builtins.input', lambda _: next(inputs))
         result = controller_with_user_and_client.add_contract()
         assert result is True
+
+    def test_add_contract_with_unknow_client(self, controller_with_user_and_client, empty_user, monkeypatch):
+        monkeypatch.setattr('builtins.input', lambda _: 'management@example.com')
+        monkeypatch.setattr('views.prompt.getpass', lambda _: 'management')
+        controller_with_user_and_client.start(empty_user)
+        controller_with_user_and_client.client = None
+        inputs = iter(
+            [
+                1,
+                1000,
+                1000
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        result = controller_with_user_and_client.add_contract()
+        assert result is True
+
+    def test_add_contract_canceled(self, controller_with_user_and_client, empty_user, monkeypatch):
+        monkeypatch.setattr('builtins.input', lambda _: 'management@example.com')
+        monkeypatch.setattr('views.prompt.getpass', lambda _: 'management')
+        controller_with_user_and_client.start(empty_user)
+        controller_with_user_and_client.client = None
+        inputs = iter(
+            [
+                None,
+                1000,
+                1000
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        result = controller_with_user_and_client.add_contract()
+        assert result is False
 
     def test_add_contract_with_wrong_department(
             self,

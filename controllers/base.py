@@ -86,17 +86,18 @@ class Controller:
     def add_contract(self):
         if self.allows_to.add_contract(self.user_info.department_id):
             if self.client is None:
-                pass  # Todo when select_client() created
-            total_amount = self.prompt.for_total_amount()
-            rest_amount = self.prompt.for_rest_amount()
-            print(self.client.commercial_contact_id)
-            print(self.client)
-            result = self.db.add_contract(
-                client_id=self.client.id,
-                commercial_id=self.client.commercial_contact_id,
-                total_amount=total_amount,
-                rest_amount=rest_amount
-            )
-            return result
+                self.client = self.select_client()
+            if self.client is not None:
+                total_amount = self.prompt.for_total_amount()
+                rest_amount = self.prompt.for_rest_amount()
+                result = self.db.add_contract(
+                    client_id=self.client.id,
+                    commercial_id=self.client.commercial_contact_id,
+                    total_amount=total_amount,
+                    rest_amount=rest_amount
+                )
+                return result
+            print('Add contract canceled')
+            return False
         print('Add contract not allowed')
         return False
