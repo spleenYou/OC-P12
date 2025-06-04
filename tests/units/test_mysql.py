@@ -249,6 +249,55 @@ class TestMysql:
         )
         assert result is True
 
+    def test_update_contract(self, mysql_instance, empty_contract):
+        result = mysql_instance.update_contract(
+            empty_contract,
+            client_id=1,
+            commercial_id=1,
+            total_amount=1000,
+            rest_amount=1000,
+            status=True
+        )
+        assert result is True
+
+    def test_update_contract_failed(self, mysql_instance):
+        result = mysql_instance.update_contract(
+            None
+        )
+        assert result is False
+
+    def test_delete_contract(self, mysql_instance, empty_contract, empty_client):
+        empty_contract.id = 1
+        empty_client.id = 1
+        mysql_instance.add_contract(
+            client_id=1,
+            commercial_id=1,
+            total_amount=1000,
+            rest_amount=1000,
+        )
+        contracts = mysql_instance.get_contract_list(empty_client)
+        assert len(contracts) == 1
+        assert mysql_instance.delete_contract(contracts[0]) is True
+        assert len(mysql_instance.get_contract_list(empty_client)) == 0
+
+    def test_delete_contract_failed(self, mysql_instance, empty_client):
+        assert mysql_instance.delete_contract(None) is False
+
+    def test_get_contract_list(self, mysql_instance, empty_client):
+        empty_client.id = 1
+        mysql_instance.add_contract(
+            client_id=1,
+            commercial_id=1,
+            total_amount=1000,
+            rest_amount=1000,
+        )
+        result = mysql_instance.get_contract_list(empty_client)
+        assert len(result) != 0
+        assert result[0].client_id == 1
+        assert result[0].commercial_id == 1
+        assert result[0].total_amount == 1000
+        assert result[0].rest_amount == 1000
+
     def test_add_event(self, mysql_instance):
         result = mysql_instance.add_event(
             contract_id=1,

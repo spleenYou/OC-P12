@@ -166,6 +166,52 @@ class Mysql:
         )
         return self.add_in_db(contract)
 
+    def update_contract(
+            self,
+            contract,
+            client_id=None,
+            commercial_id=None,
+            total_amount=None,
+            rest_amount=None,
+            status=False):
+        if client_id:
+            contract.client_id = client_id
+        if commercial_id:
+            contract.commercial_id = commercial_id
+        if total_amount:
+            contract.total_amount = total_amount
+        if rest_amount:
+            contract.rest_amount = rest_amount
+        if status:
+            contract.status = status
+        try:
+            self.session.query(Contract).filter(Contract.id == contract.id).update(
+                {
+                    'client_id': contract.client_id,
+                    'commercial_id': contract.commercial_id,
+                    'total_amount': contract.total_amount,
+                    'rest_amount': contract.rest_amount,
+                    'status': contract.status
+                }
+            )
+            self.session.commit()
+            return True
+        except Exception as ex:
+            print(ex)
+            return False
+
+    def get_contract_list(self, client):
+        return self.session.query(Contract).filter(Contract.client_id == client.id).all()
+
+    def delete_contract(self, contract):
+        try:
+            self.session.delete(contract)
+            self.session.commit()
+            return True
+        except Exception as ex:
+            print(ex)
+            return False
+
     def add_event(self, contract_id, client_id, support_contact_id, location, attendees, notes):
         event = Event(
             contract_id=contract_id,

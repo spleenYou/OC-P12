@@ -1,6 +1,6 @@
 import pytest
 from sqlalchemy import create_engine
-from controllers.models import Base, EpicUser, Client
+from controllers.models import Base, EpicUser, Client, Contract
 from controllers.mysql import Mysql
 from controllers.base import Controller
 from views import show, prompt
@@ -106,6 +106,11 @@ def empty_user():
 @pytest.fixture
 def empty_client():
     return Client()
+
+
+@pytest.fixture
+def empty_contract():
+    return Contract()
 
 
 @pytest.fixture
