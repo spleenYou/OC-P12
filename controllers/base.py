@@ -77,7 +77,10 @@ class Controller:
 
     def select_client(self):
         client_list = self.db.get_client_list()
-        return self.prompt.for_select_client(client_list)
+        client_id = self.prompt.for_select_client(client_list)
+        if client_id != 0:
+            return self.db.get_client_info(client_id)
+        return None
 
     @check_token_and_permission
     def add_contract(self):

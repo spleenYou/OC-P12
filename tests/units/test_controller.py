@@ -207,11 +207,17 @@ class Test_controller:
         result = controller.add_client()
         assert result is False
 
-    def test_select_client_display(self, controller_with_user_and_client, capsys, monkeypatch):
+    def test_select_client(self, controller_with_user_and_client, capsys, monkeypatch):
         monkeypatch.setattr('builtins.input', lambda _: 1)
-        controller_with_user_and_client.select_client()
+        client = controller_with_user_and_client.select_client()
         captured = capsys.readouterr()
         assert 'Liste des clients' in captured.out
+        assert client.id == 1
+
+    def test_select_no_client(self, controller_with_user_and_client, capsys, monkeypatch):
+        monkeypatch.setattr('builtins.input', lambda _: 0)
+        client = controller_with_user_and_client.select_client()
+        assert client is None
 
     def test_add_contract(self, controller_with_user_and_client, empty_user, monkeypatch):
         monkeypatch.setattr('builtins.input', lambda _: 'management@example.com')

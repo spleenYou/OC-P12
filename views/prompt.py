@@ -39,6 +39,7 @@ class Prompt:
 
     def for_select_client(self, client_list):
         print('Liste des clients')
+        print('0 - Annuler')
         for index, client in enumerate(client_list):
             print(f'{index + 1} - {client.entreprise_name}')
         return input('Veuillez entrer le numéro du client : ')

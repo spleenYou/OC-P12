@@ -68,6 +68,9 @@ class Mysql:
     def get_client_list(self):
         return self.session.query(Client).all()
 
+    def get_client_info(self, client_id):
+        return self.session.query(Client).filter(Client.id == client_id).first()
+
     def add_contract(self, client_id, commercial_id, total_amount, rest_amount):
         contract = Contract(
             client_id=client_id,
