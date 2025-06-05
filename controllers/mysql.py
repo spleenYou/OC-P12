@@ -157,10 +157,9 @@ class Mysql:
             print(ex)
             return False
 
-    def add_contract(self, client_id, commercial_id, total_amount, rest_amount):
+    def add_contract(self, client_id, total_amount, rest_amount):
         contract = Contract(
             client_id=client_id,
-            commercial_id=commercial_id,
             total_amount=total_amount,
             rest_amount=rest_amount
         )
@@ -170,14 +169,11 @@ class Mysql:
             self,
             contract,
             client_id=None,
-            commercial_id=None,
             total_amount=None,
             rest_amount=None,
             status=False):
         if client_id:
             contract.client_id = client_id
-        if commercial_id:
-            contract.commercial_id = commercial_id
         if total_amount:
             contract.total_amount = total_amount
         if rest_amount:
@@ -188,7 +184,6 @@ class Mysql:
             self.session.query(Contract).filter(Contract.id == contract.id).update(
                 {
                     'client_id': contract.client_id,
-                    'commercial_id': contract.commercial_id,
                     'total_amount': contract.total_amount,
                     'rest_amount': contract.rest_amount,
                     'status': contract.status
@@ -212,16 +207,72 @@ class Mysql:
             print(ex)
             return False
 
-    def add_event(self, contract_id, client_id, support_contact_id, location, attendees, notes):
+    def add_event(self, contract_id, support_contact_id, location, attendees, notes):
         event = Event(
             contract_id=contract_id,
-            client_id=client_id,
             support_contact_id=support_contact_id,
             location=location,
             attendees=attendees,
             notes=notes
         )
         return self.add_in_db(event)
+
+    def update_event(
+            self,
+            event,
+            contract_id=None,
+            support_contact_id=None,
+            location=None,
+            attendees=None,
+            notes=None,
+            date_start=None,
+            date_stop=None):
+        if contract_id:
+            event.contract_id = contract_id
+        if support_contact_id:
+            event.support_contact_id = support_contact_id
+        if location:
+            event.location = location
+        if attendees:
+            event.attendees = attendees
+        if notes:
+            event.notes = notes
+        if date_start:
+            event.date_start = date_start
+        if date_stop:
+            event.date_stop = date_stop
+        try:
+            self.session.query(Event).filter(Event.id == event.id).update(
+                {
+                    'contract_id': event.contract_id,
+                    'support_contact_id': event.support_contact_id,
+                    'location': event.location,
+                    'attendees': event.attendees,
+                    'notes': event.notes,
+                    'date_start': event.date_start,
+                    'date_stop': event.date_stop
+                }
+            )
+            self.session.commit()
+            return True
+        except Exception as ex:
+            print(ex)
+            return False
+
+    def get_event_list_by_client(self, client_id):
+        return self.session.query(Event).join(Contract).filter(Contract.client_id == client_id).all()
+
+    def get_event_list_by_epic_user(self, epic_user_id):
+        return self.session.query(Event).join(EpicUser).filter(EpicUser.id == epic_user_id).all()
+
+    def delete_event(self, event):
+        try:
+            self.session.delete(event)
+            self.session.commit()
+            return True
+        except Exception as ex:
+            print(ex)
+            return False
 
     def add_in_db(self, element_to_add):
         try:

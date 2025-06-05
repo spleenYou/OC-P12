@@ -26,7 +26,6 @@ class EpicUser(Base):
     date_creation = Column(Date, default=func.current_date())
     department = relationship('Department', back_populates='users')
     clients = relationship('Client', back_populates='commercial_contact')
-    contracts = relationship('Contract', back_populates='commercial')
     events = relationship('Event', back_populates='support_contact')
 
 
@@ -43,7 +42,6 @@ class Client(Base):
     commercial_contact_id = Column(Integer, ForeignKey('epic_users.id'), nullable=False)
     commercial_contact = relationship('EpicUser', back_populates='clients')
     contracts = relationship('Contract', back_populates='client')
-    events = relationship('Event', back_populates='client')
 
 
 class Contract(Base):
@@ -51,14 +49,12 @@ class Contract(Base):
 
     id = Column(Integer, primary_key=True)
     client_id = Column(Integer, ForeignKey('clients.id'), nullable=False)
-    commercial_id = Column(Integer, ForeignKey('epic_users.id'), nullable=False)
     total_amount = Column(Numeric(10, 2))
     rest_amount = Column(Numeric(10, 2))
     date_creation = Column(Date, default=func.current_date())
     status = Column(Boolean, default=False)
     client = relationship('Client', back_populates='contracts')
-    commercial = relationship('EpicUser', back_populates='contracts')
-    events = relationship('Event', back_populates='contract')
+    event = relationship('Event', back_populates='contract')
 
 
 class Event(Base):
@@ -66,15 +62,14 @@ class Event(Base):
 
     id = Column(Integer, primary_key=True)
     contract_id = Column(Integer, ForeignKey('contracts.id'), nullable=False)
-    client_id = Column(Integer, ForeignKey('clients.id'), nullable=False)
     date_creation = Column(Date, default=func.current_date())
+    date_start = Column(Date)
     date_stop = Column(Date)
     support_contact_id = Column(Integer, ForeignKey('epic_users.id'), nullable=False)
     location = Column(String(255))
     attendees = Column(Integer)
     notes = Column(Text)
-    contract = relationship('Contract', back_populates='events')
-    client = relationship('Client', back_populates='events')
+    contract = relationship('Contract', back_populates='event')
     support_contact = relationship('EpicUser', back_populates='events')
 
 

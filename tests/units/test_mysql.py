@@ -243,7 +243,6 @@ class TestMysql:
     def test_add_contract(self, mysql_instance):
         result = mysql_instance.add_contract(
             client_id=1,
-            commercial_id=1,
             total_amount=1000,
             rest_amount=1000
         )
@@ -253,7 +252,6 @@ class TestMysql:
         result = mysql_instance.update_contract(
             empty_contract,
             client_id=1,
-            commercial_id=1,
             total_amount=1000,
             rest_amount=1000,
             status=True
@@ -271,7 +269,6 @@ class TestMysql:
         empty_client.id = 1
         mysql_instance.add_contract(
             client_id=1,
-            commercial_id=1,
             total_amount=1000,
             rest_amount=1000,
         )
@@ -280,31 +277,142 @@ class TestMysql:
         assert mysql_instance.delete_contract(contracts[0]) is True
         assert len(mysql_instance.get_contract_list(empty_client)) == 0
 
-    def test_delete_contract_failed(self, mysql_instance, empty_client):
+    def test_delete_contract_failed(self, mysql_instance):
         assert mysql_instance.delete_contract(None) is False
 
     def test_get_contract_list(self, mysql_instance, empty_client):
         empty_client.id = 1
         mysql_instance.add_contract(
             client_id=1,
-            commercial_id=1,
             total_amount=1000,
             rest_amount=1000,
         )
         result = mysql_instance.get_contract_list(empty_client)
         assert len(result) != 0
         assert result[0].client_id == 1
-        assert result[0].commercial_id == 1
         assert result[0].total_amount == 1000
         assert result[0].rest_amount == 1000
 
     def test_add_event(self, mysql_instance):
         result = mysql_instance.add_event(
             contract_id=1,
-            client_id=1,
             support_contact_id=1,
             location='endroit',
             attendees=100,
             notes='Ne pas oublier'
         )
         assert result is True
+
+    def test_update_event(self, mysql_instance, empty_event, date_now):
+        result = mysql_instance.update_event(
+            empty_event,
+            contract_id=1,
+            support_contact_id=1,
+            location='endroit',
+            attendees=100,
+            notes='Ne pas oublier',
+            date_stop=date_now
+        )
+        assert result is True
+
+    def test_update_event_failed(self, mysql_instance):
+        result = mysql_instance.update_event(
+            None
+        )
+        assert result is False
+
+    def test_delete_event(self, mysql_instance):
+        mysql_instance.add_epic_user(
+            name='test',
+            email='test@example.com',
+            password='password',
+            employee_number=1,
+            department_id=1
+        )
+        mysql_instance.add_client(
+            name='Antoine',
+            email='client@example.com',
+            phone='0202020202',
+            entreprise_name='Entreprise 1',
+            commercial_contact_id=1
+        )
+        mysql_instance.add_contract(
+            client_id=1,
+            total_amount=1000,
+            rest_amount=1000
+        )
+        mysql_instance.add_event(
+            contract_id=1,
+            support_contact_id=1,
+            location='endroit',
+            attendees=100,
+            notes='Ne pas oublier'
+        )
+        events = mysql_instance.get_event_list_by_client(1)
+        print(events)
+        assert len(events) == 1
+        assert mysql_instance.delete_event(events[0]) is True
+        assert len(mysql_instance.get_event_list_by_client(1)) == 0
+
+    def test_delete_event_failed(self, mysql_instance):
+        assert mysql_instance.delete_event(None) is False
+
+    def test_get_event_list_by_client(self, mysql_instance, empty_contract):
+        mysql_instance.add_epic_user(
+            name='test',
+            email='test@example.com',
+            password='password',
+            employee_number=1,
+            department_id=1
+        )
+        mysql_instance.add_client(
+            name='Antoine',
+            email='client@example.com',
+            phone='0202020202',
+            entreprise_name='Entreprise 1',
+            commercial_contact_id=1
+        )
+        mysql_instance.add_contract(
+            client_id=1,
+            total_amount=1000,
+            rest_amount=1000
+        )
+        mysql_instance.add_event(
+            contract_id=1,
+            support_contact_id=1,
+            location='endroit',
+            attendees=100,
+            notes='Ne pas oublier'
+        )
+        result = mysql_instance.get_event_list_by_client(1)
+        assert len(result) != 0
+
+    def test_get_event_list_by_epic_user(self, mysql_instance, empty_contract):
+        mysql_instance.add_epic_user(
+            name='test',
+            email='test@example.com',
+            password='password',
+            employee_number=1,
+            department_id=1
+        )
+        mysql_instance.add_client(
+            name='Antoine',
+            email='client@example.com',
+            phone='0202020202',
+            entreprise_name='Entreprise 1',
+            commercial_contact_id=1
+        )
+        mysql_instance.add_contract(
+            client_id=1,
+            total_amount=1000,
+            rest_amount=1000
+        )
+        mysql_instance.add_event(
+            contract_id=1,
+            support_contact_id=1,
+            location='endroit',
+            attendees=100,
+            notes='Ne pas oublier'
+        )
+        result = mysql_instance.get_event_list_by_epic_user(1)
+        assert len(result) != 0
