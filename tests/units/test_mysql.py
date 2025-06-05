@@ -1,3 +1,4 @@
+import re
 from controllers.db import Mysql
 from controllers.models import EpicUser
 
@@ -37,6 +38,20 @@ class TestMysql:
         mysql_instance.session.add(EpicUser(**epic_user_information))
         mysql_instance.session.commit()
         assert mysql_instance.has_epic_users() == 1
+
+    def test_get_epic_user_information(self, mysql_instance):
+        mysql_instance.add_epic_user(
+            name='test',
+            email='test@example.com',
+            password='password',
+            employee_number=1,
+            department_id=1
+        )
+        user_information = mysql_instance.get_epic_user_information('test@example.com',)
+        assert re.search(
+            "[$]{1}argon2id[$]{1}v=19[$]{1}m=65536,t=4,p=1[$]{1}[+.\x00-9a-zA-Z]{22}[$]{1}[+.\x00-9a-zA-Z]{43}",
+            user_information.password
+        ) is not None
 
     def test_add_in_db_ok(self, mysql_instance, epic_user_information, monkeypatch, secret, token):
         new_user = EpicUser(**epic_user_information)
