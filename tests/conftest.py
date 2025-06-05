@@ -1,75 +1,11 @@
 import pytest
 from sqlalchemy import create_engine
-from controllers.models import Base, EpicUser, Client, Contract, Event
-from controllers.mysql import Mysql
-from controllers.base import Controller
-from views import show, prompt
+from controllers.models import EpicUser, Client, Contract, Event
+from controllers.db import Mysql
 from controllers.authentication import Authentication
 from controllers.permissions import Check_Permission
 import jwt
 from datetime import datetime, timedelta
-
-
-@pytest.fixture
-def controller_with_user_and_client(mysql_instance):
-    ctrl = Controller(
-        prompt.Prompt,
-        show.Show,
-        lambda: mysql_instance,
-        Authentication
-    )
-    ctrl.db.add_epic_user(
-        name='Management',
-        email='management@example.com',
-        password='management',
-        employee_number=3,
-        department_id=3
-    )
-    ctrl.db.add_epic_user(
-        name='Commercial',
-        email='commercial@example.com',
-        password='commercial',
-        employee_number=1,
-        department_id=1
-    )
-    ctrl.db.add_epic_user(
-        name='Support',
-        email='support@example.com',
-        password='support',
-        employee_number=2,
-        department_id=2
-    )
-    ctrl.db.add_client(
-        name='Anthony',
-        email='client@example.com',
-        phone='0202020202',
-        entreprise_name='Entreprise 1',
-        commercial_contact_id=2
-    )
-    ctrl.client = Client(
-        id=1,
-        name='Anthony',
-        email='client@example.com',
-        phone='0202020202',
-        entreprise_name='Entreprise 1',
-        commercial_contact_id=2
-    )
-    return ctrl
-
-
-@pytest.fixture
-def controller(mysql_instance, epic_user_information):
-    return Controller(
-        prompt.Prompt,
-        show.Show,
-        lambda: mysql_instance,
-        Authentication
-    )
-
-
-@pytest.fixture(scope="function")
-def sqlalchemy_declarative_base():
-    return Base
 
 
 @pytest.fixture

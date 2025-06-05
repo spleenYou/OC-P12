@@ -1,4 +1,5 @@
 import jwt
+import re
 from datetime import datetime, timedelta
 
 
@@ -41,3 +42,18 @@ class TestAuthentication:
             name=lambda path, key: secret if key == 'SECRET_KEY' else invalid_token
         )
         assert authentication.check_token() is False
+
+    def test_hash_password(self, authentication, epic_user_information):
+        hash_password = authentication.hash_password(epic_user_information['password'])
+        assert re.search(
+            "[$]{1}argon2id[$]{1}v=19[$]{1}m=65536,t=4,p=1[$]{1}[+.\x00-9a-zA-Z]{22}[$]{1}[+.\x00-9a-zA-Z]{43}",
+            hash_password
+        ) is not None
+
+    def test_password_verification(self, authentication, epic_user_information):
+        hash_password = authentication.hash_password(epic_user_information['password'])
+        assert authentication.check_password(epic_user_information['password'], hash_password) is True
+
+    def test_password_verification_fail(self, authentication, epic_user_information):
+        hash_password = authentication.hash_password(epic_user_information['password'] + "e")
+        assert authentication.check_password(epic_user_information['password'], hash_password) is False

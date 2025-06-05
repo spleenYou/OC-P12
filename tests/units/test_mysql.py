@@ -1,5 +1,4 @@
-import re
-from controllers.mysql import Mysql
+from controllers.db import Mysql
 from controllers.models import EpicUser
 
 
@@ -61,52 +60,6 @@ class TestMysql:
         departments = ["Commercial", "Support", "Management"]
         assert mysql_instance.get_department_list() == departments
 
-    def test_user_login_ok(self, mysql_instance, epic_user_information):
-        user = EpicUser(
-            name=epic_user_information['name'],
-            email=epic_user_information['email'],
-            employee_number=epic_user_information['employee_number'],
-            department_id=epic_user_information['department_id'],
-            password=mysql_instance.hash_password(epic_user_information['password'])
-        )
-        mysql_instance.add_in_db(user)
-        result = mysql_instance.check_user_login(
-            email=epic_user_information['email'],
-            password=epic_user_information['password']
-        )
-        assert result == user
-
-    def test_user_login_with_wrong_email(self, mysql_instance, epic_user_information):
-        mysql_instance.session.add(EpicUser(**epic_user_information))
-        result = mysql_instance.check_user_login(
-            email=epic_user_information['email'] + "e",
-            password=epic_user_information['password']
-        )
-        assert result is None
-
-    def test_user_login_with_wrong_password(self, mysql_instance, epic_user_information):
-        mysql_instance.session.add(EpicUser(**epic_user_information))
-        result = mysql_instance.check_user_login(
-            email=epic_user_information['email'],
-            password=epic_user_information['password'] + "e"
-        )
-        assert result is None
-
-    def test_hash_password(self, mysql_instance, epic_user_information):
-        hash_password = mysql_instance.hash_password(epic_user_information['password'])
-        assert re.search(
-            "[$]{1}argon2id[$]{1}v=19[$]{1}m=65536,t=4,p=1[$]{1}[+.\x00-9a-zA-Z]{22}[$]{1}[+.\x00-9a-zA-Z]{43}",
-            hash_password
-        ) is not None
-
-    def test_password_verification(self, mysql_instance, epic_user_information):
-        hash_password = mysql_instance.hash_password(epic_user_information['password'])
-        assert mysql_instance.password_verification(epic_user_information['password'], hash_password) is True
-
-    def test_password_verification_fail(self, mysql_instance, epic_user_information):
-        hash_password = mysql_instance.hash_password(epic_user_information['password'] + "e")
-        assert mysql_instance.password_verification(epic_user_information['password'], hash_password) is False
-
     def test_add_user(self, mysql_instance):
         result = mysql_instance.add_epic_user(
             name='test',
@@ -146,7 +99,7 @@ class TestMysql:
         assert len(result) != 0
         assert result[0].name == 'test'
         assert result[0].email == 'test@example.com'
-        assert mysql_instance.password_verification('password', result[0].password) is True
+        assert mysql_instance.auth.check_password('password', result[0].password) is True
         assert result[0].employee_number == 1
         assert result[0].department_id == 1
 
@@ -293,13 +246,14 @@ class TestMysql:
         assert result[0].total_amount == 1000
         assert result[0].rest_amount == 1000
 
-    def test_add_event(self, mysql_instance):
+    def test_add_event(self, mysql_instance, date_now):
         result = mysql_instance.add_event(
             contract_id=1,
             support_contact_id=1,
             location='endroit',
             attendees=100,
-            notes='Ne pas oublier'
+            notes='Ne pas oublier',
+            date_start=date_now
         )
         assert result is True
 
@@ -311,6 +265,7 @@ class TestMysql:
             location='endroit',
             attendees=100,
             notes='Ne pas oublier',
+            date_start=date_now,
             date_stop=date_now
         )
         assert result is True
@@ -321,7 +276,7 @@ class TestMysql:
         )
         assert result is False
 
-    def test_delete_event(self, mysql_instance):
+    def test_delete_event(self, mysql_instance, date_now):
         mysql_instance.add_epic_user(
             name='test',
             email='test@example.com',
@@ -346,7 +301,8 @@ class TestMysql:
             support_contact_id=1,
             location='endroit',
             attendees=100,
-            notes='Ne pas oublier'
+            notes='Ne pas oublier',
+            date_start=date_now
         )
         events = mysql_instance.get_event_list_by_client(1)
         print(events)
@@ -357,7 +313,7 @@ class TestMysql:
     def test_delete_event_failed(self, mysql_instance):
         assert mysql_instance.delete_event(None) is False
 
-    def test_get_event_list_by_client(self, mysql_instance, empty_contract):
+    def test_get_event_list_by_client(self, mysql_instance, empty_contract, date_now):
         mysql_instance.add_epic_user(
             name='test',
             email='test@example.com',
@@ -382,12 +338,13 @@ class TestMysql:
             support_contact_id=1,
             location='endroit',
             attendees=100,
-            notes='Ne pas oublier'
+            notes='Ne pas oublier',
+            date_start=date_now
         )
         result = mysql_instance.get_event_list_by_client(1)
         assert len(result) != 0
 
-    def test_get_event_list_by_epic_user(self, mysql_instance, empty_contract):
+    def test_get_event_list_by_epic_user(self, mysql_instance, empty_contract, date_now):
         mysql_instance.add_epic_user(
             name='test',
             email='test@example.com',
@@ -412,7 +369,8 @@ class TestMysql:
             support_contact_id=1,
             location='endroit',
             attendees=100,
-            notes='Ne pas oublier'
+            notes='Ne pas oublier',
+            date_start=date_now
         )
         result = mysql_instance.get_event_list_by_epic_user(1)
         assert len(result) != 0

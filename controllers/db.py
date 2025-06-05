@@ -3,9 +3,8 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from .models import Base, EpicUser, Department, Permission, Client, Contract, Event
-from argon2 import PasswordHasher
-from controllers.authentication import Authentication
 from sqlalchemy.exc import IntegrityError
+from controllers.authentication import Authentication
 
 
 class Mysql:
@@ -14,13 +13,6 @@ class Mysql:
         self.engine = self.create_engine()
         Base.metadata.create_all(bind=self.engine)
         self.session = self.create_session()
-        self.password_hasher = PasswordHasher(
-            time_cost=int(os.getenv('TIME_COST')),
-            memory_cost=int(os.getenv('MEMORY_COST')),
-            parallelism=int(os.getenv('PARALLELISM')),
-            hash_len=int(os.getenv('HASH_LEN')),
-            salt_len=int(os.getenv('SALT_LEN'))
-        )
         self.auth = Authentication()
 
     def create_engine(self):
@@ -35,12 +27,8 @@ class Mysql:
     def has_epic_users(self):
         return self.session.query(EpicUser).count()
 
-    def check_user_login(self, email, password):
-        user_information = self.session.query(EpicUser) \
-            .filter(EpicUser.email == email).first()
-        if (user_information is not None and self.password_verification(password, user_information.password)):
-            return user_information
-        return None
+    def get_epic_user_information(self, email):
+        return self.session.query(EpicUser).filter(EpicUser.email == email).first()
 
     def get_department_list(self):
         return [d[0] for d in self.session.query(Department.name).order_by(Department.id).all()]
@@ -49,7 +37,7 @@ class Mysql:
         epic_user = EpicUser(
             name=name,
             email=email,
-            password=self.hash_password(password),
+            password=self.auth.hash_password(password),
             employee_number=employee_number,
             department_id=department_id
         )
@@ -68,7 +56,7 @@ class Mysql:
         if email:
             epic_user.email = email
         if password:
-            epic_user.password = self.hash_password(password)
+            epic_user.password = self.auth.hash_password(password)
         if employee_number:
             epic_user.employee_number = employee_number
         if department_id:
@@ -207,13 +195,14 @@ class Mysql:
             print(ex)
             return False
 
-    def add_event(self, contract_id, support_contact_id, location, attendees, notes):
+    def add_event(self, contract_id, support_contact_id, location, attendees, notes, date_start):
         event = Event(
             contract_id=contract_id,
             support_contact_id=support_contact_id,
             location=location,
             attendees=attendees,
-            notes=notes
+            notes=notes,
+            date_start=date_start
         )
         return self.add_in_db(event)
 
@@ -286,12 +275,3 @@ class Mysql:
 
     def get_permissions(self):
         return self.session.query(Permission).all()
-
-    def hash_password(self, password):
-        return self.password_hasher.hash(password)
-
-    def password_verification(self, password, hash_password):
-        try:
-            return self.password_hasher.verify(hash_password, password)
-        except Exception:
-            return False
