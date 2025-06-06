@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey, Numeric, Boolean, Text, func, event
+from sqlalchemy import Column, Integer, String, Date, ForeignKey, Numeric, Boolean, Text, func, event, DateTime
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.schema import DDL
 
@@ -23,10 +23,14 @@ class EpicUser(Base):
     password = Column(String(255), nullable=False)
     employee_number = Column(Integer, unique=True, nullable=False)
     department_id = Column(Integer, ForeignKey('departments.id'), nullable=False)
-    date_creation = Column(Date, default=func.current_date())
+    date_creation = Column(DateTime, default=func.now())
     department = relationship('Department', back_populates='users')
     clients = relationship('Client', back_populates='commercial_contact')
     events = relationship('Event', back_populates='support_contact')
+
+    @property
+    def department_name(self):
+        return self.department.name if self.department else None
 
 
 class Client(Base):
@@ -37,8 +41,8 @@ class Client(Base):
     email = Column(String(255), unique=True, nullable=False)
     phone = Column(String(20))
     entreprise_name = Column(String(255))
-    date_creation = Column(Date, default=func.current_date())
-    date_last_update = Column(Date, default=func.current_date(), onupdate=func.current_date())
+    date_creation = Column(DateTime, default=func.now())
+    date_last_update = Column(DateTime, default=func.now(), onupdate=func.now())
     commercial_contact_id = Column(Integer, ForeignKey('epic_users.id'), nullable=False)
     commercial_contact = relationship('EpicUser', back_populates='clients')
     contracts = relationship('Contract', back_populates='client')
@@ -51,7 +55,7 @@ class Contract(Base):
     client_id = Column(Integer, ForeignKey('clients.id'), nullable=False)
     total_amount = Column(Numeric(10, 2))
     rest_amount = Column(Numeric(10, 2))
-    date_creation = Column(Date, default=func.current_date())
+    date_creation = Column(DateTime, default=func.now())
     status = Column(Boolean, default=False)
     client = relationship('Client', back_populates='contracts')
     event = relationship('Event', back_populates='contract')
@@ -62,7 +66,7 @@ class Event(Base):
 
     id = Column(Integer, primary_key=True)
     contract_id = Column(Integer, ForeignKey('contracts.id'), nullable=False)
-    date_creation = Column(Date, default=func.current_date())
+    date_creation = Column(DateTime, default=func.now())
     date_start = Column(Date)
     date_stop = Column(Date)
     support_contact_id = Column(Integer, ForeignKey('epic_users.id'), nullable=False)

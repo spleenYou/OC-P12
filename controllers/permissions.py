@@ -1,47 +1,43 @@
-class Check_Permission:
-    def __init__(self, perms):
-        self.permissions = perms
-        self.permission_level = None
-
-    def set_permission_level(self, permission_level):
-        self.permission_level = permission_level - 1
-        return None
+class Permission:
+    def __init__(self, db, session):
+        self.permissions = db.get_permissions()
+        self.session = session
 
     def add_client(self):
-        return self.permissions[self.permission_level].add_client
+        return self.permissions[self.session.user.department_id - 1].add_client
 
     def update_client(self):
-        return self.permissions[self.permission_level].update_client
+        return self.permissions[self.session.user.department_id - 1].update_client
 
     def delete_client(self):
-        return self.permissions[self.permission_level].delete_client
+        return self.permissions[self.session.user.department_id - 1].delete_client
 
     def add_contract(self):
-        return self.permissions[self.permission_level].add_contract
+        return self.permissions[self.session.user.department_id - 1].add_contract
 
     def update_contract(self):
-        return self.permissions[self.permission_level].update_contract
+        return self.permissions[self.session.user.department_id - 1].update_contract
 
     def delete_contract(self):
-        return self.permissions[self.permission_level].delete_contract
+        return self.permissions[self.session.user.department_id - 1].delete_contract
 
     def add_event(self):
-        return self.permissions[self.permission_level].add_event
+        return self.permissions[self.session.user.department_id - 1].add_event
 
     def update_event(self):
-        return self.permissions[self.permission_level].update_event
+        return self.permissions[self.session.user.department_id - 1].update_event
 
     def delete_event(self):
-        return self.permissions[self.permission_level].delete_event
+        return self.permissions[self.session.user.department_id - 1].delete_event
 
     def add_user(self):
-        return self.permissions[self.permission_level].add_user
+        return self.permissions[self.session.user.department_id - 1].add_user
 
     def update_user(self):
-        return self.permissions[self.permission_level].update_user
+        return self.permissions[self.session.user.department_id - 1].update_user
 
     def delete_user(self):
-        return self.permissions[self.permission_level].delete_user
+        return self.permissions[self.session.user.department_id - 1].delete_user
 
     def update_support_on_event(self):
-        return self.permissions[self.permission_level].update_support_on_event
+        return self.permissions[self.session.user.department_id - 1].update_support_on_event
