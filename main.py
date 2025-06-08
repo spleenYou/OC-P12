@@ -3,7 +3,6 @@ from controllers.base import Controller
 from views.prompt import Prompt
 from views.show import Show
 from controllers.db import Mysql
-from controllers.models import EpicUser
 from controllers.authentication import Authentication
 from controllers.session import Session
 
@@ -13,9 +12,8 @@ def main():
     parser.add_argument('login', nargs='?', default=None, help="Email needed as login")
     args = parser.parse_args()
     session = Session()
-    session.user = EpicUser()
     app = Controller(Prompt, Show, Mysql, Authentication, session)
-    session.user.email = args.login
+    session.user['email'] = args.login
     app.start()
 
 

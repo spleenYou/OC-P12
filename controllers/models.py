@@ -8,7 +8,7 @@ Base = declarative_base()
 class Department(Base):
     __tablename__ = 'departments'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(50), unique=True, nullable=False)
     users = relationship('EpicUser', back_populates='department')
     permissions = relationship('Permission', back_populates='department')
@@ -17,7 +17,7 @@ class Department(Base):
 class EpicUser(Base):
     __tablename__ = 'epic_users'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
     email = Column(String(255), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
@@ -36,11 +36,11 @@ class EpicUser(Base):
 class Client(Base):
     __tablename__ = 'clients'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
     email = Column(String(255), unique=True, nullable=False)
     phone = Column(String(20))
-    entreprise_name = Column(String(255))
+    company_name = Column(String(255))
     date_creation = Column(DateTime, default=func.now())
     date_last_update = Column(DateTime, default=func.now(), onupdate=func.now())
     commercial_contact_id = Column(Integer, ForeignKey('epic_users.id'), nullable=False)
@@ -51,7 +51,7 @@ class Client(Base):
 class Contract(Base):
     __tablename__ = 'contracts'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     client_id = Column(Integer, ForeignKey('clients.id'), nullable=False)
     total_amount = Column(Numeric(10, 2))
     rest_amount = Column(Numeric(10, 2))
@@ -64,7 +64,7 @@ class Contract(Base):
 class Event(Base):
     __tablename__ = 'events'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     contract_id = Column(Integer, ForeignKey('contracts.id'), nullable=False)
     date_creation = Column(DateTime, default=func.now())
     date_start = Column(Date)
@@ -80,7 +80,7 @@ class Event(Base):
 class Permission(Base):
     __tablename__ = 'permissions'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     department_id = Column(Integer, ForeignKey('departments.id'), unique=True)
     add_client = Column(Boolean, default=False)
     update_client = Column(Boolean, default=False)

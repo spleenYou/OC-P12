@@ -1,6 +1,8 @@
 import pytest
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from controllers.models import EpicUser, Client, Contract, Event
+from controllers.models import Base
 from controllers.db import Mysql
 from controllers.authentication import Authentication
 from controllers.permissions import Permission
@@ -10,30 +12,62 @@ from datetime import datetime, timedelta
 
 
 @pytest.fixture
-def mysql_instance(monkeypatch):
-    monkeypatch.setenv('DB_USER', 'test')
-    monkeypatch.setenv('DB_PASSWORD', 'test')
-    monkeypatch.setenv('DB_HOST', 'localhost')
-    monkeypatch.setenv('DB_PORT', '3306')
-    monkeypatch.setenv('DB_NAME', 'testdb')
-    session = Session()
-    db = Mysql(session)
-
-    class TestMysql(db):
-        def create_engine(self):
-            return create_engine('sqlite:///:memory:')
-
-    return TestMysql()
+def engine():
+    return create_engine('sqlite:///:memory:')
 
 
 @pytest.fixture
-def epic_user_information():
+def tables(engine):
+    Base.metadata.create_all(engine)
+    yield
+    Base.metadata.drop_all(engine)
+
+
+@pytest.fixture
+def db_session(engine, tables):
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    yield session
+    session.close()
+
+
+@pytest.fixture
+def mysql(db_session, empty_session, authentication):
+    mysql = Mysql(session=empty_session, authentication=authentication)
+    mysql.db_session = db_session
+    return mysql
+
+
+@pytest.fixture
+def commercial_user():
     return {
-        'name': "Test",
-        'email': "test@example.com",
-        'password': "secret",
+        'name': "Commercial",
+        'email': "commercial@example.com",
+        'password': "commercial",
         'employee_number': 1,
         'department_id': 1
+    }
+
+
+@pytest.fixture
+def support_user():
+    return {
+        'name': "Support",
+        'email': "support@example.com",
+        'password': "support",
+        'employee_number': 2,
+        'department_id': 2
+    }
+
+
+@pytest.fixture
+def management_user():
+    return {
+        'name': "Management",
+        'email': "management@example.com",
+        'password': "management",
+        'employee_number': 3,
+        'department_id': 3
     }
 
 
@@ -68,10 +102,10 @@ def empty_session():
 
 
 @pytest.fixture
-def authentication(monkeypatch, tmp_path, session):
+def authentication(monkeypatch, tmp_path, empty_session):
     dovenv_path = tmp_path / '.env'
     dovenv_path.write_text("")
-    a = Authentication(session)
+    a = Authentication(empty_session)
     a.dotenv_path = str(dovenv_path)
     return a
 

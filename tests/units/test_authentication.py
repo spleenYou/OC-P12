@@ -7,7 +7,7 @@ class TestAuthentication:
     def test_generate_secret_key(self, authentication):
         assert authentication.generate_secret_key() is True
 
-    def test_generate_token(self, authentication, monkeypatch, empty_user):
+    def test_generate_token(self, authentication, monkeypatch):
         written = {}
         monkeypatch.setattr(
             target='controllers.authentication.get_key',
@@ -22,8 +22,7 @@ class TestAuthentication:
             target='controllers.authentication.set_key',
             name=fake_set_key
         )
-        authentication.session.user = empty_user
-        authentication.session.user.department_id = 1
+        authentication.session.user['department_id'] = 1
         assert authentication.generate_token() is True
         assert authentication.session.token is not None
         decoded = jwt.decode(authentication.session.token, 'my_secret_key', algorithms=['HS256'])
@@ -46,17 +45,17 @@ class TestAuthentication:
         )
         assert authentication.check_token() is False
 
-    def test_hash_password(self, authentication, epic_user_information):
-        hash_password = authentication.hash_password(epic_user_information['password'])
+    def test_hash_password(self, authentication, management_user):
+        hash_password = authentication.hash_password(management_user['password'])
         assert re.search(
             "[$]{1}argon2id[$]{1}v=19[$]{1}m=65536,t=4,p=1[$]{1}[+.\x00-9a-zA-Z]{22}[$]{1}[+.\x00-9a-zA-Z]{43}",
             hash_password
         ) is not None
 
-    def test_password_verification(self, authentication, epic_user_information):
-        hash_password = authentication.hash_password(epic_user_information['password'])
-        assert authentication.check_password(epic_user_information['password'], hash_password) is True
+    def test_password_verification(self, authentication, management_user):
+        hash_password = authentication.hash_password(management_user['password'])
+        assert authentication.check_password(management_user['password'], hash_password) is True
 
-    def test_password_verification_fail(self, authentication, epic_user_information):
-        hash_password = authentication.hash_password(epic_user_information['password'] + "e")
-        assert authentication.check_password(epic_user_information['password'], hash_password) is False
+    def test_password_verification_fail(self, authentication, management_user):
+        hash_password = authentication.hash_password(management_user['password'] + "e")
+        assert authentication.check_password(management_user['password'], hash_password) is False

@@ -19,7 +19,7 @@ class Controller:
     def check_token(function):
         @wraps(function)
         def func_check(self, *args, **kwargs):
-            if not (self.session.status == C.FIRST_LAUNCH or
+            if not (self.session.first_launch or
                     (self.auth.check_token() and eval('self.allows_to.' + function.__name__)())):
                 return False
             return function(self, *args, **kwargs)
@@ -30,15 +30,15 @@ class Controller:
             self.show.first_launch()
             self.show.wait()
             self.auth.generate_secret_key()
-            self.session.user.department_id = 3
+            self.session.user['department_id'] = 3
             self.add_user()
         self.session.status = C.CONNECTION
-        if not self.session.user.email:
-            self.session.user.email = self.prompt.for_email()
+        if not self.session.user['email']:
+            self.session.user['email'] = self.prompt.for_email()
         password = self.prompt.for_password()
-        self.user = self.auth.check_password(password, self.db.get_user_password())
-        if self.user:
+        if self.auth.check_password(password, self.db.get_user_password()):
             self.session.first_launch = False
+            self.session.user = self.db.get_epic_user_information(self.session.user['email'])
             self.auth.generate_token()
             self.show.logged_ok()
         else:
