@@ -72,6 +72,23 @@ def management_user():
 
 
 @pytest.fixture
+def client_information():
+    return {
+        'name': 'Nom du client',
+        'email': 'client@example.fr',
+        'phone': '0202020202',
+        'company_name': 'Nom de l\'entreprise'
+    }
+
+
+@pytest.fixture
+def contract_information():
+    return {
+        'total_amount': 1000
+    }
+
+
+@pytest.fixture
 def empty_user():
     return EpicUser()
 

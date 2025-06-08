@@ -8,7 +8,6 @@ class Session:
             'employee_number': None,
             'department_id': None
         }
-        self.status = None
         self.new_user = {
             'id': None,
             'name': None,
@@ -18,11 +17,20 @@ class Session:
             'department_id': None
         }
         self.client = {
+            'id': None,
             'name': None,
             'email': None,
             'phone': None,
             'company_name': None,
             'commercial_contact_id': None
         }
-        self.token = None
+        self.contract = {
+            'id': None,
+            'client_id': None,
+            'total_amount': None,
+            'rest_amount': None,
+            'status': None
+        }
         self.first_launch = True
+        self.status = None
+        self.token = None
