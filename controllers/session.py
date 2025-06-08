@@ -4,3 +4,4 @@ class Session:
         self.status = 0
         self.new_user = None
         self.first_launch = True
+        self.token = None

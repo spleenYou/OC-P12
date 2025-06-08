@@ -7,7 +7,7 @@ from dotenv import set_key, load_dotenv, find_dotenv, get_key
 
 
 class Authentication:
-    def __init__(self):
+    def __init__(self, session):
         load_dotenv()
         self.dotenv_path = find_dotenv()
         self.password_hasher = PasswordHasher(
@@ -17,29 +17,26 @@ class Authentication:
             hash_len=int(os.getenv('HASH_LEN')),
             salt_len=int(os.getenv('SALT_LEN'))
         )
+        self.session = session
 
     def generate_secret_key(self):
         set_key(self.dotenv_path, 'SECRET_KEY', 'epicEvent-' + secrets.token_urlsafe(64))
         return True
 
-    def generate_token(self, department_id):
-        set_key(
-            self.dotenv_path,
-            'TOKEN',
-            jwt.encode(
-                payload={
-                    'permission_level': department_id,
-                    'exp': datetime.now() + timedelta(hours=2)
-                },
-                key=get_key(self.dotenv_path, 'SECRET_KEY')
-            )
+    def generate_token(self):
+        self.session.token = jwt.encode(
+            payload={
+                'permission_level': self.session.user.department_id,
+                'exp': datetime.now() + timedelta(hours=2)
+            },
+            key=get_key(self.dotenv_path, 'SECRET_KEY')
         )
         return True
 
     def check_token(self):
         try:
             jwt.decode(
-                jwt=get_key(self.dotenv_path, 'TOKEN'),
+                jwt=self.session.token,
                 key=get_key(self.dotenv_path, 'SECRET_KEY'),
                 algorithms=['HS256']
             )

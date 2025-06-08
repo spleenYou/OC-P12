@@ -3,7 +3,8 @@ from sqlalchemy import create_engine
 from controllers.models import EpicUser, Client, Contract, Event
 from controllers.db import Mysql
 from controllers.authentication import Authentication
-from controllers.permissions import Check_Permission
+from controllers.permissions import Permission
+from controllers.session import Session
 import jwt
 from datetime import datetime, timedelta
 
@@ -15,8 +16,10 @@ def mysql_instance(monkeypatch):
     monkeypatch.setenv('DB_HOST', 'localhost')
     monkeypatch.setenv('DB_PORT', '3306')
     monkeypatch.setenv('DB_NAME', 'testdb')
+    session = Session()
+    db = Mysql(session)
 
-    class TestMysql(Mysql):
+    class TestMysql(db):
         def create_engine(self):
             return create_engine('sqlite:///:memory:')
 
@@ -60,10 +63,15 @@ def date_now():
 
 
 @pytest.fixture
-def authentication(monkeypatch, tmp_path):
+def empty_session():
+    return Session()
+
+
+@pytest.fixture
+def authentication(monkeypatch, tmp_path, session):
     dovenv_path = tmp_path / '.env'
     dovenv_path.write_text("")
-    a = Authentication()
+    a = Authentication(session)
     a.dotenv_path = str(dovenv_path)
     return a
 
@@ -71,7 +79,7 @@ def authentication(monkeypatch, tmp_path):
 @pytest.fixture
 def permissions():
     db = Mysql()
-    return Check_Permission(db.get_permissions())
+    return Permission(db.get_permissions())
 
 
 def make_token(secret, exp):

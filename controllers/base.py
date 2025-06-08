@@ -7,8 +7,8 @@ import constants as C
 class Controller:
     def __init__(self, prompt, show, db, auth, session):
         self.session = session
-        self.db = db(session)
-        self.auth = auth()
+        self.auth = auth(session)
+        self.db = db(session, self.auth)
         self.client = None
         self.contract = None
         self.event = None
@@ -21,7 +21,6 @@ class Controller:
         def func_check(self, *args, **kwargs):
             if not (self.session.status == C.FIRST_LAUNCH or
                     (self.auth.check_token() and eval('self.allows_to.' + function.__name__)())):
-                print(f'token : {self.auth.check_token()}')
                 return False
             return function(self, *args, **kwargs)
         return func_check
@@ -40,7 +39,7 @@ class Controller:
         self.user = self.auth.check_password(password, self.db.get_user_password())
         if self.user:
             self.session.first_launch = False
-            self.auth.generate_token(self.session.user.department_id)
+            self.auth.generate_token()
             self.show.logged_ok()
         else:
             self.show.logged_nok()
@@ -53,7 +52,7 @@ class Controller:
             self.session.new_user = self.session.user
         self.session.new_user.name = self.prompt.for_name()
         if not self.session.new_user.email:
-            self.session.new_user = self.prompt.for_email()
+            self.session.new_user.email = self.prompt.for_email()
         self.session.new_user.password = self.prompt.for_password()
         self.session.new_user.employee_number = self.prompt.for_employee_number()
         if not self.session.new_user.department_id:

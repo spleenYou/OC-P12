@@ -27,8 +27,8 @@ class TestMysql:
             department_id=1
         )
 
-    def test_init_mysql(self):
-        db = Mysql()
+    def test_init_mysql(self, empty_session):
+        db = Mysql(empty_session)
         assert db.engine is not None
 
     def test_has_no_epic_users(self, mysql_instance):

@@ -176,9 +176,9 @@ class Show:
             case C.DELETE_EVENT:
                 return 'Suppression d\'un évènement'
             case C.UPDATE_SUPPORT_ON_EVENT:
-                return 'Ajout d\'un utilisateur'
+                return 'Mise à jour du support'
             case C.CONNECTION:
-                return 'Ajout d\'un utilisateur'
+                return 'Connection'
             case C.ERROR:
                 return 'Erreur'
 
@@ -186,13 +186,15 @@ class Show:
         content = []
         align = 'center'
         match self.session.status:
-            case C.ADD_USER:
+            case C.ADD_USER | C.UPDATE_USER:
                 align = 'left'
-                content.append(f"{''*20}Name : {self.session.new_user.name or ''}")
-                content.append(f"Email : {self.session.new_user.email or ''}")
-                content.append(f"Password : {'*'*len(self.session.new_user.password or '') or ''}")
-                content.append(f"Employee number : {self.session.new_user.employee_number or ''}")
-                content.append(f"Department : {self.session.new_user.department_name or 'Management'}")
+                content.append('Informations sur l\'utilisateur :')
+                content.append('')
+                content.append(f"{' ' * 4}Name : {self.session.new_user.name or ''}")
+                content.append(f"{' ' * 4}Email : {self.session.new_user.email or ''}")
+                content.append(f"{' ' * 4}Password : {'*'*len(self.session.new_user.password or '') or ''}")
+                content.append(f"{' ' * 4}Employee number : {self.session.new_user.employee_number or ''}")
+                content.append(f"{' ' * 4}Department : {self.session.new_user.department_name or 'Management'}")
             # case C.FORBIDDEN:
             #     return 'Action interdite'
             # case C.UPDATE_USER:

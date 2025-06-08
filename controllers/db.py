@@ -4,17 +4,16 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from .models import Base, EpicUser, Department, Permission, Client, Contract, Event
 from sqlalchemy.exc import IntegrityError
-from controllers.authentication import Authentication
 
 
 class Mysql:
-    def __init__(self, session):
+    def __init__(self, session, authentication):
         load_dotenv()
         self.engine = self.create_engine()
         Base.metadata.create_all(bind=self.engine)
         self.db_session = self.create_session()
         self.session = session
-        self.auth = Authentication()
+        self.auth = authentication
 
     def create_engine(self):
         db_url = (f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:"

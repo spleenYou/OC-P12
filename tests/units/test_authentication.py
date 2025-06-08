@@ -7,7 +7,7 @@ class TestAuthentication:
     def test_generate_secret_key(self, authentication):
         assert authentication.generate_secret_key() is True
 
-    def test_generate_token(self, authentication, monkeypatch):
+    def test_generate_token(self, authentication, monkeypatch, empty_user):
         written = {}
         monkeypatch.setattr(
             target='controllers.authentication.get_key',
@@ -22,9 +22,11 @@ class TestAuthentication:
             target='controllers.authentication.set_key',
             name=fake_set_key
         )
-        assert authentication.generate_token(1) is True
-        assert 'TOKEN' in written
-        decoded = jwt.decode(written['TOKEN'], 'my_secret_key', algorithms=['HS256'])
+        authentication.session.user = empty_user
+        authentication.session.user.department_id = 1
+        assert authentication.generate_token() is True
+        assert authentication.session.token is not None
+        decoded = jwt.decode(authentication.session.token, 'my_secret_key', algorithms=['HS256'])
         assert decoded['permission_level'] == 1
         assert datetime.fromtimestamp(decoded['exp']) > datetime.now()
         assert datetime.fromtimestamp(decoded['exp']) < datetime.now() + timedelta(hours=4)
@@ -32,8 +34,9 @@ class TestAuthentication:
     def test_check_token_valid(self, monkeypatch, authentication, secret, token):
         monkeypatch.setattr(
             target='controllers.authentication.get_key',
-            name=lambda path, key: secret if key == 'SECRET_KEY' else token
+            name=lambda path, key: secret
         )
+        authentication.session.token = token
         assert authentication.check_token() is True
 
     def test_check_token_valid_fail(self, monkeypatch, authentication, secret, invalid_token):
