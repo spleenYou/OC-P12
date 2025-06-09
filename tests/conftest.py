@@ -89,6 +89,17 @@ def contract_information():
 
 
 @pytest.fixture
+def event_information(date_now):
+    return {
+        'support_contact_id': 2,
+        'location': 'Lieu de l\'evènement',
+        'attendees': 100,
+        'notes': 'Note de l\'evènement',
+        'date_start': date_now
+    }
+
+
+@pytest.fixture
 def empty_user():
     return EpicUser()
 

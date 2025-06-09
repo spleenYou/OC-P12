@@ -31,6 +31,15 @@ class Session:
             'rest_amount': None,
             'status': None
         }
+        self.event = {
+            'id': None,
+            'support_contact_id': None,
+            'location': None,
+            'attendees': None,
+            'notes': None,
+            'date_start': None,
+            'date_stop': None
+        }
         self.first_launch = True
         self.status = None
         self.token = None

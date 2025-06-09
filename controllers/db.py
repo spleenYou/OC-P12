@@ -98,9 +98,9 @@ class Mysql:
         )
         return self.add_in_db(new_client)
 
-    def update_client(self, client_id):
+    def update_client(self):
         try:
-            count = self.db_session.query(Client).filter(Client.id == client_id).update(
+            count = self.db_session.query(Client).filter(Client.id == self.session.client['id']).update(
                 {
                     'name': self.session.client['name'],
                     'email': self.session.client['email'],
@@ -148,9 +148,9 @@ class Mysql:
         )
         return self.add_in_db(contract)
 
-    def update_contract(self, contract_id):
+    def update_contract(self):
         try:
-            count = self.db_session.query(Contract).filter(Contract.id == contract_id).update(
+            count = self.db_session.query(Contract).filter(Contract.id == self.session.contract['id']).update(
                 {
                     'client_id': self.session.client['id'],
                     'total_amount': self.session.contract['total_amount'],
@@ -187,55 +187,33 @@ class Mysql:
             self.db_session.rollback()
             return False
 
-    def add_event(self, contract_id, support_contact_id, location, attendees, notes, date_start):
+    def add_event(self):
         event = Event(
-            contract_id=contract_id,
-            support_contact_id=support_contact_id,
-            location=location,
-            attendees=attendees,
-            notes=notes,
-            date_start=date_start
+            contract_id=self.session.user['id'],
+            support_contact_id=self.session.event['support_contact_id'],
+            location=self.session.event['location'],
+            attendees=self.session.event['attendees'],
+            notes=self.session.event['notes'],
+            date_start=self.session.event['date_start'],
+            date_stop=self.session.event['date_stop']
         )
         return self.add_in_db(event)
 
-    def update_event(
-            self,
-            event,
-            contract_id=None,
-            support_contact_id=None,
-            location=None,
-            attendees=None,
-            notes=None,
-            date_start=None,
-            date_stop=None):
-        if contract_id:
-            event.contract_id = contract_id
-        if support_contact_id:
-            event.support_contact_id = support_contact_id
-        if location:
-            event.location = location
-        if attendees:
-            event.attendees = attendees
-        if notes:
-            event.notes = notes
-        if date_start:
-            event.date_start = date_start
-        if date_stop:
-            event.date_stop = date_stop
+    def update_event(self):
         try:
-            self.db_session.query(Event).filter(Event.id == event.id).update(
+            count = self.db_session.query(Event).filter(Event.id == self.session.event['id']).update(
                 {
-                    'contract_id': event.contract_id,
-                    'support_contact_id': event.support_contact_id,
-                    'location': event.location,
-                    'attendees': event.attendees,
-                    'notes': event.notes,
-                    'date_start': event.date_start,
-                    'date_stop': event.date_stop
+                    'contract_id': self.session.event['contract_id'],
+                    'support_contact_id': self.session.event['support_contact_id'],
+                    'location': self.session.event['location'],
+                    'attendees': self.session.event['attendees'],
+                    'notes': self.session.event['notes'],
+                    'date_start': self.session.event['date_start'],
+                    'date_stop': self.session.event['date_stop']
                 }
             )
             self.db_session.commit()
-            return True
+            return count > 0
         except Exception as ex:
             print(ex)
             self.db_session.rollback()
@@ -245,13 +223,32 @@ class Mysql:
         return self.db_session.query(Event).join(Contract).filter(Contract.client_id == client_id).all()
 
     def get_event_list_by_user(self, user_id):
-        return self.db_session.query(Event).join(EpicUser).filter(EpicUser.id == user_id).all()
+        events = self.db_session.query(Event).join(EpicUser).filter(EpicUser.id == user_id).all()
+        if not events:
+            events = self.db_session.query(Event) \
+                .join(Contract).filter(Event.contract_id == Contract.id) \
+                .join(Client).filter(Contract.client_id == Client.id) \
+                .all()
+        return events
 
-    def delete_event(self, event):
+    def get_event_information(self, event_id):
+        event = self.db_session.query(Event).filter(Event.id == event_id).first()
+        return {
+            'id': event.id,
+            'support_contact_id': event.support_contact_id,
+            'location': event.location,
+            'attendees': event.attendees,
+            'notes': event.notes,
+            'date_start': event.date_start,
+            'date_stop': event.date_stop,
+            'contract_id': event.contract_id
+        }
+
+    def delete_event(self):
         try:
-            self.db_session.delete(event)
+            count = self.db_session.query(Event).filter(Event.id == self.session.event['id']).delete()
             self.db_session.commit()
-            return True
+            return count > 0
         except Exception as ex:
             print(ex)
             self.db_session.rollback()
