@@ -62,7 +62,9 @@ class Controller:
         return False
 
     def main_menu(self):
-        pass
+        self.session.status = C.MAIN_MENU
+        command = self.prompt.for_command()
+        print(command)
 
     @check_token
     def add_client(self):

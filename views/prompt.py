@@ -64,3 +64,7 @@ class Prompt:
         if choice in ['y', 'Y']:
             return True
         return False
+
+    def for_command(self):
+        self.show.display()
+        return input('> ')

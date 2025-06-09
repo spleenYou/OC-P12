@@ -62,11 +62,6 @@ class Show:
         self.show_content(content, 'center')
 
     @decoration
-    def title_menu(self):
-        "Shows the title decorated"
-        self.decorated_text(self.find_title())
-
-    @decoration
     def show_content(self, content, align):
         """Shows the content decorated
 
@@ -89,8 +84,8 @@ class Show:
         self.clear_screen()
         self.head_menu()
         self.session_information()
-        self.title_menu()
-        self.find_content()
+        self.title()
+        self.content()
 
     def decorated_text(self, text, align="center"):
         """Shows the text decorated
@@ -148,48 +143,53 @@ class Show:
             content.append(f"Utilisateur : {self.session.user['name']} | Departement : {self.db.get_department_name()}")
             self.show_content(content, 'left')
 
-    def find_title(self):
+    def title(self):
+        content = []
         match self.session.status:
             case C.FIRST_LAUNCH:
-                return 'Premier lancement de l\'application'
+                content.append('Premier lancement de l\'application')
             case C.ADD_USER:
-                return 'Ajout d\'un utilisateur'
+                content.append('Ajout d\'un utilisateur')
             case C.FORBIDDEN:
-                return 'Action interdite'
+                content.append('Action interdite')
             case C.UPDATE_USER:
-                return 'Mise à jour d\'un utilisateur'
+                content.append('Mise à jour d\'un utilisateur')
             case C.DELETE_USER:
-                return 'Suppression d\'un utilisateur'
+                content.append('Suppression d\'un utilisateur')
             case C.ADD_CLIENT:
-                return 'Ajout d\'un client'
+                content.append('Ajout d\'un client')
             case C.UPDATE_CLIENT:
-                return 'Mise à jour d\'un client'
+                content.append('Mise à jour d\'un client')
             case C.DELETE_CLIENT:
-                return 'Suppression d\'un client'
+                content.append('Suppression d\'un client')
             case C.ADD_CONTRACT:
-                return 'Ajout d\'un contrat'
+                content.append('Ajout d\'un contrat')
             case C.UPDATE_CONTRACT:
-                return 'Mise à jour d\'un contrat'
+                content.append('Mise à jour d\'un contrat')
             case C.DELETE_CONTRACT:
-                return 'Suppression d\'un contrat'
+                content.append('Suppression d\'un contrat')
             case C.ADD_EVENT:
-                return 'Ajout d\'un évènement'
+                content.append('Ajout d\'un évènement')
             case C.UPDATE_EVENT:
-                return 'Mise à jour d\'un évènement'
+                content.append('Mise à jour d\'un évènement')
             case C.DELETE_EVENT:
-                return 'Suppression d\'un évènement'
+                content.append('Suppression d\'un évènement')
             case C.UPDATE_SUPPORT_ON_EVENT:
-                return 'Mise à jour du support'
+                content.append('Mise à jour du support')
             case C.CONNECTION:
-                return 'Connexion'
+                content.append('Connexion')
             case C.ERROR | C.ADD_USER_FAILED:
-                return 'Erreur'
+                content.append('Erreur')
             case C.LOGIN_FAILED:
-                return 'Erreur de connexion'
+                content.append('Erreur de connexion')
             case C.LOGIN_OK:
-                return 'Connexion réussie'
+                content.append('Connexion réussie')
+            case _:
+                return None
+        if content:
+            self.show_content(content, 'center')
 
-    def find_content(self):
+    def content(self):
         content = []
         align = 'center'
         match self.session.status:
@@ -216,6 +216,9 @@ class Show:
                     content.append('Il faut au moins un utilisateur pour utiliser l\'application')
                     content.append('')
                     content.append('Fermeture de l\'application')
+            case C.MAIN_MENU:
+                content.append('Merci d\'entrer la commande correspondant à ce que vous souhaiter faire')
+                content.append('Entrer "HELP" pour avoir la description des commandes')
             case _:
                 pass
         if content:

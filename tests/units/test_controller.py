@@ -1,4 +1,13 @@
 class TestController:
+    def add_user_and_connection(self, controller, management_user, monkeypatch):
+        controller.session.new_user = management_user
+        controller.db.add_user()
+        controller.session.user['email'] = management_user['email']
+        monkeypatch.setattr('builtins.input', lambda _: '')
+        monkeypatch.setattr('views.prompt.getpass', lambda _: management_user['password'])
+        controller.start()
+        controller.main_menu()
+
     def test_start_without_user_and_no_registration(self, monkeypatch, controller, management_user, capsys):
         inputs = iter(
             [
@@ -65,6 +74,11 @@ class TestController:
         monkeypatch.setattr('views.prompt.getpass', lambda _: next(inputs_password))
         controller.start()
         captured = capsys.readouterr()
-        print(captured)
         assert 'Erreur de connexion' in captured.out
         assert 'Vos identifiants sont inconnus' in captured.out
+
+    def test_main_menu(self, controller, monkeypatch, management_user, capsys):
+        self.add_user_and_connection(controller, management_user, monkeypatch)
+        captured = capsys.readouterr()
+        assert 'Merci d\'entrer la commande correspondant à ce que vous souhaiter faire' in captured.out
+        assert 'Entrer "HELP" pour avoir la description des commandes' in captured.out
