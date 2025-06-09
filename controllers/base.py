@@ -1,4 +1,3 @@
-import os
 from controllers.permissions import Permission
 from functools import wraps
 import constants as C
@@ -28,27 +27,23 @@ class Controller:
     def start(self):
         if self.db.has_users() == 0:
             self.session.status = C.FIRST_LAUNCH
-            self.show.display()
             self.show.wait()
             self.auth.generate_secret_key()
             self.session.user['department_id'] = 3
             if not self.add_user():
-                self.stop()
+                return None
         self.session.status = C.CONNECTION
         if not self.session.user['email']:
             self.session.user['email'] = self.prompt.for_email()
         password = self.prompt.for_password()
         if self.auth.check_password(password, self.db.get_user_password()):
             self.session.user = self.db.get_user_information(self.session.user['email'])
-            self.auth.generate_token()
-            self.show.logged_ok()
+            self.session.token = self.auth.generate_token()
+            self.session.status = C.LOGIN_OK
         else:
             self.session.status = C.LOGIN_FAILED
-            self.show.display()
-            self.show.wait()
-
-    def stop(self):
-        os._exit(os.EX_OK)
+        self.show.wait()
+        return None
 
     @check_token
     def add_user(self):
@@ -66,9 +61,11 @@ class Controller:
             if self.db.add_user():
                 return True
         self.session.status = C.ADD_USER_FAILED
-        self.show.display()
         self.show.wait()
         return False
+
+    def main_menu(self):
+        pass
 
     @check_token
     def add_client(self):

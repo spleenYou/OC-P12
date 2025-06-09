@@ -40,9 +40,6 @@ class Show:
             command = "cls"
         os.system(command)
 
-    def logged_ok(self):
-        print('Hello :)')
-
     def head_menu(self):
         "Shows the name of the program decorated"
 
@@ -91,16 +88,9 @@ class Show:
         """
         self.clear_screen()
         self.head_menu()
+        self.session_information()
         self.title_menu()
-        if self.session.status > 0 and self.session.status < 100:
-            content, align = self.find_content()
-            self.show_content(content, align)
-        if self.session.status > 10 and self.session.status < 100:
-            content, align = self.find_content()
-            self.show_content(content, align)
-        if self.session.status >= 100:
-            content, align = self.find_content()
-            self.show_content(content, align)
+        self.find_content()
 
     def decorated_text(self, text, align="center"):
         """Shows the text decorated
@@ -141,10 +131,22 @@ class Show:
                 f"{'*' * self.NUMBER_SIDE_STARS}"
             )
 
+    def add_separator(self, content):
+        content.append('')
+        content.append(self.STARS_LINE_FULL)
+        content.append('')
+        return content
+
     def wait(self):
         "SHow a waiting line if a pause is needed"
         self.display()
         input("Appuyer sur une touche pour continuer...")
+
+    def session_information(self):
+        if self.session.user['id'] is not None:
+            content = []
+            content.append(f"Utilisateur : {self.session.user['name']} | Departement : {self.db.get_department_name()}")
+            self.show_content(content, 'left')
 
     def find_title(self):
         match self.session.status:
@@ -179,16 +181,21 @@ class Show:
             case C.UPDATE_SUPPORT_ON_EVENT:
                 return 'Mise à jour du support'
             case C.CONNECTION:
-                return 'Connection'
+                return 'Connexion'
             case C.ERROR | C.ADD_USER_FAILED:
                 return 'Erreur'
             case C.LOGIN_FAILED:
-                return 'Login failed'
+                return 'Erreur de connexion'
+            case C.LOGIN_OK:
+                return 'Connexion réussie'
 
     def find_content(self):
         content = []
         align = 'center'
         match self.session.status:
+            case C.FIRST_LAUNCH:
+                content.append('Un utilisateur de l\'équipe Management va être créé')
+                content.append('afin de pouvoir continuer')
             case C.ADD_USER | C.UPDATE_USER:
                 department_name = self.db.get_department_name()
                 align = 'left'
@@ -211,4 +218,5 @@ class Show:
                     content.append('Fermeture de l\'application')
             case _:
                 pass
-        return content, align
+        if content:
+            self.show_content(content, align)

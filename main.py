@@ -1,10 +1,12 @@
 import argparse
+import os
 from controllers.base import Controller
 from views.prompt import Prompt
 from views.show import Show
 from controllers.db import Mysql
 from controllers.authentication import Authentication
 from controllers.session import Session
+import constants as C
 
 
 def main():
@@ -15,6 +17,9 @@ def main():
     app = Controller(Prompt, Show, Mysql, Authentication, session)
     session.user['email'] = args.login
     app.start()
+    if session.status == C.LOGIN_OK:
+        app.main_menu()
+    os._exit(os.EX_OK)
 
 
 if __name__ == "__main__":
