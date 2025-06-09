@@ -144,50 +144,52 @@ class Show:
             self.show_content(content, 'left')
 
     def title(self):
-        content = []
+        title = ''
         match self.session.status:
             case C.FIRST_LAUNCH:
-                content.append('Premier lancement de l\'application')
+                title = 'Premier lancement de l\'application'
             case C.ADD_USER:
-                content.append('Ajout d\'un utilisateur')
+                title = 'Ajout d\'un utilisateur'
             case C.FORBIDDEN:
-                content.append('Action interdite')
+                title = 'Action interdite'
             case C.UPDATE_USER:
-                content.append('Mise à jour d\'un utilisateur')
+                title = 'Mise à jour d\'un utilisateur'
             case C.DELETE_USER:
-                content.append('Suppression d\'un utilisateur')
+                title = 'Suppression d\'un utilisateur'
             case C.ADD_CLIENT:
-                content.append('Ajout d\'un client')
+                title = 'Ajout d\'un client'
             case C.UPDATE_CLIENT:
-                content.append('Mise à jour d\'un client')
+                title = 'Mise à jour d\'un client'
             case C.DELETE_CLIENT:
-                content.append('Suppression d\'un client')
+                title = 'Suppression d\'un client'
             case C.ADD_CONTRACT:
-                content.append('Ajout d\'un contrat')
+                title = 'Ajout d\'un contrat'
             case C.UPDATE_CONTRACT:
-                content.append('Mise à jour d\'un contrat')
+                title = 'Mise à jour d\'un contrat'
             case C.DELETE_CONTRACT:
-                content.append('Suppression d\'un contrat')
+                title = 'Suppression d\'un contrat'
             case C.ADD_EVENT:
-                content.append('Ajout d\'un évènement')
+                title = 'Ajout d\'un évènement'
             case C.UPDATE_EVENT:
-                content.append('Mise à jour d\'un évènement')
+                title = 'Mise à jour d\'un évènement'
             case C.DELETE_EVENT:
-                content.append('Suppression d\'un évènement')
+                title = 'Suppression d\'un évènement'
             case C.UPDATE_SUPPORT_ON_EVENT:
-                content.append('Mise à jour du support')
+                title = 'Mise à jour du support'
             case C.CONNECTION:
-                content.append('Connexion')
+                title = 'Connexion'
             case C.ERROR | C.ADD_USER_FAILED:
-                content.append('Erreur')
+                title = 'Erreur'
             case C.LOGIN_FAILED:
-                content.append('Erreur de connexion')
+                title = 'Erreur de connexion'
             case C.LOGIN_OK:
-                content.append('Connexion réussie')
+                title = 'Connexion réussie'
+            case C.UNKNOWN:
+                title = 'Erreur de saisie'
             case _:
                 return None
-        if content:
-            self.show_content(content, 'center')
+        if title:
+            self.show_content([title], 'center')
 
     def content(self):
         content = []
@@ -219,6 +221,8 @@ class Show:
             case C.MAIN_MENU:
                 content.append('Merci d\'entrer la commande correspondant à ce que vous souhaiter faire')
                 content.append('Entrer "HELP" pour avoir la description des commandes')
+            case C.UNKNOWN:
+                content.append('Cette commande est inconnue, veuillez recommencer')
             case _:
                 pass
         if content:

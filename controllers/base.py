@@ -62,9 +62,14 @@ class Controller:
         return False
 
     def main_menu(self):
-        self.session.status = C.MAIN_MENU
-        command = self.prompt.for_command()
-        print(command)
+        command = None
+        while command not in ['exit', 'EXIT']:
+            self.session.status = C.MAIN_MENU
+            command = self.prompt.for_command()
+            match command:
+                case _:
+                    self.session.status = C.UNKNOWN
+                    self.show.wait()
 
     @check_token
     def add_client(self):

@@ -6,7 +6,6 @@ class TestController:
         monkeypatch.setattr('builtins.input', lambda _: '')
         monkeypatch.setattr('views.prompt.getpass', lambda _: management_user['password'])
         controller.start()
-        controller.main_menu()
 
     def test_start_without_user_and_no_registration(self, monkeypatch, controller, management_user, capsys):
         inputs = iter(
@@ -79,6 +78,31 @@ class TestController:
 
     def test_main_menu(self, controller, monkeypatch, management_user, capsys):
         self.add_user_and_connection(controller, management_user, monkeypatch)
+        inputs = iter(
+            [
+                'exit',
+                ''
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        controller.main_menu()
         captured = capsys.readouterr()
         assert 'Merci d\'entrer la commande correspondant à ce que vous souhaiter faire' in captured.out
         assert 'Entrer "HELP" pour avoir la description des commandes' in captured.out
+
+    def test_unknown_command(self, controller, monkeypatch, management_user, capsys):
+        self.add_user_and_connection(controller, management_user, monkeypatch)
+        inputs = iter(
+            [
+                'unknown',
+                '',
+                'exit',
+                ''
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        controller.main_menu()
+        captured = capsys.readouterr()
+        print(captured.out)
+        assert 'Erreur de saisie' in captured.out
+        assert 'Cette commande est inconnue, veuillez recommencer' in captured.out
