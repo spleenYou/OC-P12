@@ -4,7 +4,7 @@ from functools import wraps
 
 
 class Show:
-    def __init__(self, session):
+    def __init__(self, db, session):
         self.FRAME_LENGHT = 120
         self.SPACE_REQUIRED = 5
         self.NUMBER_SIDE_STARS = 1
@@ -17,6 +17,7 @@ class Show:
         self.TOP_DECORATION = "TOP"
         self.BOTTOM_DECORATION = "BOTTOM"
         self.session = session
+        self.db = db
 
     def decoration(function):
         "Contour decoration"
@@ -41,9 +42,6 @@ class Show:
 
     def logged_ok(self):
         print('Hello :)')
-
-    def first_launch(self):
-        self.display(['Nous allons procéder à la création du premier utilisateur'], 'center')
 
     def head_menu(self):
         "Shows the name of the program decorated"
@@ -94,8 +92,14 @@ class Show:
         self.clear_screen()
         self.head_menu()
         self.title_menu()
-        content, align = self.find_content()
-        if len(content) > 0:
+        if self.session.status > 0 and self.session.status < 100:
+            content, align = self.find_content()
+            self.show_content(content, align)
+        if self.session.status > 10 and self.session.status < 100:
+            content, align = self.find_content()
+            self.show_content(content, align)
+        if self.session.status >= 100:
+            content, align = self.find_content()
             self.show_content(content, align)
 
     def decorated_text(self, text, align="center"):
@@ -176,7 +180,7 @@ class Show:
                 return 'Mise à jour du support'
             case C.CONNECTION:
                 return 'Connection'
-            case C.ERROR:
+            case C.ERROR | C.ADD_USER_FAILED:
                 return 'Erreur'
             case C.LOGIN_FAILED:
                 return 'Login failed'
@@ -186,47 +190,25 @@ class Show:
         align = 'center'
         match self.session.status:
             case C.ADD_USER | C.UPDATE_USER:
+                department_name = self.db.get_department_name()
                 align = 'left'
                 content.append('Informations sur l\'utilisateur :')
                 content.append('')
-                content.append(f"{' ' * 4}Name : {self.session.new_user.name or ''}")
-                content.append(f"{' ' * 4}Email : {self.session.new_user.email or ''}")
-                content.append(f"{' ' * 4}Password : {'*'*len(self.session.new_user.password or '') or ''}")
-                content.append(f"{' ' * 4}Employee number : {self.session.new_user.employee_number or ''}")
-                content.append(f"{' ' * 4}Department : {self.session.new_user.department_name or 'Management'}")
-            # case C.FORBIDDEN:
-            #     return 'Action interdite'
-            # case C.UPDATE_USER:
-            #     return 'Mise à jour d\'un utilisateur'
-            # case C.DELETE_USER:
-            #     return 'Suppression d\'un utilisateur'
-            # case C.ADD_CLIENT:
-            #     return 'Ajout d\'un client'
-            # case C.UPDATE_CLIENT:
-            #     return 'Mise à jour d\'un client'
-            # case C.DELETE_CLIENT:
-            #     return 'Suppression d\'un client'
-            # case C.ADD_CONTRACT:
-            #     return 'Ajout d\'un contrat'
-            # case C.UPDATE_CONTRACT:
-            #     return 'Mise à jour d\'un contrat'
-            # case C.DELETE_CONTRACT:
-            #     return 'Suppression d\'un contrat'
-            # case C.ADD_EVENT:
-            #     return 'Ajout d\'un évènement'
-            # case C.UPDATE_EVENT:
-            #     return 'Mise à jour d\'un évènement'
-            # case C.DELETE_EVENT:
-            #     return 'Suppression d\'un évènement'
-            # case C.UPDATE_SUPPORT_ON_EVENT:
-            #     return 'Ajout d\'un utilisateur'
-            # case C.CONNECTION:
-            #     return 'Ajout d\'un utilisateur'
-            # case C.ERROR:
-            #     return None
+                content.append(f"{' ' * 4}Name : {self.session.new_user['name'] or ''}")
+                content.append(f"{' ' * 4}Email : {self.session.new_user['email'] or ''}")
+                content.append(f"{' ' * 4}Password : {'*'*len(self.session.new_user['password'] or '') or ''}")
+                content.append(f"{' ' * 4}Employee number : {self.session.new_user['employee_number'] or ''}")
+                content.append(f"{' ' * 4}Department : {department_name}")
             case C.LOGIN_FAILED:
                 content.append('Vos identifiants sont inconnus')
                 content.append('L\'application va s\'arrêter')
+            case C.ADD_USER_FAILED:
+                content.append('Utilisateur non enregistré')
+                if not self.db.has_users():
+                    content.append('')
+                    content.append('Il faut au moins un utilisateur pour utiliser l\'application')
+                    content.append('')
+                    content.append('Fermeture de l\'application')
             case _:
                 pass
         return content, align

@@ -75,6 +75,18 @@ class TestMysql:
         departments = ["Commercial", "Support", "Management"]
         assert mysql.get_department_list() == departments
 
+    def test_get_department_name(self, mysql):
+        mysql.session.user['department_id'] = None
+        assert mysql.get_department_name() is None
+        mysql.session.user['department_id'] = 1
+        assert mysql.get_department_name() == "Commercial"
+        mysql.session.user['department_id'] = 2
+        assert mysql.get_department_name() == "Support"
+        mysql.session.user['department_id'] = 3
+        assert mysql.get_department_name() == "Management"
+        mysql.session.user['department_id'] = 4
+        assert mysql.get_department_name() is None
+
     def test_update_user(self, mysql, management_user):
         self.add_user(mysql, management_user)
         result = mysql.get_user_information(management_user['email'])

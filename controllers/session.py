@@ -40,6 +40,5 @@ class Session:
             'date_start': None,
             'date_stop': None
         }
-        self.first_launch = True
         self.status = None
         self.token = None

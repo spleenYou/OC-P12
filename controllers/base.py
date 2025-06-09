@@ -1,5 +1,5 @@
+import os
 from controllers.permissions import Permission
-from controllers.models import EpicUser
 from functools import wraps
 import constants as C
 
@@ -12,14 +12,14 @@ class Controller:
         self.client = None
         self.contract = None
         self.event = None
-        self.show = show(session)
+        self.show = show(self.db, session)
         self.prompt = prompt(self.show)
         self.allows_to = Permission(self.db, session)
 
     def check_token(function):
         @wraps(function)
         def func_check(self, *args, **kwargs):
-            if not (self.session.first_launch or
+            if not (self.session.status == C.FIRST_LAUNCH or
                     (self.auth.check_token() and eval('self.allows_to.' + function.__name__)())):
                 return False
             return function(self, *args, **kwargs)
@@ -27,17 +27,18 @@ class Controller:
 
     def start(self):
         if self.db.has_users() == 0:
-            self.show.first_launch()
+            self.session.status = C.FIRST_LAUNCH
+            self.show.display()
             self.show.wait()
             self.auth.generate_secret_key()
             self.session.user['department_id'] = 3
-            self.add_user()
+            if not self.add_user():
+                self.stop()
         self.session.status = C.CONNECTION
         if not self.session.user['email']:
             self.session.user['email'] = self.prompt.for_email()
         password = self.prompt.for_password()
         if self.auth.check_password(password, self.db.get_user_password()):
-            self.session.first_launch = False
             self.session.user = self.db.get_user_information(self.session.user['email'])
             self.auth.generate_token()
             self.show.logged_ok()
@@ -46,21 +47,28 @@ class Controller:
             self.show.display()
             self.show.wait()
 
+    def stop(self):
+        os._exit(os.EX_OK)
+
     @check_token
     def add_user(self):
+        if self.session.status == C.FIRST_LAUNCH:
+            self.session.new_user = self.session.user.copy()
         self.session.status = C.ADD_USER
-        self.session.new_user = EpicUser()
-        if self.session.first_launch:
-            self.session.new_user = self.session.user
-        self.session.new_user.name = self.prompt.for_name()
-        if not self.session.new_user.email:
-            self.session.new_user.email = self.prompt.for_email()
-        self.session.new_user.password = self.prompt.for_password()
-        self.session.new_user.employee_number = self.prompt.for_employee_number()
-        if not self.session.new_user.department_id:
-            self.session.new_user.department_id = self.prompt.for_department()
+        self.session.new_user['name'] = self.prompt.for_name()
+        if not self.session.new_user['email']:
+            self.session.new_user['email'] = self.prompt.for_email()
+        self.session.new_user['password'] = self.prompt.for_password()
+        self.session.new_user['employee_number'] = self.prompt.for_employee_number()
+        if not self.session.new_user['department_id']:
+            self.session.new_user['department_id'] = self.prompt.for_department()
         if self.prompt.for_validation():
-            self.db.add_user()
+            if self.db.add_user():
+                return True
+        self.session.status = C.ADD_USER_FAILED
+        self.show.display()
+        self.show.wait()
+        return False
 
     @check_token
     def add_client(self):
