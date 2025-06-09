@@ -26,7 +26,7 @@ class Controller:
         return func_check
 
     def start(self):
-        if self.db.has_epic_users() == 0:
+        if self.db.has_users() == 0:
             self.show.first_launch()
             self.show.wait()
             self.auth.generate_secret_key()
@@ -38,11 +38,13 @@ class Controller:
         password = self.prompt.for_password()
         if self.auth.check_password(password, self.db.get_user_password()):
             self.session.first_launch = False
-            self.session.user = self.db.get_epic_user_information(self.session.user['email'])
+            self.session.user = self.db.get_user_information(self.session.user['email'])
             self.auth.generate_token()
             self.show.logged_ok()
         else:
-            self.show.logged_nok()
+            self.session.status = C.LOGIN_FAILED
+            self.show.display()
+            self.show.wait()
 
     @check_token
     def add_user(self):
@@ -58,7 +60,7 @@ class Controller:
         if not self.session.new_user.department_id:
             self.session.new_user.department_id = self.prompt.for_department()
         if self.prompt.for_validation():
-            self.db.add_epic_user()
+            self.db.add_user()
 
     @check_token
     def add_client(self):

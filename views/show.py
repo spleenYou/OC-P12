@@ -42,9 +42,6 @@ class Show:
     def logged_ok(self):
         print('Hello :)')
 
-    def logged_nok(self):
-        print('Sorry, your login/password are unknown')
-
     def first_launch(self):
         self.display(['Nous allons procéder à la création du premier utilisateur'], 'center')
 
@@ -181,6 +178,8 @@ class Show:
                 return 'Connection'
             case C.ERROR:
                 return 'Erreur'
+            case C.LOGIN_FAILED:
+                return 'Login failed'
 
     def find_content(self):
         content = []
@@ -225,6 +224,9 @@ class Show:
             #     return 'Ajout d\'un utilisateur'
             # case C.ERROR:
             #     return None
+            case C.LOGIN_FAILED:
+                content.append('Vos identifiants sont inconnus')
+                content.append('L\'application va s\'arrêter')
             case _:
                 pass
         return content, align
