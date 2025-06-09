@@ -32,8 +32,8 @@ class TestMysql:
         db.session.event['date_stop'] = event['date_start']
         db.add_event()
 
-    def test_init_mysql(self, empty_session, authentication):
-        db = Mysql(empty_session, authentication)
+    def test_init_mysql(self, authentication):
+        db = Mysql(None, authentication)
         assert db.engine is not None
 
     def test_has_users_empty(self, mysql):

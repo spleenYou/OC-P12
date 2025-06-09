@@ -1,7 +1,6 @@
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from controllers.models import EpicUser, Client, Contract, Event
 from controllers.models import Base
 from controllers.db import Mysql
 from controllers.authentication import Authentication
@@ -32,10 +31,15 @@ def db_session(engine, tables):
 
 
 @pytest.fixture
-def mysql(db_session, empty_session, authentication):
-    mysql = Mysql(session=empty_session, authentication=authentication)
+def mysql(db_session, session, authentication):
+    mysql = Mysql(session=session, authentication=authentication)
     mysql.db_session = db_session
     return mysql
+
+
+@pytest.fixture
+def session():
+    return Session()
 
 
 @pytest.fixture
@@ -100,48 +104,23 @@ def event_information(date_now):
 
 
 @pytest.fixture
-def empty_user():
-    return EpicUser()
-
-
-@pytest.fixture
-def empty_client():
-    return Client()
-
-
-@pytest.fixture
-def empty_contract():
-    return Contract()
-
-
-@pytest.fixture
-def empty_event():
-    return Event()
-
-
-@pytest.fixture
 def date_now():
     return datetime.now()
 
 
 @pytest.fixture
-def empty_session():
-    return Session()
-
-
-@pytest.fixture
-def authentication(monkeypatch, tmp_path, empty_session):
+def authentication(monkeypatch, tmp_path, session):
     dovenv_path = tmp_path / '.env'
     dovenv_path.write_text("")
-    a = Authentication(empty_session)
+    a = Authentication(session)
     a.dotenv_path = str(dovenv_path)
     return a
 
 
 @pytest.fixture
-def permissions():
-    db = Mysql()
-    return Permission(db.get_permissions())
+def permissions(session, authentication):
+    db = Mysql(session, authentication)
+    return Permission(db, session)
 
 
 def make_token(secret, exp):

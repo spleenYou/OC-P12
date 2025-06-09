@@ -1,6 +1,6 @@
 class TestPermission:
-    def test_commercial_permissions(self, permissions):
-        permissions.set_permission_level(1)
+    def test_commercial_permissions(self, permissions, session):
+        session.user['department_id'] = 1
         assert permissions.add_client() is True
         assert permissions.update_client() is True
         assert permissions.delete_client() is True
@@ -15,8 +15,8 @@ class TestPermission:
         assert permissions.delete_user() is False
         assert permissions.update_support_on_event() is False
 
-    def test_support_permissions(self, permissions):
-        permissions.set_permission_level(2)
+    def test_support_permissions(self, permissions, session):
+        session.user['department_id'] = 2
         assert permissions.add_client() is False
         assert permissions.update_client() is False
         assert permissions.delete_client() is False
@@ -31,8 +31,8 @@ class TestPermission:
         assert permissions.delete_user() is False
         assert permissions.update_support_on_event() is False
 
-    def test_management_permissions(self, permissions):
-        permissions.set_permission_level(3)
+    def test_management_permissions(self, permissions, session):
+        session.user['department_id'] = 3
         assert permissions.add_client() is False
         assert permissions.update_client() is False
         assert permissions.delete_client() is False
