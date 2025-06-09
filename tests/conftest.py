@@ -1,4 +1,6 @@
 import pytest
+import jwt
+from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from controllers.models import Base
@@ -6,8 +8,9 @@ from controllers.db import Mysql
 from controllers.authentication import Authentication
 from controllers.permissions import Permission
 from controllers.session import Session
-import jwt
-from datetime import datetime, timedelta
+from controllers.base import Controller
+from views.show import Show
+from views.prompt import Prompt
 
 
 @pytest.fixture
@@ -101,6 +104,22 @@ def event_information(date_now):
         'notes': 'Note de l\'evènement',
         'date_start': date_now
     }
+
+
+@pytest.fixture
+def controller(session, db_session):
+    class MyController(Controller):
+        def __init__(self, prompt, show, db, auth, session):
+            self.session = session
+            self.auth = auth(session)
+            mysql = Mysql(session=session, authentication=self.auth)
+            mysql.db_session = db_session
+            self.db = mysql
+            self.show = show(self.db, session)
+            self.prompt = prompt(self.show)
+            self.allows_to = Permission(self.db, session)
+
+    return MyController(Prompt, Show, Mysql, Authentication, session)
 
 
 @pytest.fixture

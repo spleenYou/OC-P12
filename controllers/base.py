@@ -8,9 +8,6 @@ class Controller:
         self.session = session
         self.auth = auth(session)
         self.db = db(session, self.auth)
-        self.client = None
-        self.contract = None
-        self.event = None
         self.show = show(self.db, session)
         self.prompt = prompt(self.show)
         self.allows_to = Permission(self.db, session)
