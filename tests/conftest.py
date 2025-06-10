@@ -1,5 +1,6 @@
 import pytest
 import jwt
+import re
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -118,6 +119,7 @@ def controller(session, db_session):
             self.show = show(self.db, session)
             self.prompt = prompt(self.show)
             self.allows_to = Permission(self.db, session)
+            self.email_regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
 
     return MyController(Prompt, Show, Mysql, Authentication, session)
 

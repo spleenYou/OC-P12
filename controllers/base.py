@@ -1,3 +1,4 @@
+import re
 from controllers.permissions import Permission
 from functools import wraps
 import constants as C
@@ -11,6 +12,7 @@ class Controller:
         self.show = show(self.db, session)
         self.prompt = prompt(self.show)
         self.allows_to = Permission(self.db, session)
+        self.email_regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
 
     def check_token(function):
         @wraps(function)
@@ -22,7 +24,7 @@ class Controller:
                 return False
         return func_check
 
-    def start(self):
+    def start(self, email):
         if self.db.has_users() == 0:
             self.session.status = C.FIRST_LAUNCH
             self.show.wait()
@@ -30,9 +32,7 @@ class Controller:
             self.session.user['department_id'] = 3
             if not self.add_user():
                 return None
-        self.session.status = C.CONNECTION
-        if not self.session.user['email']:
-            self.session.user['email'] = self.prompt.for_email()
+        self.session.user["email"] = self.ask_email(C.CONNECTION, email)
         password = self.prompt.for_password()
         if self.auth.check_password(password, self.db.get_user_password()):
             self.session.user = self.db.get_user_information(self.session.user['email'])
@@ -59,6 +59,17 @@ class Controller:
             else:
                 self.session.status = C.UNKNOWN
             self.show.wait()
+
+    def ask_email(self, status, email=''):
+        while email == '':
+            self.session.status = status
+            email = self.prompt.for_email()
+            if re.fullmatch(self.email_regex, email):
+                return email
+            else:
+                email = ''
+                self.session.status = C.BAD_EMAIL
+                self.show.wait()
 
     @check_token
     def add_user(self):

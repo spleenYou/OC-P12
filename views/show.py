@@ -186,7 +186,7 @@ class Show:
                 title = 'Erreur de connexion'
             case C.LOGIN_OK:
                 title = 'Connexion réussie'
-            case C.UNKNOWN:
+            case C.UNKNOWN | C.BAD_EMAIL:
                 title = 'Erreur de saisie'
             case C.HELP:
                 title = 'Aide'
@@ -242,6 +242,8 @@ class Show:
                     'votre département.'
                 )
                 content.append('Pour les connaître, taper PERMISSION')
+            case C.BAD_EMAIL:
+                content.append('Votre saisie ne correspond pas à un email.')
             case C.UNKNOWN:
                 content.append('Cette commande est inconnue, veuillez recommencer')
             case _:

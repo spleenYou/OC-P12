@@ -11,12 +11,11 @@ import constants as C
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('login', nargs='?', default=None, help="Email needed as login")
+    parser.add_argument('login', nargs='?', default='', help="Email needed as login")
     args = parser.parse_args()
     session = Session()
     app = Controller(Prompt, Show, Mysql, Authentication, session)
-    session.user['email'] = args.login
-    app.start()
+    app.start(args.login)
     if session.status == C.LOGIN_OK:
         app.main_menu()
     os._exit(os.EX_OK)

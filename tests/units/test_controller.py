@@ -5,7 +5,7 @@ class TestController:
         controller.session.user['email'] = management_user['email']
         monkeypatch.setattr('builtins.input', lambda _: '')
         monkeypatch.setattr('views.prompt.getpass', lambda _: management_user['password'])
-        controller.start()
+        controller.start(management_user['email'])
 
     def test_start_without_user_and_no_registration(self, monkeypatch, controller, management_user, capsys):
         inputs = iter(
@@ -20,7 +20,7 @@ class TestController:
         )
         monkeypatch.setattr('builtins.input', lambda _: next(inputs))
         monkeypatch.setattr('views.prompt.getpass', lambda _: management_user['password'])
-        controller.start()
+        controller.start('')
         captured = capsys.readouterr()
         assert 'Premier lancement de l\'application' in captured.out
         assert 'Utilisateur non enregistré' in captured.out
@@ -46,7 +46,7 @@ class TestController:
         )
         monkeypatch.setattr('builtins.input', lambda _: next(inputs))
         monkeypatch.setattr('views.prompt.getpass', lambda _: next(inputs_password))
-        controller.start()
+        controller.start('')
         captured = capsys.readouterr()
         assert 'Premier lancement de l\'application' in captured.out
         assert 'Utilisateur créé' in captured.out
@@ -72,7 +72,7 @@ class TestController:
         )
         monkeypatch.setattr('builtins.input', lambda _: next(inputs))
         monkeypatch.setattr('views.prompt.getpass', lambda _: next(inputs_password))
-        controller.start()
+        controller.start('')
         captured = capsys.readouterr()
         assert 'Erreur de connexion' in captured.out
         assert 'Vos identifiants sont inconnus' in captured.out
