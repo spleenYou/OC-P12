@@ -67,6 +67,9 @@ class Controller:
             self.session.status = C.MAIN_MENU
             command = self.prompt.for_command()
             match command:
+                case 'exit' | 'EXIT':
+                    self.session.status = C.QUIT
+                    self.show.wait()
                 case _:
                     self.session.status = C.UNKNOWN
                     self.show.wait()

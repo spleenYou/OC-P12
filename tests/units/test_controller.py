@@ -103,6 +103,18 @@ class TestController:
         monkeypatch.setattr('builtins.input', lambda _: next(inputs))
         controller.main_menu()
         captured = capsys.readouterr()
-        print(captured.out)
         assert 'Erreur de saisie' in captured.out
         assert 'Cette commande est inconnue, veuillez recommencer' in captured.out
+
+    def test_exit_command(self, controller, monkeypatch, management_user, capsys):
+        self.add_user_and_connection(controller, management_user, monkeypatch)
+        inputs = iter(
+            [
+                'exit',
+                ''
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        controller.main_menu()
+        captured = capsys.readouterr()
+        assert 'Au revoir' in captured.out

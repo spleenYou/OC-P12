@@ -186,6 +186,8 @@ class Show:
                 title = 'Connexion réussie'
             case C.UNKNOWN:
                 title = 'Erreur de saisie'
+            case C.QUIT:
+                title = 'Au revoir'
             case _:
                 return None
         if title:
