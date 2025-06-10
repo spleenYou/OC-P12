@@ -148,10 +148,12 @@ class Show:
         match self.session.status:
             case C.FIRST_LAUNCH:
                 title = 'Premier lancement de l\'application'
-            case C.ADD_USER:
-                title = 'Ajout d\'un utilisateur'
             case C.FORBIDDEN:
                 title = 'Action interdite'
+            case C.ADD_USER:
+                title = 'Ajout d\'un utilisateur'
+            case C.ADD_USER_OK:
+                title = 'Utilisateur créé'
             case C.UPDATE_USER:
                 title = 'Mise à jour d\'un utilisateur'
             case C.DELETE_USER:
@@ -188,7 +190,7 @@ class Show:
                 title = 'Erreur de saisie'
             case C.HELP:
                 title = 'Aide'
-            case C.QUIT:
+            case C.EXIT:
                 title = 'Au revoir'
             case _:
                 return None

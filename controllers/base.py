@@ -15,10 +15,11 @@ class Controller:
     def check_token(function):
         @wraps(function)
         def func_check(self, *args, **kwargs):
-            if not (self.session.status == C.FIRST_LAUNCH or
-                    (self.auth.check_token() and eval('self.allows_to.' + function.__name__)())):
+            if not (self.session.status == C.FIRST_LAUNCH or self.auth.check_token()):
                 return False
             return function(self, *args, **kwargs)
+            if eval('self.allows_to.' + function.__name__)():
+                return False
         return func_check
 
     def start(self):
@@ -42,6 +43,23 @@ class Controller:
         self.show.wait()
         return None
 
+    def main_menu(self):
+        command = ['']
+        while command[0] not in ['exit', 'EXIT']:
+            self.session.status = C.MAIN_MENU
+            command = self.prompt.for_command()
+            command = command.split(' ')
+            if command[0] in ['help', 'HELP', 'exit', 'EXIT']:
+                self.session.status = getattr(C, command[0].upper())
+            elif (command[0] in ['add', 'ADD'] and
+                    command[1] in ['user', 'USER', 'client', 'CLIENT', 'contract', 'CONTRACT', 'event', 'EVENT']):
+                command = command[0] + '_' + command[1]
+                self.session.status = getattr(C, command.upper())
+                eval('self.' + command.lower())()
+            else:
+                self.session.status = C.UNKNOWN
+            self.show.wait()
+
     @check_token
     def add_user(self):
         if self.session.status == C.FIRST_LAUNCH:
@@ -56,45 +74,28 @@ class Controller:
             self.session.new_user['department_id'] = self.prompt.for_department()
         if self.prompt.for_validation():
             if self.db.add_user():
+                self.session.status = C.ADD_USER_OK
+                self.show.wait()
                 return True
         self.session.status = C.ADD_USER_FAILED
         self.show.wait()
         return False
 
-    def main_menu(self):
-        command = ['']
-        while command[0] not in ['exit', 'EXIT']:
-            self.session.status = C.MAIN_MENU
-            command = self.prompt.for_command()
-            command = command.split(' ')
-            match command[0]:
-                case 'help' | 'HELP':
-                    self.session.status = C.HELP
-                    self.show.wait()
-                case 'exit' | 'EXIT':
-                    self.session.status = C.QUIT
-                    self.show.wait()
-                case _:
-                    self.session.status = C.UNKNOWN
-                    self.show.wait()
-
     @check_token
     def add_client(self):
-        if self.allows_to.add_client(self.user.department_id):
-            name = self.prompt.for_client_name()
-            email = self.prompt.for_email()
-            phone = self.prompt.for_phone()
-            entreprise_name = self.prompt.for_entreprise_name()
-            result = self.db.add_client(
-                name=name,
-                email=email,
-                phone=phone,
-                entreprise_name=entreprise_name,
-                commercial_contact_id=self.user.id
-            )
-            return result
+        name = self.prompt.for_client_name()
+        email = self.prompt.for_email()
+        phone = self.prompt.for_phone()
+        entreprise_name = self.prompt.for_entreprise_name()
+        result = self.db.add_client(
+            name=name,
+            email=email,
+            phone=phone,
+            entreprise_name=entreprise_name,
+            commercial_contact_id=self.user.id
+        )
+        return result
         print(f'Add client not allowed {self.user.department_id}')
-        return False
 
     def select_client(self):
         client_list = self.db.get_client_list()

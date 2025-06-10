@@ -33,8 +33,8 @@ class TestController:
                 management_user['email'],
                 management_user['employee_number'],
                 'y',
-                management_user['email'],
                 '',
+                management_user['email'],
                 ''
             ]
         )
@@ -49,6 +49,7 @@ class TestController:
         controller.start()
         captured = capsys.readouterr()
         assert 'Premier lancement de l\'application' in captured.out
+        assert 'Utilisateur créé' in captured.out
         assert 'Connexion' in captured.out
         assert 'Connexion réussie' in captured.out
         expected_text = f"Utilisateur : {management_user['name']} | Departement : {controller.db.get_department_name()}"
@@ -125,15 +126,19 @@ class TestController:
         inputs = iter(
             [
                 'HELP',
+                '',
+                'exit',
                 ''
             ]
         )
         monkeypatch.setattr('builtins.input', lambda _: next(inputs))
         controller.main_menu()
         captured = capsys.readouterr()
+        for capt in captured:
+            print(capt)
         assert 'Aide' in captured.out
-        assert 'Voici la liste des commandes possibles :' in captured.out
+        assert 'Liste des actions possibles :' in captured.out
         assert 'ADD | UPDATE | DELETE' in captured.out
         assert 'Liste des catégories possibles :' in captured.out
         assert 'USER | CLIENT | CONTRACT | EVENT' in captured.out
-        assert 'Syntaxe : COMMANDE CATEGORIE' in captured.out
+        assert 'Syntaxe : ACTION CATEGORIE' in captured.out
