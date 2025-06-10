@@ -89,6 +89,7 @@ class TestController:
         captured = capsys.readouterr()
         assert 'Merci d\'entrer la commande correspondant à ce que vous souhaiter faire' in captured.out
         assert 'Entrer "HELP" pour avoir la description des commandes' in captured.out
+        assert 'Entrer "EXIT" pour quitter l\'application' in captured.out
 
     def test_unknown_command(self, controller, monkeypatch, management_user, capsys):
         self.add_user_and_connection(controller, management_user, monkeypatch)
@@ -118,3 +119,21 @@ class TestController:
         controller.main_menu()
         captured = capsys.readouterr()
         assert 'Au revoir' in captured.out
+
+    def test_help_command(self, controller, monkeypatch, management_user, capsys):
+        self.add_user_and_connection(controller, management_user, monkeypatch)
+        inputs = iter(
+            [
+                'HELP',
+                ''
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        controller.main_menu()
+        captured = capsys.readouterr()
+        assert 'Aide' in captured.out
+        assert 'Voici la liste des commandes possibles :' in captured.out
+        assert 'ADD | UPDATE | DELETE' in captured.out
+        assert 'Liste des catégories possibles :' in captured.out
+        assert 'USER | CLIENT | CONTRACT | EVENT' in captured.out
+        assert 'Syntaxe : COMMANDE CATEGORIE' in captured.out

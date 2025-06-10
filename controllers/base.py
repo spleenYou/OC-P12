@@ -62,11 +62,15 @@ class Controller:
         return False
 
     def main_menu(self):
-        command = None
-        while command not in ['exit', 'EXIT']:
+        command = ['']
+        while command[0] not in ['exit', 'EXIT']:
             self.session.status = C.MAIN_MENU
             command = self.prompt.for_command()
-            match command:
+            command = command.split(' ')
+            match command[0]:
+                case 'help' | 'HELP':
+                    self.session.status = C.HELP
+                    self.show.wait()
                 case 'exit' | 'EXIT':
                     self.session.status = C.QUIT
                     self.show.wait()

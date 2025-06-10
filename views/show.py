@@ -144,7 +144,7 @@ class Show:
             self.show_content(content, 'left')
 
     def title(self):
-        title = ''
+        title = None
         match self.session.status:
             case C.FIRST_LAUNCH:
                 title = 'Premier lancement de l\'application'
@@ -186,6 +186,8 @@ class Show:
                 title = 'Connexion réussie'
             case C.UNKNOWN:
                 title = 'Erreur de saisie'
+            case C.HELP:
+                title = 'Aide'
             case C.QUIT:
                 title = 'Au revoir'
             case _:
@@ -223,6 +225,21 @@ class Show:
             case C.MAIN_MENU:
                 content.append('Merci d\'entrer la commande correspondant à ce que vous souhaiter faire')
                 content.append('Entrer "HELP" pour avoir la description des commandes')
+                content.append('Entrer "EXIT" pour quitter l\'application')
+            case C.HELP:
+                content.append('Liste des actions possibles :')
+                content.append('ADD | UPDATE | DELETE')
+                content.append('')
+                content.append('Liste des catégories possibles :')
+                content.append('USER | CLIENT | CONTRACT | EVENT')
+                content.append('')
+                content.append('Syntaxe : ACTION CATEGORIE')
+                content.append('')
+                content.append(
+                    'L\'accès à certaines actions est restreint en fonction des permissions attribuées à ' +
+                    'votre département.'
+                )
+                content.append('Pour les connaître, taper PERMISSION')
             case C.UNKNOWN:
                 content.append('Cette commande est inconnue, veuillez recommencer')
             case _:
