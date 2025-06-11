@@ -23,8 +23,6 @@ class TestController:
         monkeypatch.setattr('views.prompt.getpass', lambda _: management_user['password'])
         controller.start(None)
         captured = capsys.readouterr()
-        for capt in captured:
-            print(capt)
         assert 'Premier lancement de l\'application' in captured.out
         assert 'Utilisateur non enregistré' in captured.out
 
@@ -152,7 +150,7 @@ class TestController:
         captured = capsys.readouterr()
         assert 'Au revoir' in captured.out
 
-    def test_help_command(self, controller, monkeypatch, management_user, capsys):
+    def test_help(self, controller, monkeypatch, management_user, capsys):
         self.add_user(controller, management_user, monkeypatch)
         self.connect_user(controller, 1)
         inputs = iter(
@@ -173,7 +171,7 @@ class TestController:
         assert 'USER | CLIENT | CONTRACT | EVENT' in captured.out
         assert 'Syntaxe : ACTION CATEGORIE' in captured.out
 
-    def test_add_user_command(self, controller, monkeypatch, management_user, capsys, commercial_user):
+    def test_add_user(self, controller, monkeypatch, management_user, capsys, commercial_user):
         self.add_user(controller, management_user, monkeypatch)
         self.connect_user(controller, 1)
         inputs = iter(
@@ -192,7 +190,7 @@ class TestController:
         captured = capsys.readouterr()
         assert 'Utilisateur créé' in captured.out
 
-    def test_update_user_command(self, controller, monkeypatch, management_user, capsys, commercial_user):
+    def test_update_user(self, controller, monkeypatch, management_user, capsys, commercial_user):
         self.add_user(controller, management_user, monkeypatch)
         self.connect_user(controller, 1)
         self.add_user(controller, commercial_user, monkeypatch)
@@ -213,7 +211,7 @@ class TestController:
         captured = capsys.readouterr()
         assert 'Utilisateur modifié' in captured.out
 
-    def test_delete_user_command(self, controller, monkeypatch, management_user, capsys, commercial_user):
+    def test_delete_user(self, controller, monkeypatch, management_user, capsys, commercial_user):
         self.add_user(controller, management_user, monkeypatch)
         self.connect_user(controller, 1)
         self.add_user(controller, commercial_user, monkeypatch)
@@ -229,7 +227,7 @@ class TestController:
         captured = capsys.readouterr()
         assert 'Utilisateur supprimé' in captured.out
 
-    def test_view_user_command(self, controller, monkeypatch, management_user, capsys, commercial_user):
+    def test_view_user(self, controller, monkeypatch, management_user, capsys, commercial_user):
         self.add_user(controller, management_user, monkeypatch)
         self.connect_user(controller, 1)
         self.add_user(controller, commercial_user, monkeypatch)
@@ -237,6 +235,25 @@ class TestController:
         controller.view_user()
         controller.show.display()
         captured = capsys.readouterr()
-        # for capt in captured:
-        #     print(capt)
         assert 'Informations sur un utilisateur' in captured.out
+
+    def test_add_client(self, controller, monkeypatch, capsys, commercial_user, client_information):
+        self.add_user(controller, commercial_user, monkeypatch)
+        self.connect_user(controller, 1)
+        controller.session.status = 'ADD_CLIENT'
+        inputs = iter(
+            [
+                client_information['company_name'],
+                client_information['name'],
+                client_information['email'],
+                '0502020202',
+                'y'
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        controller.add_client()
+        controller.show.display()
+        captured = capsys.readouterr()
+        for capt in captured:
+            print(capt)
+        assert 'Client ajoutè' in captured.out

@@ -120,6 +120,7 @@ def controller(session, db_session):
             self.prompt = prompt(self.show)
             self.allows_to = Permission(self.db, session)
             self.email_regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
+            self.phone_regex = re.compile(r'^\+?[0-9](?:\d{1,3} ?){1,5}\d{1,4}$')
 
     return MyController(Prompt, Show, Mysql, Authentication, session)
 

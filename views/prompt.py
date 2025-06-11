@@ -7,38 +7,38 @@ class Prompt:
 
     def for_name(self):
         self.show.display()
-        return input('Veuillez écrire votre nom : ')
+        return input('Veuillez entrer le nom : ')
 
     def for_client_name(self):
         self.show.display()
-        return input('Veuillez écrire le nom du contact client : ')
+        return input('Veuillez entrer le nom du contact client : ')
 
-    def for_entreprise_name(self):
+    def for_company_name(self):
         self.show.display()
-        return input('Veuillez écrire le nom de l\'entreprise : ')
+        return input('Veuillez entrer le nom de l\'entreprise : ')
 
     def for_email(self):
         self.show.display()
-        return input('Veuillez écrire votre email : ')
+        return input('Veuillez entrer votre email : ')
 
     def for_password(self):
         self.show.display()
-        return getpass('Veuillez écrire votre mot de passe : ')
+        return getpass('Veuillez entrer votre mot de passe : ')
 
     def for_employee_number(self):
         self.show.display()
-        return input('Veuillez écrire votre numéro d\'employé : ')
+        return input('Veuillez entrer votre numéro d\'employé : ')
 
     def for_department(self, department_list):
         self.show.display()
         departments = ''
         for index, department in enumerate(department_list):
             departments = departments + f'{index + 1} : {department} | '
-        return input(f'Veuillez écrire votre le numéro de votre équipe ({departments[:-3]}) : ')
+        return input(f'Veuillez entrer votre le numéro de votre équipe ({departments[:-3]}) : ')
 
     def for_phone(self):
         self.show.display()
-        return input('Veuillez écrire le numéro de téléphone du client : ')
+        return input('Veuillez entrer le numéro de téléphone du client : ')
 
     def for_total_amount(self):
         self.show.display()
@@ -53,7 +53,7 @@ class Prompt:
         print('Liste des clients')
         print('0 - Annuler')
         for index, client in enumerate(client_list):
-            print(f'{index + 1} - {client.entreprise_name}')
+            print(f'{index + 1} - {client.company_name}')
         choice = input('Veuillez entrer le numéro du client : ')
         if choice:
             return client_list[choice - 1]

@@ -12,15 +12,17 @@ class Controller:
         self.prompt = prompt(self.show)
         self.allows_to = Permission(self.db, session)
         self.email_regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
+        self.phone_regex = re.compile(r'^\+?[0-9](?:\d{1,3} ?){1,5}\d{1,4}$')
 
     def check_token_and_perm(function):
         @wraps(function)
         def func_check(self, *args, **kwargs):
             if not (self.session.status == 'FIRST_LAUNCH' or self.auth.check_token()):
                 return False
-            return function(self, *args, **kwargs)
-            if eval('self.allows_to.' + function.__name__)():
+            if not eval('self.allows_to.' + function.__name__)():
+                self.session.status = 'FORBIDDEN'
                 return False
+            return function(self, *args, **kwargs)
         return func_check
 
     def start(self, email):
@@ -29,6 +31,7 @@ class Controller:
             self.show.wait()
             self.auth.generate_secret_key()
             self.session.new_user['department_id'] = 3
+            self.session.user['department_id'] = 3
             self.session.new_user['email'] = email
             if not self.add_user():
                 self.show.wait()
@@ -132,6 +135,49 @@ class Controller:
                 self.show.wait()
         return department_id
 
+    def select_user(self):
+        number = None
+        while number is None:
+            self.session.status = 'SELECT_USER'
+            number = self.prompt.for_user()
+            try:
+                number = int(number)
+                if number < self.db.number_of_users():
+                    user_id = self.db.find_user_id(number)
+                    self.session.status = 'UPDATE_USER'
+                    return user_id
+                else:
+                    self.session.status = 'SELECT_USER_FAILED'
+            except Exception:
+                self.session.status = 'BAD_SELECT_USER'
+            number = None
+            self.show.wait()
+
+    def ask_client_name(self):
+        name = self.prompt.for_client_name()
+        if name == '':
+            name = self.session.client['name']
+        return name
+
+    def ask_company_name(self):
+        company_name = self.prompt.for_company_name()
+        if company_name == '':
+            company_name = self.session.client['company_name']
+        return company_name
+
+    def ask_phone(self):
+        phone = None
+        status = self.session.status
+        while phone is None:
+            self.session.status = status
+            phone = self.prompt.for_phone()
+            print(f'{self.phone_regex} - {re.match(self.phone_regex, phone)}')
+            if re.match(self.phone_regex, phone):
+                return phone
+            phone = None
+            self.session.status = 'BAD_PHONE'
+            self.show.display()
+
     @check_token_and_perm
     def add_user(self):
         self.session.status = 'ADD_USER'
@@ -176,39 +222,17 @@ class Controller:
             self.session.status = 'DELETE_USER_OK'
             self.db.delete_user(user_id)
 
-    def select_user(self):
-        number = None
-        while number is None:
-            self.session.status = 'SELECT_USER'
-            number = self.prompt.for_user()
-            try:
-                number = int(number)
-                if number < self.db.number_of_users():
-                    user_id = self.db.find_user_id(number)
-                    self.session.status = 'UPDATE_USER'
-                    return user_id
-                else:
-                    self.session.status = 'SELECT_USER_FAILED'
-            except Exception:
-                self.session.status = 'BAD_SELECT_USER'
-            number = None
-            self.show.wait()
-
     @check_token_and_perm
     def add_client(self):
-        name = self.prompt.for_client_name()
-        email = self.prompt.for_email()
-        phone = self.prompt.for_phone()
-        entreprise_name = self.prompt.for_entreprise_name()
-        result = self.db.add_client(
-            name=name,
-            email=email,
-            phone=phone,
-            entreprise_name=entreprise_name,
-            commercial_contact_id=self.user.id
-        )
-        return result
-        print(f'Add client not allowed {self.user.department_id}')
+        self.session.client['company_name'] = self.ask_company_name()
+        self.session.client['name'] = self.ask_client_name()
+        self.session.client['email'] = self.ask_email()
+        self.session.client['phone'] = self.ask_phone()
+        if self.prompt.for_validation():
+            if self.db.add_client():
+                self.session.status = 'ADD_CLIENT_OK'
+            else:
+                self.session.status = 'ADD_CLIENT_FAILED'
 
     def select_client(self):
         client_list = self.db.get_client_list()

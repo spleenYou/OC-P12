@@ -148,6 +148,10 @@ class Show:
                 title = 'Sélection d\'un utilisateur'
             case 'ADD_CLIENT':
                 title = 'Ajout d\'un client'
+            case 'ADD_CLIENT_OK':
+                title = 'Client ajoutè'
+            case 'ADD_CLIENT_FAILED':
+                title = 'Impossible d\'ajouter le client'
             case 'UPDATE_CLIENT':
                 title = 'Mise à jour d\'un client'
             case 'DELETE_CLIENT':
@@ -179,7 +183,8 @@ class Show:
                   'BAD_EMPLOYEE_NUMBER' |
                   'BAD_EMPLOYEE_NUMBER' |
                   'SELECT_USER_FAILED' |
-                  'BAD_SELECT_USER'):
+                  'BAD_SELECT_USE' |
+                  'BAD_PHONE'):
                 title = 'Erreur de saisie'
             case 'HELP':
                 title = 'Aide'
@@ -204,16 +209,24 @@ class Show:
                 align = 'left'
                 content.append('Informations sur l\'utilisateur :')
                 content.append('')
-                content.append(f"{' ' * 4}Name : {self.session.new_user['name'] or ''}")
+                content.append(f"{' ' * 4}Nom : {self.session.new_user['name'] or ''}")
                 content.append(f"{' ' * 4}Email : {self.session.new_user['email'] or ''}")
-                content.append(f"{' ' * 4}Password : {'**********' if self.session.new_user['password'] else ''}")
-                content.append(f"{' ' * 4}Employee number : {self.session.new_user['employee_number'] or ''}")
-                content.append(f"{' ' * 4}Department : {department_name}")
+                content.append(f"{' ' * 4}Mot de passe : {'**********' if self.session.new_user['password'] else ''}")
+                content.append(f"{' ' * 4}Numéro d\'employé : {self.session.new_user['employee_number'] or ''}")
+                content.append(f"{' ' * 4}Département : {department_name}")
             case 'SELECT_USER':
                 users = self.db.get_user_list()
                 for index, user in enumerate(users):
                     content.append(f'{index} - ({user.employee_number}) {user.name} \\ {user.email} \\ '
                                    f'{user.department_name}')
+            case 'ADD_CLIENT':
+                align = 'left'
+                content.append('Informations sur le client :')
+                content.append('')
+                content.append(f"{' ' * 4}Nom de l\'entreprise : {self.session.client['company_name'] or ''}")
+                content.append(f"{' ' * 4}Nom du contact : {self.session.client['name'] or ''}")
+                content.append(f"{' ' * 4}Email : {self.session.client['email'] or ''}")
+                content.append(f"{' ' * 4}Téléphone : {self.session.client['phone'] or ''}")
             case 'LOGIN_FAILED':
                 content.append('Vos identifiants sont inconnus')
                 content.append('L\'application va s\'arrêter')
@@ -252,6 +265,8 @@ class Show:
                 content.append('Ce numéro ne correspond pas à un utilisateur.')
             case 'BAD_SELECT_USER':
                 content.append('Merci d\'entrer un numéro')
+            case 'BAD_PHONE':
+                content.append('Numéro de téléphone incorrect')
             case 'UNKNOWN':
                 content.append('Cette commande est inconnue, veuillez recommencer.')
             case _:
