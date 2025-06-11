@@ -53,6 +53,9 @@ class TestMysql:
             password
         ) is not None
 
+    def test_get_password_failed(self, mysql):
+        assert mysql.get_user_password() is False
+
     def test_add_in_db_ok(self, mysql, management_user, monkeypatch, secret):
         new_user = EpicUser(**management_user)
         monkeypatch.setattr(

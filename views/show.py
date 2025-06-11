@@ -98,29 +98,17 @@ class Show:
             case "left":
                 spaces_left = self.SPACE_REQUIRED
                 spaces_right = spaces_needed - spaces_left
-            case "right":
-                spaces_right = self.SPACE_REQUIRED
-                spaces_left = spaces_needed - spaces_right
             case "center":
                 spaces_left = int(spaces_needed / 2)
                 spaces_right = int(spaces_needed / 2)
                 if spaces_needed % 2 == 1:
                     spaces_right = spaces_right + 1
-            case _:
-                spaces_left = self.SPACE_REQUIRED
-                spaces_right = self.SPACE_REQUIRED
         print(
             f"{'*' * self.NUMBER_SIDE_STARS}"
             f"{' ' * spaces_left}{text}"
             f"{' ' * spaces_right}"
             f"{'*' * self.NUMBER_SIDE_STARS}"
         )
-
-    def add_separator(self, content):
-        content.append('')
-        content.append(self.STARS_LINE_FULL)
-        content.append('')
-        return content
 
     def wait(self):
         "SHow a waiting line if a pause is needed"

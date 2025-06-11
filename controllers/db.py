@@ -27,9 +27,6 @@ class Mysql:
     def number_of_users(self):
         return self.db_session.query(EpicUser).count()
 
-    def user_exit(self, user_id):
-        return self.db_session.query(EpicUser.id).filter(EpicUser.id == user_id).first()
-
     def get_user_information(self, user_id):
         user = self.db_session.query(EpicUser).filter(EpicUser.id == user_id).first()
         return {
