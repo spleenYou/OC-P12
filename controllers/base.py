@@ -26,7 +26,7 @@ class Controller:
         return func_check
 
     def start(self, email):
-        if self.db.number_of_users() == 0:
+        if self.db.number_of_user() == 0:
             self.session.status = 'FIRST_LAUNCH'
             self.show.wait()
             self.auth.generate_secret_key()
@@ -59,13 +59,16 @@ class Controller:
             if command[0] in ['HELP', 'EXIT']:
                 self.session.status = command[0]
             elif (command[0] in ['ADD', 'UPDATE', 'VIEW', 'DELETE'] and
-                    command[1] in ['user', 'USER', 'client', 'CLIENT', 'contract', 'CONTRACT', 'event', 'EVENT']):
-                command = command[0] + '_' + command[1]
-                self.session.status = command
-                eval('self.' + command.lower())()
+                    command[1] in ['USER', 'CLIENT', 'CONTRACT', 'EVENT']):
+                if command[0] != 'ADD' and eval('self.db.number_of_' + command[1].lower())() > 0:
+                    command = command[0] + '_' + command[1]
+                    self.session.status = command
+                    eval('self.' + command.lower())()
+                else:
+                    self.session.status = 'NO_' + command[1]
             else:
                 self.session.status = 'UNKNOWN'
-            if command != self.session.status:
+            if command != self.session.status or command[:4] == 'VIEW':
                 self.show.wait()
             self.session.reset_session()
 
@@ -149,7 +152,7 @@ class Controller:
             number = self.prompt.for_user()
             try:
                 number = int(number)
-                if number < self.db.number_of_users():
+                if number < self.db.number_of_user():
                     user_id = self.db.find_user_id(number)
                     self.session.status = status
                     return user_id
@@ -218,7 +221,6 @@ class Controller:
     def view_user(self):
         user_id = self.select_user()
         self.session.new_user = self.db.get_user_information(user_id)
-        self.session.status = 'VIEW_USER'
 
     @check_token_and_perm
     def delete_user(self):
@@ -257,7 +259,6 @@ class Controller:
     def view_client(self):
         client_id = self.select_client()
         self.session.client = self.db.get_client_information(client_id)
-        self.session.status = 'VIEW_CLIENT'
 
     @check_token_and_perm
     def delete_client(self):
@@ -275,7 +276,7 @@ class Controller:
             number = self.prompt.for_client()
             try:
                 number = int(number)
-                if number < self.db.number_of_clients():
+                if number < self.db.number_of_client():
                     self.session.status = status
                     return self.db.find_client_id(number)
                 else:

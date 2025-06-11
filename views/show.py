@@ -166,6 +166,8 @@ class Show:
                 title = 'Client supprimé'
             case 'SELECT_CLIENT':
                 title = 'Selection d\'un client'
+            case 'NO_CLIENT':
+                title = 'Aucun client n\'est enregistré'
             case 'ADD_CONTRACT':
                 title = 'Ajout d\'un contrat'
             case 'UPDATE_CONTRACT':

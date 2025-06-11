@@ -24,10 +24,10 @@ class Mysql:
         Session = sessionmaker(bind=self.engine)
         return Session()
 
-    def number_of_users(self):
+    def number_of_user(self):
         return self.db_session.query(EpicUser).count()
 
-    def number_of_clients(self):
+    def number_of_client(self):
         return self.db_session.query(Client).count()
 
     def get_user_information(self, user_id):
