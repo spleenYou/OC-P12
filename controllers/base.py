@@ -55,7 +55,7 @@ class Controller:
             command = command.upper().split(' ')
             if command[0] in ['HELP', 'EXIT']:
                 self.session.status = command[0]
-            elif (command[0] in ['ADD', 'UPDATE', 'DELETE'] and
+            elif (command[0] in ['ADD', 'UPDATE', 'VIEW', 'DELETE'] and
                     command[1] in ['user', 'USER', 'client', 'CLIENT', 'contract', 'CONTRACT', 'event', 'EVENT']):
                 command = command[0] + '_' + command[1]
                 self.session.status = command
@@ -162,6 +162,11 @@ class Controller:
         if self.prompt.for_validation():
             self.session.status = 'UPDATE_USER_OK'
             self.db.update_user()
+
+    def view_user(self):
+        user_id = self.select_user()
+        self.session.new_user = self.db.get_user_information(user_id)
+        self.session.status = 'VIEW_USER'
 
     @check_token_and_perm
     def delete_user(self):

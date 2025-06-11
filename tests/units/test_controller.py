@@ -227,6 +227,16 @@ class TestController:
         controller.delete_user()
         controller.show.display()
         captured = capsys.readouterr()
+        assert 'Utilisateur supprimé' in captured.out
+
+    def test_view_user_command(self, controller, monkeypatch, management_user, capsys, commercial_user):
+        self.add_user(controller, management_user, monkeypatch)
+        self.connect_user(controller, 1)
+        self.add_user(controller, commercial_user, monkeypatch)
+        monkeypatch.setattr('builtins.input', lambda _: 1)
+        controller.view_user()
+        controller.show.display()
+        captured = capsys.readouterr()
         # for capt in captured:
         #     print(capt)
-        assert 'Utilisateur supprimé' in captured.out
+        assert 'Informations sur un utilisateur' in captured.out

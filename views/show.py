@@ -150,6 +150,8 @@ class Show:
                 title = 'Mise à jour d\'un utilisateur'
             case 'UPDATE_USER_OK':
                 title = 'Utilisateur modifié'
+            case 'VIEW_USER':
+                title = 'Informations sur un utilisateur'
             case 'DELETE_USER':
                 title = 'Suppression d\'un utilisateur'
             case 'DELETE_USER_OK':
@@ -207,7 +209,7 @@ class Show:
             case 'FIRST_LAUNCH':
                 content.append('Un utilisateur de l\'équipe Management va être créé')
                 content.append('afin de pouvoir continuer')
-            case 'ADD_USER' | 'UPDATE_USER':
+            case 'ADD_USER' | 'UPDATE_USER' | 'VIEW_USER':
                 department_name = ''
                 if self.session.new_user['department_id'] is not None:
                     department_name = self.db.get_department_list()[self.session.new_user['department_id'] - 1]
