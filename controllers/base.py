@@ -258,6 +258,11 @@ class Controller:
                 self.session.status = 'UPDATE_CLIENT_FAILED'
         self.session.reset_client()
 
+    def view_client(self):
+        client_id = self.select_client()
+        self.session.client = self.db.get_client_information(client_id)
+        self.session.status = 'VIEW_CLIENT'
+
     @check_token_and_perm
     def delete_client(self):
         client_id = self.select_client()

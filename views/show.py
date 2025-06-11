@@ -230,7 +230,7 @@ class Show:
                 for index, user in enumerate(users):
                     content.append(f'{index} - ({user.employee_number}) {user.name} \\ {user.email} \\ '
                                    f'{user.department_name}')
-            case 'ADD_CLIENT' | 'UPDATE_CLIENT':
+            case 'ADD_CLIENT' | 'UPDATE_CLIENT' | 'VIEW_CLIENT' | 'DELETE_CLIENT':
                 align = 'left'
                 content.append('Informations sur le client :')
                 content.append('')

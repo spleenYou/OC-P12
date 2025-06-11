@@ -299,6 +299,17 @@ class TestController:
         controller.delete_client()
         controller.show.display()
         captured = capsys.readouterr()
+        assert 'Client supprimé' in captured.out
+
+    def test_view_client(self, controller, monkeypatch, capsys, commercial_user, client_information):
+        self.add_user(controller, commercial_user)
+        self.connect_user(controller, 1)
+        self.add_client(controller, client_information)
+        controller.session.status = 'VIEW_CLIENT'
+        monkeypatch.setattr('builtins.input', lambda _: 0)
+        controller.view_client()
+        controller.show.display()
+        captured = capsys.readouterr()
         # for capt in captured:
         #     print(capt)
-        assert 'Client supprimé' in captured.out
+        assert 'Informations sur le client' in captured.out
