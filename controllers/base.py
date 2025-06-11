@@ -1,7 +1,6 @@
 import re
 from controllers.permissions import Permission
 from functools import wraps
-import constants as C
 
 
 class Controller:
@@ -14,10 +13,10 @@ class Controller:
         self.allows_to = Permission(self.db, session)
         self.email_regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
 
-    def check_token(function):
+    def check_token_and_perm(function):
         @wraps(function)
         def func_check(self, *args, **kwargs):
-            if not (self.session.status == C.FIRST_LAUNCH or self.auth.check_token()):
+            if not (self.session.status == 'FIRST_LAUNCH' or self.auth.check_token()):
                 return False
             return function(self, *args, **kwargs)
             if eval('self.allows_to.' + function.__name__)():
@@ -26,73 +25,109 @@ class Controller:
 
     def start(self, email):
         if self.db.has_users() == 0:
-            self.session.status = C.FIRST_LAUNCH
+            self.session.status = 'FIRST_LAUNCH'
             self.show.wait()
             self.auth.generate_secret_key()
-            self.session.user['department_id'] = 3
+            self.session.new_user['department_id'] = 3
+            self.session.new_user['email'] = email
             if not self.add_user():
+                self.show.wait()
                 return None
-        self.session.user["email"] = self.ask_email(C.CONNECTION, email)
+            self.show.wait()
+        self.session.status = 'CONNECTION'
+        self.session.user["email"] = self.ask_email(email)
         password = self.prompt.for_password()
         if self.auth.check_password(password, self.db.get_user_password()):
             self.session.user = self.db.get_user_information(self.session.user['email'])
-            self.session.token = self.auth.generate_token()
-            self.session.status = C.LOGIN_OK
+            self.auth.generate_token()
+            self.session.status = 'LOGIN_OK'
         else:
-            self.session.status = C.LOGIN_FAILED
+            self.session.status = 'LOGIN_FAILED'
         self.show.wait()
         return None
 
     def main_menu(self):
         command = ['']
         while command[0] not in ['exit', 'EXIT']:
-            self.session.status = C.MAIN_MENU
+            self.session.status = 'MAIN_MENU'
             command = self.prompt.for_command()
-            command = command.split(' ')
-            if command[0] in ['help', 'HELP', 'exit', 'EXIT']:
-                self.session.status = getattr(C, command[0].upper())
-            elif (command[0] in ['add', 'ADD'] and
+            command = command.upper().split(' ')
+            if command[0] in ['HELP', 'EXIT']:
+                self.session.status = command[0]
+            elif (command[0] in ['ADD'] and
                     command[1] in ['user', 'USER', 'client', 'CLIENT', 'contract', 'CONTRACT', 'event', 'EVENT']):
                 command = command[0] + '_' + command[1]
-                self.session.status = getattr(C, command.upper())
+                self.session.status = command
                 eval('self.' + command.lower())()
             else:
-                self.session.status = C.UNKNOWN
+                self.session.status = 'UNKNOWN'
             self.show.wait()
 
-    def ask_email(self, status, email=''):
-        while email == '':
+    def ask_name(self):
+        return self.prompt.for_name()
+
+    def ask_email(self, email=None):
+        status = self.session.status
+        while email is None:
             self.session.status = status
             email = self.prompt.for_email()
-            if re.fullmatch(self.email_regex, email):
-                return email
-            else:
-                email = ''
-                self.session.status = C.BAD_EMAIL
+            if not re.fullmatch(self.email_regex, email or ''):
+                email = None
+                self.session.status = 'BAD_EMAIL'
                 self.show.wait()
+        return email
 
-    @check_token
+    def ask_employee_number(self):
+        status = self.session.status
+        employee_number = None
+        while employee_number is None:
+            self.session.status = status
+            employee_number = self.prompt.for_employee_number()
+            try:
+                employee_number = int(employee_number)
+            except Exception:
+                employee_number = None
+                self.session.status = 'BAD_EMPLOYEE_NUMBER'
+                self.show.wait()
+        return employee_number
+
+    def ask_password(self):
+        return self.prompt.for_password()
+
+    def ask_department(self):
+        status = self.session.status
+        department_id = self.session.new_user['department_id']
+        department_list = self.db.get_department_list()
+        while department_id is None:
+            self.session.status = status
+            department_id = self.prompt.for_department(department_list)
+            try:
+                department_id = int(department_id)
+            except Exception:
+                department_id = None
+                self.session.status = 'BAD_DEPARTMENT'
+                self.show.wait()
+        return department_id
+
+    @check_token_and_perm
     def add_user(self):
-        if self.session.status == C.FIRST_LAUNCH:
-            self.session.new_user = self.session.user.copy()
-        self.session.status = C.ADD_USER
-        self.session.new_user['name'] = self.prompt.for_name()
-        if not self.session.new_user['email']:
-            self.session.new_user['email'] = self.prompt.for_email()
-        self.session.new_user['password'] = self.prompt.for_password()
-        self.session.new_user['employee_number'] = self.prompt.for_employee_number()
-        if not self.session.new_user['department_id']:
-            self.session.new_user['department_id'] = self.prompt.for_department()
+        self.session.status = 'ADD_USER'
+        self.session.new_user['name'] = self.ask_name()
+        if self.session.new_user['email'] is None:
+            self.session.new_user['email'] = self.ask_email()
+        self.session.new_user['password'] = self.ask_password()
+        self.session.new_user['employee_number'] = self.ask_employee_number()
+        if self.session.new_user['department_id'] is None:
+            self.session.new_user['department_id'] = self.ask_department()
         if self.prompt.for_validation():
             if self.db.add_user():
-                self.session.status = C.ADD_USER_OK
-                self.show.wait()
+                self.session.reset_new_user()
+                self.session.status = 'ADD_USER_OK'
                 return True
-        self.session.status = C.ADD_USER_FAILED
-        self.show.wait()
+        self.session.status = 'ADD_USER_FAILED'
         return False
 
-    @check_token
+    @check_token_and_perm
     def add_client(self):
         name = self.prompt.for_client_name()
         email = self.prompt.for_email()
@@ -115,7 +150,7 @@ class Controller:
             return client
         return None
 
-    @check_token
+    @check_token_and_perm
     def add_contract(self):
         if self.allows_to.add_contract(self.user.department_id):
             if self.client is None:

@@ -41,7 +41,8 @@ class Authentication:
                 algorithms=['HS256']
             )
             return True
-        except Exception:
+        except Exception as ex:
+            print(ex)
             return False
 
     def hash_password(self, password):

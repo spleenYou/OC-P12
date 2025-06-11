@@ -47,7 +47,7 @@ class TestAuthentication:
 
     def test_hash_password(self, authentication, management_user):
         hash_password = authentication.hash_password(management_user['password'])
-        assert re.search(
+        assert re.fullmatch(
             "[$]{1}argon2id[$]{1}v=19[$]{1}m=65536,t=4,p=1[$]{1}[+.\x00-9a-zA-Z]{22}[$]{1}[+.\x00-9a-zA-Z]{43}",
             hash_password
         ) is not None

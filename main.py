@@ -6,17 +6,16 @@ from views.show import Show
 from controllers.db import Mysql
 from controllers.authentication import Authentication
 from controllers.session import Session
-import constants as C
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('login', nargs='?', default='', help="Email needed as login")
+    parser.add_argument('login', nargs='?', default=None, help="Email needed as login")
     args = parser.parse_args()
     session = Session()
     app = Controller(Prompt, Show, Mysql, Authentication, session)
     app.start(args.login)
-    if session.status == C.LOGIN_OK:
+    if session.status == 'LOGIN_OK':
         app.main_menu()
     os._exit(os.EX_OK)
 

@@ -42,3 +42,13 @@ class Session:
         }
         self.status = None
         self.token = None
+
+    def reset_new_user(self):
+        self.new_user = {
+            'id': None,
+            'name': None,
+            'email': None,
+            'password': None,
+            'employee_number': None,
+            'department_id': None
+        }

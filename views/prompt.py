@@ -31,9 +31,10 @@ class Prompt:
 
     def for_department(self, department_list):
         self.show.display()
+        departments = ''
         for index, department in enumerate(department_list):
-            print(f'{index + 1} - {department}')
-        return input('Veuillez écrire votre le numéro de votre équipe : ')
+            departments = departments + f'{index + 1} : {department} | '
+        return input(f'Veuillez écrire votre le numéro de votre équipe ({departments[:-3]}) : ')
 
     def for_phone(self):
         self.show.display()
@@ -60,7 +61,7 @@ class Prompt:
 
     def for_validation(self):
         self.show.display()
-        choice = input('Souhaitez vous continuer ? (y/n)')
+        choice = input('Souhaitez vous continuer (y/n) ? ')
         if choice in ['y', 'Y']:
             return True
         return False

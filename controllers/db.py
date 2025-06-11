@@ -41,15 +41,6 @@ class Mysql:
     def get_department_list(self):
         return [d[0] for d in self.db_session.query(Department.name).order_by(Department.id).all()]
 
-    def get_department_name(self):
-        dept_name = self.db_session.query(Department) \
-            .with_entities(Department.name) \
-            .filter(Department.id == self.session.user['department_id']) \
-            .first()
-        if dept_name:
-            return dept_name[0]
-        return None
-
     def add_user(self):
         new_user = EpicUser(
             name=self.session.new_user['name'],

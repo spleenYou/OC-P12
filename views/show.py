@@ -1,5 +1,4 @@
 import os
-import constants as C
 from functools import wraps
 
 
@@ -44,20 +43,20 @@ class Show:
         "Shows the name of the program decorated"
 
         content = [
-            ":::::::::: :::::::::  :::::::::::  ::::::::        :::::::::: :::     ::: ::::::::::" +
-            " ::::    ::: :::::::::::",
-            ":+:        :+:    :+:     :+:     :+:    :+:       :+:        :+:     :+: :+:       " +
-            " :+:+:   :+:     :+:    ",
-            "+:+        +:+    +:+     +:+     +:+              +:+        +:+     +:+ +:+       " +
-            " :+:+:+  +:+     +:+    ",
-            "+#++:++#   +#++:++#+      +#+     +#+              +#++:++#   +#+     +:+ +#++:++#  " +
-            " +#+ +:+ +#+     +#+    ",
-            "+#+        +#+            +#+     +#+              +#+         +#+   +#+  +#+       " +
-            " +#+  +#+#+#     +#+    ",
-            "#+#        #+#            #+#     #+#    #+#       #+#          #+#+#+#   #+#       " +
-            " #+#   #+#+#     #+#    ",
-            "########## ###        ###########  ########        ##########     ###     ##########" +
-            " ###    ####     ###    "
+            (":::::::::: :::::::::  :::::::::::  ::::::::        :::::::::: :::     ::: ::::::::::"
+             " ::::    ::: :::::::::::"),
+            (":+:        :+:    :+:     :+:     :+:    :+:       :+:        :+:     :+: :+:       "
+             " :+:+:   :+:     :+:    "),
+            ("+:+        +:+    +:+     +:+     +:+              +:+        +:+     +:+ +:+       "
+             " :+:+:+  +:+     +:+    "),
+            ("+#++:++#   +#++:++#+      +#+     +#+              +#++:++#   +#+     +:+ +#++:++#  "
+             " +#+ +:+ +#+     +#+    "),
+            ("+#+        +#+            +#+     +#+              +#+         +#+   +#+  +#+       "
+             " +#+  +#+#+#     +#+    "),
+            ("#+#        #+#            #+#     #+#    #+#       #+#          #+#+#+#   #+#       "
+             " #+#   #+#+#     #+#    "),
+            ("########## ###        ###########  ########        ##########     ###     ##########"
+             " ###    ####     ###    ")
         ]
         self.show_content(content, 'center')
 
@@ -140,60 +139,62 @@ class Show:
     def session_information(self):
         if self.session.user['id'] is not None:
             content = []
-            content.append(f"Utilisateur : {self.session.user['name']} | Departement : {self.db.get_department_name()}")
+            department_name = self.db.get_department_list()[self.session.user['department_id'] - 1]
+            content.append(f"Utilisateur : {self.session.user['name']} |"
+                           f" Departement : {department_name}")
             self.show_content(content, 'left')
 
     def title(self):
         title = None
         match self.session.status:
-            case C.FIRST_LAUNCH:
+            case 'FIRST_LAUNCH':
                 title = 'Premier lancement de l\'application'
-            case C.FORBIDDEN:
+            case 'FORBIDDEN':
                 title = 'Action interdite'
-            case C.ADD_USER:
+            case 'ADD_USER':
                 title = 'Ajout d\'un utilisateur'
-            case C.ADD_USER_OK:
+            case 'ADD_USER_OK':
                 title = 'Utilisateur créé'
-            case C.UPDATE_USER:
+            case 'UPDATE_USER':
                 title = 'Mise à jour d\'un utilisateur'
-            case C.DELETE_USER:
+            case 'DELETE_USER':
                 title = 'Suppression d\'un utilisateur'
-            case C.ADD_CLIENT:
+            case 'ADD_CLIENT':
                 title = 'Ajout d\'un client'
-            case C.UPDATE_CLIENT:
+            case 'UPDATE_CLIENT':
                 title = 'Mise à jour d\'un client'
-            case C.DELETE_CLIENT:
+            case 'DELETE_CLIENT':
                 title = 'Suppression d\'un client'
-            case C.ADD_CONTRACT:
+            case 'ADD_CONTRACT':
                 title = 'Ajout d\'un contrat'
-            case C.UPDATE_CONTRACT:
+            case 'UPDATE_CONTRACT':
                 title = 'Mise à jour d\'un contrat'
-            case C.DELETE_CONTRACT:
+            case 'DELETE_CONTRACT':
                 title = 'Suppression d\'un contrat'
-            case C.ADD_EVENT:
+            case 'ADD_EVENT':
                 title = 'Ajout d\'un évènement'
-            case C.UPDATE_EVENT:
+            case 'UPDATE_EVENT':
                 title = 'Mise à jour d\'un évènement'
-            case C.DELETE_EVENT:
+            case 'DELETE_EVENT':
                 title = 'Suppression d\'un évènement'
-            case C.UPDATE_SUPPORT_ON_EVENT:
+            case 'UPDATE_SUPPORT_ON_EVENT':
                 title = 'Mise à jour du support'
-            case C.CONNECTION:
+            case 'CONNECTION':
                 title = 'Connexion'
-            case C.ERROR | C.ADD_USER_FAILED:
+            case 'ERROR' | 'ADD_USER_FAILED':
                 title = 'Erreur'
-            case C.LOGIN_FAILED:
+            case 'LOGIN_FAILED':
                 title = 'Erreur de connexion'
-            case C.LOGIN_OK:
+            case 'LOGIN_OK':
                 title = 'Connexion réussie'
-            case C.UNKNOWN | C.BAD_EMAIL:
+            case 'UNKNOWN' | 'BAD_EMAIL' | 'BAD_EMPLOYEE_NUMBER' | 'BAD_EMPLOYEE_NUMBER':
                 title = 'Erreur de saisie'
-            case C.HELP:
+            case 'HELP':
                 title = 'Aide'
-            case C.EXIT:
+            case 'EXIT':
                 title = 'Au revoir'
             case _:
-                return None
+                title = None
         if title:
             self.show_content([title], 'center')
 
@@ -201,11 +202,13 @@ class Show:
         content = []
         align = 'center'
         match self.session.status:
-            case C.FIRST_LAUNCH:
+            case 'FIRST_LAUNCH':
                 content.append('Un utilisateur de l\'équipe Management va être créé')
                 content.append('afin de pouvoir continuer')
-            case C.ADD_USER | C.UPDATE_USER:
-                department_name = self.db.get_department_name()
+            case 'ADD_USER' | 'UPDATE_USER':
+                department_name = ''
+                if self.session.new_user['department_id'] is not None:
+                    department_name = self.db.get_department_list()[self.session.new_user['department_id'] - 1]
                 align = 'left'
                 content.append('Informations sur l\'utilisateur :')
                 content.append('')
@@ -214,21 +217,21 @@ class Show:
                 content.append(f"{' ' * 4}Password : {'*'*len(self.session.new_user['password'] or '') or ''}")
                 content.append(f"{' ' * 4}Employee number : {self.session.new_user['employee_number'] or ''}")
                 content.append(f"{' ' * 4}Department : {department_name}")
-            case C.LOGIN_FAILED:
+            case 'LOGIN_FAILED':
                 content.append('Vos identifiants sont inconnus')
                 content.append('L\'application va s\'arrêter')
-            case C.ADD_USER_FAILED:
+            case 'ADD_USER_FAILED':
                 content.append('Utilisateur non enregistré')
                 if not self.db.has_users():
                     content.append('')
                     content.append('Il faut au moins un utilisateur pour utiliser l\'application')
                     content.append('')
                     content.append('Fermeture de l\'application')
-            case C.MAIN_MENU:
+            case 'MAIN_MENU':
                 content.append('Merci d\'entrer la commande correspondant à ce que vous souhaiter faire')
                 content.append('Entrer "HELP" pour avoir la description des commandes')
                 content.append('Entrer "EXIT" pour quitter l\'application')
-            case C.HELP:
+            case 'HELP':
                 content.append('Liste des actions possibles :')
                 content.append('ADD | UPDATE | DELETE')
                 content.append('')
@@ -238,13 +241,17 @@ class Show:
                 content.append('Syntaxe : ACTION CATEGORIE')
                 content.append('')
                 content.append(
-                    'L\'accès à certaines actions est restreint en fonction des permissions attribuées à ' +
+                    'L\'accès à certaines actions est restreint en fonction des permissions attribuées à '
                     'votre département.'
                 )
                 content.append('Pour les connaître, taper PERMISSION')
-            case C.BAD_EMAIL:
+            case 'BAD_EMAIL':
                 content.append('Votre saisie ne correspond pas à un email.')
-            case C.UNKNOWN:
+            case 'BAD_EMPLOYEE_NUMBER':
+                content.append('Votre saisie ne correspond pas à un numéro d\'employé.')
+            case 'BAD_DEPARTMENT':
+                content.append('Votre saisie ne correspond pas à aucun département.')
+            case 'UNKNOWN':
                 content.append('Cette commande est inconnue, veuillez recommencer')
             case _:
                 pass
