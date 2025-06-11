@@ -24,11 +24,14 @@ class Mysql:
         Session = sessionmaker(bind=self.engine)
         return Session()
 
-    def has_users(self):
+    def number_of_users(self):
         return self.db_session.query(EpicUser).count()
 
-    def get_user_information(self, email):
-        user = self.db_session.query(EpicUser).filter(EpicUser.email == email).first()
+    def user_exit(self, user_id):
+        return self.db_session.query(EpicUser.id).filter(EpicUser.id == user_id).first()
+
+    def get_user_information(self, user_id):
+        user = self.db_session.query(EpicUser).filter(EpicUser.id == user_id).first()
         return {
             'id': user.id,
             'name': user.name,
@@ -70,6 +73,12 @@ class Mysql:
             self.db_session.rollback()
             return False
 
+    def get_user_id(self, email):
+        return self.db_session.query(EpicUser.id).filter(EpicUser.email == email).first()[0]
+
+    def find_user_id(self, number):
+        return self.db_session.query(EpicUser.id).order_by(EpicUser.id).all()[number][0]
+
     def get_user_password(self):
         password = self.db_session.query(EpicUser) \
             .with_entities(EpicUser.password) \
@@ -79,7 +88,7 @@ class Mysql:
         return False
 
     def get_user_list(self):
-        return self.db_session.query(EpicUser).all()
+        return self.db_session.query(EpicUser).order_by(EpicUser.id).all()
 
     def delete_user(self, user_id):
         try:

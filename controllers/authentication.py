@@ -26,7 +26,7 @@ class Authentication:
     def generate_token(self):
         self.session.token = jwt.encode(
             payload={
-                'permission_level': self.session.user['department_id'],
+                'email': self.session.user['email'],
                 'exp': datetime.now() + timedelta(hours=2)
             },
             key=get_key(self.dotenv_path, 'SECRET_KEY')

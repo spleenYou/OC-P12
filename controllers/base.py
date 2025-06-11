@@ -24,7 +24,7 @@ class Controller:
         return func_check
 
     def start(self, email):
-        if self.db.has_users() == 0:
+        if self.db.number_of_users() == 0:
             self.session.status = 'FIRST_LAUNCH'
             self.show.wait()
             self.auth.generate_secret_key()
@@ -38,7 +38,8 @@ class Controller:
         self.session.user["email"] = self.ask_email(email)
         password = self.prompt.for_password()
         if self.auth.check_password(password, self.db.get_user_password()):
-            self.session.user = self.db.get_user_information(self.session.user['email'])
+            user_id = self.db.get_user_id(self.session.user["email"])
+            self.session.user = self.db.get_user_information(user_id)
             self.auth.generate_token()
             self.session.status = 'LOGIN_OK'
         else:
@@ -54,7 +55,7 @@ class Controller:
             command = command.upper().split(' ')
             if command[0] in ['HELP', 'EXIT']:
                 self.session.status = command[0]
-            elif (command[0] in ['ADD'] and
+            elif (command[0] in ['ADD', 'UPDATE', 'DELETE'] and
                     command[1] in ['user', 'USER', 'client', 'CLIENT', 'contract', 'CONTRACT', 'event', 'EVENT']):
                 command = command[0] + '_' + command[1]
                 self.session.status = command
@@ -64,14 +65,19 @@ class Controller:
             self.show.wait()
 
     def ask_name(self):
-        return self.prompt.for_name()
+        name = self.prompt.for_name()
+        if name == '':
+            name = self.session.new_user['name']
+        return name
 
     def ask_email(self, email=None):
         status = self.session.status
         while email is None:
             self.session.status = status
             email = self.prompt.for_email()
-            if not re.fullmatch(self.email_regex, email or ''):
+            if status == 'UPDATE_USER' and email == '':
+                email = self.session.new_user['email']
+            elif not re.fullmatch(self.email_regex, email or ''):
                 email = None
                 self.session.status = 'BAD_EMAIL'
                 self.show.wait()
@@ -83,6 +89,8 @@ class Controller:
         while employee_number is None:
             self.session.status = status
             employee_number = self.prompt.for_employee_number()
+            if status == 'UPDATE_USER' and employee_number == '':
+                return self.session.new_user['employee_number']
             try:
                 employee_number = int(employee_number)
             except Exception:
@@ -92,15 +100,30 @@ class Controller:
         return employee_number
 
     def ask_password(self):
-        return self.prompt.for_password()
+        status = self.session.status
+        password = None
+        while password is None:
+            self.session.status = status
+            password = self.prompt.for_password()
+            if status == 'UPDATE_USER' and password == '':
+                password = self.session.new_user['password']
+            elif password == '':
+                password = None
+                self.session.status = 'EMPTY_PASSWORD'
+                self.show.wait()
+        return password
 
     def ask_department(self):
         status = self.session.status
-        department_id = self.session.new_user['department_id']
+        department_id = None
+        if status != 'UPDATE_USER':
+            department_id = self.session.new_user['department_id']
         department_list = self.db.get_department_list()
         while department_id is None:
             self.session.status = status
             department_id = self.prompt.for_department(department_list)
+            if status == 'UPDATE_USER' and department_id == '':
+                return self.session.new_user['department_id']
             try:
                 department_id = int(department_id)
             except Exception:
@@ -126,6 +149,37 @@ class Controller:
                 return True
         self.session.status = 'ADD_USER_FAILED'
         return False
+
+    @check_token_and_perm
+    def update_user(self):
+        user_id = self.select_user()
+        self.session.new_user = self.db.get_user_information(user_id)
+        self.session.new_user['name'] = self.ask_name()
+        self.session.new_user['email'] = self.ask_email()
+        self.session.new_user['password'] = self.ask_password()
+        self.session.new_user['employee_number'] = self.ask_employee_number()
+        self.session.new_user['department_id'] = self.ask_department()
+        if self.prompt.for_validation():
+            self.session.status = 'UPDATE_USER_OK'
+            self.db.update_user()
+
+    def select_user(self):
+        number = None
+        while number is None:
+            self.session.status = 'SELECT_USER'
+            number = self.prompt.for_user()
+            try:
+                number = int(number)
+                if number < self.db.number_of_users():
+                    user_id = self.db.find_user_id(number)
+                    self.session.status = 'UPDATE_USER'
+                    return user_id
+                else:
+                    self.session.status = 'SELECT_USER_FAILED'
+            except Exception:
+                self.session.status = 'BAD_SELECT_USER'
+            number = None
+            self.show.wait()
 
     @check_token_and_perm
     def add_client(self):

@@ -4,8 +4,8 @@ class TestController:
         controller.db.add_user()
         controller.session.reset_new_user()
 
-    def connect_user(self, controller, email):
-        controller.session.user = controller.db.get_user_information(email)
+    def connect_user(self, controller, user_id):
+        controller.session.user = controller.db.get_user_information(user_id)
         controller.auth.generate_token()
 
     def test_start_without_user_and_no_registration(self, monkeypatch, controller, management_user, capsys):
@@ -62,7 +62,7 @@ class TestController:
     def test_start_with_user_and_login_failed(self, monkeypatch, controller, management_user, capsys):
         controller.session.new_user = management_user
         controller.db.add_user()
-        controller.session.user = controller.db.get_user_information(management_user['email'])
+        controller.session.user = controller.db.get_user_information(1)
         inputs = iter(
             [
                 management_user['email'],
@@ -84,7 +84,7 @@ class TestController:
     def test_login_and_try_email_not_correct(self, monkeypatch, controller, management_user, capsys):
         controller.session.new_user = management_user
         controller.db.add_user()
-        controller.session.user = controller.db.get_user_information(management_user['email'])
+        controller.session.user = controller.db.get_user_information(1)
         inputs = iter(
             [
                 'bad_email',
@@ -107,7 +107,7 @@ class TestController:
 
     def test_main_menu(self, controller, monkeypatch, management_user, capsys):
         self.add_user(controller, management_user, monkeypatch)
-        self.connect_user(controller, management_user['email'])
+        self.connect_user(controller, 1)
         inputs = iter(
             [
                 'exit',
@@ -123,7 +123,7 @@ class TestController:
 
     def test_unknown_command(self, controller, monkeypatch, management_user, capsys):
         self.add_user(controller, management_user, monkeypatch)
-        self.connect_user(controller, management_user['email'])
+        self.connect_user(controller, 1)
         inputs = iter(
             [
                 'unknown',
@@ -140,7 +140,7 @@ class TestController:
 
     def test_exit_command(self, controller, monkeypatch, management_user, capsys):
         self.add_user(controller, management_user, monkeypatch)
-        self.connect_user(controller, management_user['email'])
+        self.connect_user(controller, 1)
         inputs = iter(
             [
                 'exit',
@@ -154,7 +154,7 @@ class TestController:
 
     def test_help_command(self, controller, monkeypatch, management_user, capsys):
         self.add_user(controller, management_user, monkeypatch)
-        self.connect_user(controller, management_user['email'])
+        self.connect_user(controller, 1)
         inputs = iter(
             [
                 'HELP',
@@ -168,14 +168,14 @@ class TestController:
         captured = capsys.readouterr()
         assert 'Aide' in captured.out
         assert 'Liste des actions possibles :' in captured.out
-        assert 'ADD | UPDATE | DELETE' in captured.out
+        assert 'ADD | UPDATE | VIEW | DELETE' in captured.out
         assert 'Liste des catégories possibles :' in captured.out
         assert 'USER | CLIENT | CONTRACT | EVENT' in captured.out
         assert 'Syntaxe : ACTION CATEGORIE' in captured.out
 
     def test_add_user_command(self, controller, monkeypatch, management_user, capsys, commercial_user):
         self.add_user(controller, management_user, monkeypatch)
-        self.connect_user(controller, management_user['email'])
+        self.connect_user(controller, 1)
         inputs = iter(
             [
                 'ADD USER',
@@ -193,6 +193,30 @@ class TestController:
         monkeypatch.setattr('views.prompt.getpass', lambda _: commercial_user['password'])
         controller.main_menu()
         captured = capsys.readouterr()
+        assert 'Utilisateur créé' in captured.out
+
+    def test_update_user_command(self, controller, monkeypatch, management_user, capsys, commercial_user):
+        self.add_user(controller, management_user, monkeypatch)
+        self.connect_user(controller, 1)
+        self.add_user(controller, commercial_user, monkeypatch)
+        inputs = iter(
+            [
+                'UPDATE USER',
+                1,
+                'Commercial 2',
+                '',
+                '',
+                '',
+                'y',
+                '',
+                'exit',
+                ''
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('views.prompt.getpass', lambda _: '')
+        controller.main_menu()
+        captured = capsys.readouterr()
         # for capt in captured:
         #     print(capt)
-        assert 'Utilisateur créé' in captured.out
+        assert 'Utilisateur modifié' in captured.out

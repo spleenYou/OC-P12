@@ -22,11 +22,11 @@ class TestAuthentication:
             target='controllers.authentication.set_key',
             name=fake_set_key
         )
-        authentication.session.user['department_id'] = 1
+        authentication.session.user['email'] = 'test@example.com'
         assert authentication.generate_token() is True
         assert authentication.session.token is not None
         decoded = jwt.decode(authentication.session.token, 'my_secret_key', algorithms=['HS256'])
-        assert decoded['permission_level'] == 1
+        assert decoded['email'] == 'test@example.com'
         assert datetime.fromtimestamp(decoded['exp']) > datetime.now()
         assert datetime.fromtimestamp(decoded['exp']) < datetime.now() + timedelta(hours=4)
 

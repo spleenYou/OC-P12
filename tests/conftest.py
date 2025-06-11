@@ -146,7 +146,7 @@ def permissions(session, authentication):
 
 def make_token(secret, exp):
     payload = {
-        'department_id': 1,
+        'email': 'test@example.com',
         'exp': exp
     }
     return jwt.encode(payload=payload, key=secret, algorithm='HS256')

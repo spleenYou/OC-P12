@@ -69,3 +69,7 @@ class Prompt:
     def for_command(self):
         self.show.display()
         return input('> ')
+
+    def for_user(self):
+        self.show.display()
+        return input('Quel utilisateur souhaitez vous modifier ? ')

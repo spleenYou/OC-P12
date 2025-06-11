@@ -93,37 +93,28 @@ class Show:
             text (str): Text to show and decorate
             align (str): Position of contents. Three possiblities left, center or right. Default : center
         """
-        if text == self.TOP_DECORATION:
-            print(self.STARS_LINE_FULL)
-            print(self.STARS_LINE)
-        elif text == self.BOTTOM_DECORATION:
-            print(self.STARS_LINE)
-            print(self.STARS_LINE_FULL)
-        elif text == self.STARS_LINE_FULL:
-            print(self.STARS_LINE_FULL)
-        else:
-            spaces_needed = self.FRAME_LENGHT - 2 * self.NUMBER_SIDE_STARS - len(text)
-            match align:
-                case "left":
-                    spaces_left = self.SPACE_REQUIRED
-                    spaces_right = spaces_needed - spaces_left
-                case "right":
-                    spaces_right = self.SPACE_REQUIRED
-                    spaces_left = spaces_needed - spaces_right
-                case "center":
-                    spaces_left = int(spaces_needed / 2)
-                    spaces_right = int(spaces_needed / 2)
-                    if spaces_needed % 2 == 1:
-                        spaces_right = spaces_right + 1
-                case _:
-                    spaces_left = self.SPACE_REQUIRED
-                    spaces_right = self.SPACE_REQUIRED
-            print(
-                f"{'*' * self.NUMBER_SIDE_STARS}"
-                f"{' ' * spaces_left}{text}"
-                f"{' ' * spaces_right}"
-                f"{'*' * self.NUMBER_SIDE_STARS}"
-            )
+        spaces_needed = self.FRAME_LENGHT - 2 * self.NUMBER_SIDE_STARS - len(text)
+        match align:
+            case "left":
+                spaces_left = self.SPACE_REQUIRED
+                spaces_right = spaces_needed - spaces_left
+            case "right":
+                spaces_right = self.SPACE_REQUIRED
+                spaces_left = spaces_needed - spaces_right
+            case "center":
+                spaces_left = int(spaces_needed / 2)
+                spaces_right = int(spaces_needed / 2)
+                if spaces_needed % 2 == 1:
+                    spaces_right = spaces_right + 1
+            case _:
+                spaces_left = self.SPACE_REQUIRED
+                spaces_right = self.SPACE_REQUIRED
+        print(
+            f"{'*' * self.NUMBER_SIDE_STARS}"
+            f"{' ' * spaces_left}{text}"
+            f"{' ' * spaces_right}"
+            f"{'*' * self.NUMBER_SIDE_STARS}"
+        )
 
     def add_separator(self, content):
         content.append('')
@@ -157,8 +148,12 @@ class Show:
                 title = 'Utilisateur créé'
             case 'UPDATE_USER':
                 title = 'Mise à jour d\'un utilisateur'
+            case 'UPDATE_USER_OK':
+                title = 'Utilisateur modifié'
             case 'DELETE_USER':
                 title = 'Suppression d\'un utilisateur'
+            case 'SELECT_USER':
+                title = 'Sélection d\'un utilisateur'
             case 'ADD_CLIENT':
                 title = 'Ajout d\'un client'
             case 'UPDATE_CLIENT':
@@ -187,7 +182,12 @@ class Show:
                 title = 'Erreur de connexion'
             case 'LOGIN_OK':
                 title = 'Connexion réussie'
-            case 'UNKNOWN' | 'BAD_EMAIL' | 'BAD_EMPLOYEE_NUMBER' | 'BAD_EMPLOYEE_NUMBER':
+            case ('UNKNOWN' |
+                  'BAD_EMAIL' |
+                  'BAD_EMPLOYEE_NUMBER' |
+                  'BAD_EMPLOYEE_NUMBER' |
+                  'SELECT_USER_FAILED' |
+                  'BAD_SELECT_USER'):
                 title = 'Erreur de saisie'
             case 'HELP':
                 title = 'Aide'
@@ -214,15 +214,20 @@ class Show:
                 content.append('')
                 content.append(f"{' ' * 4}Name : {self.session.new_user['name'] or ''}")
                 content.append(f"{' ' * 4}Email : {self.session.new_user['email'] or ''}")
-                content.append(f"{' ' * 4}Password : {'*'*len(self.session.new_user['password'] or '') or ''}")
+                content.append(f"{' ' * 4}Password : {'**********' if self.session.new_user['password'] else ''}")
                 content.append(f"{' ' * 4}Employee number : {self.session.new_user['employee_number'] or ''}")
                 content.append(f"{' ' * 4}Department : {department_name}")
+            case 'SELECT_USER':
+                users = self.db.get_user_list()
+                for index, user in enumerate(users):
+                    content.append(f'{index} - ({user.employee_number}) {user.name} \\ {user.email} \\ '
+                                   f'{user.department_name}')
             case 'LOGIN_FAILED':
                 content.append('Vos identifiants sont inconnus')
                 content.append('L\'application va s\'arrêter')
             case 'ADD_USER_FAILED':
                 content.append('Utilisateur non enregistré')
-                if not self.db.has_users():
+                if self.db.number_of_users() == 0:
                     content.append('')
                     content.append('Il faut au moins un utilisateur pour utiliser l\'application')
                     content.append('')
@@ -233,7 +238,7 @@ class Show:
                 content.append('Entrer "EXIT" pour quitter l\'application')
             case 'HELP':
                 content.append('Liste des actions possibles :')
-                content.append('ADD | UPDATE | DELETE')
+                content.append('ADD | UPDATE | VIEW | DELETE')
                 content.append('')
                 content.append('Liste des catégories possibles :')
                 content.append('USER | CLIENT | CONTRACT | EVENT')
@@ -251,8 +256,12 @@ class Show:
                 content.append('Votre saisie ne correspond pas à un numéro d\'employé.')
             case 'BAD_DEPARTMENT':
                 content.append('Votre saisie ne correspond pas à aucun département.')
+            case 'SELECT_USER_FAILED':
+                content.append('Ce numéro ne correspond pas à un utilisateur.')
+            case 'BAD_SELECT_USER':
+                content.append('Merci d\'entrer un numéro')
             case 'UNKNOWN':
-                content.append('Cette commande est inconnue, veuillez recommencer')
+                content.append('Cette commande est inconnue, veuillez recommencer.')
             case _:
                 pass
         if content:
