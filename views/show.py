@@ -152,6 +152,8 @@ class Show:
                 title = 'Utilisateur modifié'
             case 'DELETE_USER':
                 title = 'Suppression d\'un utilisateur'
+            case 'DELETE_USER_OK':
+                title = 'Utilisateur supprimé'
             case 'SELECT_USER':
                 title = 'Sélection d\'un utilisateur'
             case 'ADD_CLIENT':

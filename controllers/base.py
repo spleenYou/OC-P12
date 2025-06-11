@@ -163,6 +163,14 @@ class Controller:
             self.session.status = 'UPDATE_USER_OK'
             self.db.update_user()
 
+    @check_token_and_perm
+    def delete_user(self):
+        user_id = self.select_user()
+        self.session.new_user = self.db.get_user_information(user_id)
+        if self.prompt.for_validation():
+            self.session.status = 'DELETE_USER_OK'
+            self.db.delete_user(user_id)
+
     def select_user(self):
         number = None
         while number is None:

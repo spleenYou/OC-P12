@@ -178,20 +178,17 @@ class TestController:
         self.connect_user(controller, 1)
         inputs = iter(
             [
-                'ADD USER',
                 commercial_user['name'],
                 commercial_user['email'],
                 commercial_user['employee_number'],
                 commercial_user['department_id'],
-                'y',
-                '',
-                'exit',
-                ''
+                'y'
             ]
         )
         monkeypatch.setattr('builtins.input', lambda _: next(inputs))
         monkeypatch.setattr('views.prompt.getpass', lambda _: commercial_user['password'])
-        controller.main_menu()
+        controller.add_user()
+        controller.show.display()
         captured = capsys.readouterr()
         assert 'Utilisateur créé' in captured.out
 
@@ -201,22 +198,35 @@ class TestController:
         self.add_user(controller, commercial_user, monkeypatch)
         inputs = iter(
             [
-                'UPDATE USER',
                 1,
                 'Commercial 2',
                 '',
                 '',
                 '',
-                'y',
-                '',
-                'exit',
-                ''
+                'y'
             ]
         )
         monkeypatch.setattr('builtins.input', lambda _: next(inputs))
         monkeypatch.setattr('views.prompt.getpass', lambda _: '')
-        controller.main_menu()
+        controller.update_user()
+        controller.show.display()
+        captured = capsys.readouterr()
+        assert 'Utilisateur modifié' in captured.out
+
+    def test_delete_user_command(self, controller, monkeypatch, management_user, capsys, commercial_user):
+        self.add_user(controller, management_user, monkeypatch)
+        self.connect_user(controller, 1)
+        self.add_user(controller, commercial_user, monkeypatch)
+        inputs = iter(
+            [
+                1,
+                'y'
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        controller.delete_user()
+        controller.show.display()
         captured = capsys.readouterr()
         # for capt in captured:
         #     print(capt)
-        assert 'Utilisateur modifié' in captured.out
+        assert 'Utilisateur supprimé' in captured.out
