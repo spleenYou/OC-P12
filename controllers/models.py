@@ -45,27 +45,27 @@ class Client(Base):
     date_last_update = Column(DateTime, default=func.now(), onupdate=func.now())
     commercial_contact_id = Column(Integer, ForeignKey('epic_users.id'), nullable=False)
     commercial_contact = relationship('EpicUser', back_populates='clients')
-    contracts = relationship('Contract', back_populates='client')
+    contracts = relationship('Contract', back_populates='client', cascade='all, delete-orphan')
 
 
 class Contract(Base):
     __tablename__ = 'contracts'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    client_id = Column(Integer, ForeignKey('clients.id'), nullable=False)
+    client_id = Column(Integer, ForeignKey('clients.id', ondelete='CASCADE'), nullable=False)
     total_amount = Column(Numeric(10, 2))
     rest_amount = Column(Numeric(10, 2))
     date_creation = Column(DateTime, default=func.now())
     status = Column(Boolean, default=False)
     client = relationship('Client', back_populates='contracts')
-    event = relationship('Event', back_populates='contract')
+    event = relationship('Event', back_populates='contract', cascade='all, delete-orphan')
 
 
 class Event(Base):
     __tablename__ = 'events'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    contract_id = Column(Integer, ForeignKey('contracts.id'), nullable=False)
+    contract_id = Column(Integer, ForeignKey('contracts.id', ondelete='CASCADE'), nullable=False)
     date_creation = Column(DateTime, default=func.now())
     date_start = Column(Date)
     date_stop = Column(Date)
