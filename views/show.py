@@ -138,6 +138,8 @@ class Show:
                 title = 'Mise à jour d\'un utilisateur'
             case 'UPDATE_USER_OK':
                 title = 'Utilisateur modifié'
+            case 'UPDATE_USER_FAILED':
+                title = 'Utilisateur non modifié'
             case 'VIEW_USER':
                 title = 'Informations sur un utilisateur'
             case 'DELETE_USER':
@@ -154,8 +156,14 @@ class Show:
                 title = 'Impossible d\'ajouter le client'
             case 'UPDATE_CLIENT':
                 title = 'Mise à jour d\'un client'
+            case 'UPDATE_CLIENT_OK':
+                title = 'Client mis à jour'
+            case 'UPDATE_CLIENT_FAILED':
+                title = 'Client non mis à jour'
             case 'DELETE_CLIENT':
                 title = 'Suppression d\'un client'
+            case 'SELECT_CLIENT':
+                title = 'Selection d\'un client'
             case 'ADD_CONTRACT':
                 title = 'Ajout d\'un contrat'
             case 'UPDATE_CONTRACT':
@@ -172,7 +180,7 @@ class Show:
                 title = 'Mise à jour du support'
             case 'CONNECTION':
                 title = 'Connexion'
-            case 'ERROR' | 'ADD_USER_FAILED':
+            case 'ERROR' | 'ADD_USER_FAILED' | 'ADD_CLIENT_FAILED':
                 title = 'Erreur'
             case 'LOGIN_FAILED':
                 title = 'Erreur de connexion'
@@ -184,7 +192,8 @@ class Show:
                   'BAD_EMPLOYEE_NUMBER' |
                   'SELECT_USER_FAILED' |
                   'BAD_SELECT_USE' |
-                  'BAD_PHONE'):
+                  'BAD_PHONE' |
+                  'SELECT_CLIENT_FAILED'):
                 title = 'Erreur de saisie'
             case 'HELP':
                 title = 'Aide'
@@ -219,7 +228,7 @@ class Show:
                 for index, user in enumerate(users):
                     content.append(f'{index} - ({user.employee_number}) {user.name} \\ {user.email} \\ '
                                    f'{user.department_name}')
-            case 'ADD_CLIENT':
+            case 'ADD_CLIENT' | 'UPDATE_CLIENT':
                 align = 'left'
                 content.append('Informations sur le client :')
                 content.append('')
@@ -227,6 +236,10 @@ class Show:
                 content.append(f"{' ' * 4}Nom du contact : {self.session.client['name'] or ''}")
                 content.append(f"{' ' * 4}Email : {self.session.client['email'] or ''}")
                 content.append(f"{' ' * 4}Téléphone : {self.session.client['phone'] or ''}")
+            case 'SELECT_CLIENT':
+                clients = self.db.get_client_list()
+                for index, client in enumerate(clients):
+                    content.append(f'{index} - {client.company_name} \\ {client.name}')
             case 'LOGIN_FAILED':
                 content.append('Vos identifiants sont inconnus')
                 content.append('L\'application va s\'arrêter')
@@ -263,8 +276,10 @@ class Show:
                 content.append('Votre saisie ne correspond pas à aucun département.')
             case 'SELECT_USER_FAILED':
                 content.append('Ce numéro ne correspond pas à un utilisateur.')
-            case 'BAD_SELECT_USER':
+            case 'BAD_SELECT_USER' | 'BAD_SELECT_CLIENT':
                 content.append('Merci d\'entrer un numéro')
+            case 'SELECT_CLIENT_FAILED':
+                content.append('Ce numéro ne correspond pas à un client.')
             case 'BAD_PHONE':
                 content.append('Numéro de téléphone incorrect')
             case 'UNKNOWN':

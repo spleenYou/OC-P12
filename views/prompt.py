@@ -48,16 +48,9 @@ class Prompt:
         self.show.display()
         return input('Veuillez indiquer le reste à payer pour ce contrat : ')
 
-    def for_select_client(self, client_list):
+    def for_client(self):
         self.show.display()
-        print('Liste des clients')
-        print('0 - Annuler')
-        for index, client in enumerate(client_list):
-            print(f'{index + 1} - {client.company_name}')
-        choice = input('Veuillez entrer le numéro du client : ')
-        if choice:
-            return client_list[choice - 1]
-        return None
+        return input('Quel client souhaitez vous modifié ? ')
 
     def for_validation(self):
         self.show.display()

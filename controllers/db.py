@@ -27,6 +27,9 @@ class Mysql:
     def number_of_users(self):
         return self.db_session.query(EpicUser).count()
 
+    def number_of_clients(self):
+        return self.db_session.query(Client).count()
+
     def get_user_information(self, user_id):
         user = self.db_session.query(EpicUser).filter(EpicUser.id == user_id).first()
         return {
@@ -75,6 +78,9 @@ class Mysql:
 
     def find_user_id(self, number):
         return self.db_session.query(EpicUser.id).order_by(EpicUser.id).all()[number][0]
+
+    def find_client_id(self, number):
+        return self.db_session.query(Client.id).order_by(Client.id).all()[number][0]
 
     def get_user_password(self):
         password = self.db_session.query(EpicUser) \

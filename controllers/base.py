@@ -78,8 +78,12 @@ class Controller:
         while email is None:
             self.session.status = status
             email = self.prompt.for_email()
-            if status == 'UPDATE_USER' and email == '':
-                email = self.session.new_user['email']
+            if email == '':
+                match status:
+                    case 'UPDATE_USER':
+                        email = self.session.new_user['email']
+                    case 'UPDATE_CLIENT':
+                        email = self.session.client['email']
             elif not re.fullmatch(self.email_regex, email or ''):
                 email = None
                 self.session.status = 'BAD_EMAIL'
@@ -171,6 +175,8 @@ class Controller:
         while phone is None:
             self.session.status = status
             phone = self.prompt.for_phone()
+            if status == 'UPDATE_CLIENT' and phone == '':
+                phone = self.session.client['phone']
             print(f'{self.phone_regex} - {re.match(self.phone_regex, phone)}')
             if re.match(self.phone_regex, phone):
                 return phone
@@ -234,12 +240,36 @@ class Controller:
             else:
                 self.session.status = 'ADD_CLIENT_FAILED'
 
+    @check_token_and_perm
+    def update_client(self):
+        client_id = self.select_client()
+        self.session.client = self.db.get_client_information(client_id)
+        self.session.client['company_name'] = self.ask_company_name()
+        self.session.client['name'] = self.ask_client_name()
+        self.session.client['email'] = self.ask_email()
+        self.session.client['phone'] = self.ask_phone()
+        if self.prompt.for_validation():
+            if self.db.update_client():
+                self.session.status = 'UPDATE_CLIENT_OK'
+            else:
+                self.session.status = 'UPDATE_CLIENT_FAILED'
+
     def select_client(self):
-        client_list = self.db.get_client_list()
-        client = self.prompt.for_select_client(client_list)
-        if client is not None:
-            return client
-        return None
+        number = None
+        while number is None:
+            self.session.status = 'SELECT_CLIENT'
+            number = self.prompt.for_client()
+            try:
+                number = int(number)
+                if number < self.db.number_of_clients():
+                    self.session.status = 'UPDATE_CLIENT'
+                    return self.db.find_client_id(number)
+                else:
+                    self.session.status = 'SELECT_CLIENT_FAILED'
+            except Exception:
+                self.session.status = 'BAD_SELECT_CLIENT'
+            number = None
+            self.show.wait()
 
     @check_token_and_perm
     def add_contract(self):
