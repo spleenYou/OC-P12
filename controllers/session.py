@@ -1,5 +1,6 @@
 class Session:
     def __init__(self):
+        self.reset_session()
         self.user = {
             'id': None,
             'name': None,
@@ -8,8 +9,26 @@ class Session:
             'employee_number': None,
             'department_id': None
         }
-        self.reset_new_user()
-        self.reset_client()
+        self.status = None
+        self.token = None
+
+    def reset_session(self):
+        self.new_user = {
+            'id': None,
+            'name': None,
+            'email': None,
+            'password': None,
+            'employee_number': None,
+            'department_id': None
+        }
+        self.client = {
+            'id': None,
+            'name': None,
+            'email': None,
+            'phone': None,
+            'company_name': None,
+            'commercial_contact_id': None
+        }
         self.contract = {
             'id': None,
             'client_id': None,
@@ -25,26 +44,4 @@ class Session:
             'notes': None,
             'date_start': None,
             'date_stop': None
-        }
-        self.status = None
-        self.token = None
-
-    def reset_new_user(self):
-        self.new_user = {
-            'id': None,
-            'name': None,
-            'email': None,
-            'password': None,
-            'employee_number': None,
-            'department_id': None
-        }
-
-    def reset_client(self):
-        self.client = {
-            'id': None,
-            'name': None,
-            'email': None,
-            'phone': None,
-            'company_name': None,
-            'commercial_contact_id': None
         }

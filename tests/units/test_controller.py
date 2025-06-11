@@ -1,13 +1,24 @@
+from controllers.base import Controller
+from controllers.authentication import Authentication
+from controllers.db import Mysql
+from views.prompt import Prompt
+from views.show import Show
+
+
 class TestController:
+    def test_init_controller(session):
+        ctrl = Controller(Prompt, Show, Mysql, Authentication, session)
+        assert ctrl.session == session
+
     def add_user(self, controller, user):
         controller.session.new_user = user
         controller.db.add_user()
-        controller.session.reset_new_user()
+        controller.session.reset_session()
 
     def add_client(self, controller, client):
         controller.session.client = client
         controller.db.add_client()
-        controller.session.reset_client()
+        controller.session.reset_session()
 
     def connect_user(self, controller, user_id):
         controller.session.user = controller.db.get_user_information(user_id)

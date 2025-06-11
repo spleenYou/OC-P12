@@ -67,6 +67,7 @@ class Controller:
                 self.session.status = 'UNKNOWN'
             if command != self.session.status:
                 self.show.wait()
+            self.session.reset_session()
 
     def ask_name(self):
         name = self.prompt.for_name()
@@ -196,10 +197,8 @@ class Controller:
             self.session.new_user['department_id'] = self.ask_department()
         if self.prompt.for_validation():
             if self.db.add_user():
-                self.session.reset_new_user()
                 self.session.status = 'ADD_USER_OK'
                 return True
-        self.session.reset_new_user()
         self.session.status = 'ADD_USER_FAILED'
         return False
 
@@ -215,7 +214,6 @@ class Controller:
         if self.prompt.for_validation():
             self.session.status = 'UPDATE_USER_OK'
             self.db.update_user()
-        self.session.reset_new_user()
 
     def view_user(self):
         user_id = self.select_user()
@@ -229,7 +227,6 @@ class Controller:
         if self.prompt.for_validation():
             self.session.status = 'DELETE_USER_OK'
             self.db.delete_user(user_id)
-        self.session.reset_new_user()
 
     @check_token_and_perm
     def add_client(self):
@@ -256,7 +253,6 @@ class Controller:
                 self.session.status = 'UPDATE_CLIENT_OK'
             else:
                 self.session.status = 'UPDATE_CLIENT_FAILED'
-        self.session.reset_client()
 
     def view_client(self):
         client_id = self.select_client()
@@ -270,7 +266,6 @@ class Controller:
         if self.prompt.for_validation():
             self.session.status = 'DELETE_CLIENT_OK'
             self.db.delete_client(client_id)
-        self.session.reset_client()
 
     def select_client(self):
         status = self.session.status
