@@ -281,7 +281,24 @@ class TestController:
         controller.update_client()
         controller.show.display()
         captured = capsys.readouterr()
-        # for capt in captured:
-        #     print(capt)
         assert 'Nouvelle entreprise' in captured.out
         assert 'Client mis à jour' in captured.out
+
+    def test_delete_client(self, controller, monkeypatch, capsys, commercial_user, client_information):
+        self.add_user(controller, commercial_user)
+        self.connect_user(controller, 1)
+        self.add_client(controller, client_information)
+        controller.session.status = 'DELETE_CLIENT'
+        inputs = iter(
+            [
+                0,
+                'y'
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        controller.delete_client()
+        controller.show.display()
+        captured = capsys.readouterr()
+        # for capt in captured:
+        #     print(capt)
+        assert 'Client supprimé' in captured.out

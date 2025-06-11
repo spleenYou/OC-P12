@@ -258,6 +258,15 @@ class Controller:
                 self.session.status = 'UPDATE_CLIENT_FAILED'
         self.session.reset_client()
 
+    @check_token_and_perm
+    def delete_client(self):
+        client_id = self.select_client()
+        self.session.client = self.db.get_client_information(client_id)
+        if self.prompt.for_validation():
+            self.session.status = 'DELETE_CLIENT_OK'
+            self.db.delete_client(client_id)
+        self.session.reset_client()
+
     def select_client(self):
         status = self.session.status
         number = None
