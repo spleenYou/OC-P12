@@ -65,7 +65,8 @@ class Controller:
                 eval('self.' + command.lower())()
             else:
                 self.session.status = 'UNKNOWN'
-            self.show.wait()
+            if command != self.session.status:
+                self.show.wait()
 
     def ask_name(self):
         name = self.prompt.for_name()
@@ -141,6 +142,7 @@ class Controller:
 
     def select_user(self):
         number = None
+        status = self.session.status
         while number is None:
             self.session.status = 'SELECT_USER'
             number = self.prompt.for_user()
@@ -148,7 +150,7 @@ class Controller:
                 number = int(number)
                 if number < self.db.number_of_users():
                     user_id = self.db.find_user_id(number)
-                    self.session.status = 'UPDATE_USER'
+                    self.session.status = status
                     return user_id
                 else:
                     self.session.status = 'SELECT_USER_FAILED'
@@ -177,7 +179,6 @@ class Controller:
             phone = self.prompt.for_phone()
             if status == 'UPDATE_CLIENT' and phone == '':
                 phone = self.session.client['phone']
-            print(f'{self.phone_regex} - {re.match(self.phone_regex, phone)}')
             if re.match(self.phone_regex, phone):
                 return phone
             phone = None
@@ -186,7 +187,6 @@ class Controller:
 
     @check_token_and_perm
     def add_user(self):
-        self.session.status = 'ADD_USER'
         self.session.new_user['name'] = self.ask_name()
         if self.session.new_user['email'] is None:
             self.session.new_user['email'] = self.ask_email()
@@ -199,6 +199,7 @@ class Controller:
                 self.session.reset_new_user()
                 self.session.status = 'ADD_USER_OK'
                 return True
+        self.session.reset_new_user()
         self.session.status = 'ADD_USER_FAILED'
         return False
 
@@ -208,12 +209,13 @@ class Controller:
         self.session.new_user = self.db.get_user_information(user_id)
         self.session.new_user['name'] = self.ask_name()
         self.session.new_user['email'] = self.ask_email()
-        self.session.new_user['password'] = self.ask_password()
+        self.session.new_user['password'] = self.auth.hash_password(self.ask_password())
         self.session.new_user['employee_number'] = self.ask_employee_number()
         self.session.new_user['department_id'] = self.ask_department()
         if self.prompt.for_validation():
             self.session.status = 'UPDATE_USER_OK'
             self.db.update_user()
+        self.session.reset_new_user()
 
     def view_user(self):
         user_id = self.select_user()
@@ -227,6 +229,7 @@ class Controller:
         if self.prompt.for_validation():
             self.session.status = 'DELETE_USER_OK'
             self.db.delete_user(user_id)
+        self.session.reset_new_user()
 
     @check_token_and_perm
     def add_client(self):
@@ -253,8 +256,10 @@ class Controller:
                 self.session.status = 'UPDATE_CLIENT_OK'
             else:
                 self.session.status = 'UPDATE_CLIENT_FAILED'
+        self.session.reset_client()
 
     def select_client(self):
+        status = self.session.status
         number = None
         while number is None:
             self.session.status = 'SELECT_CLIENT'
@@ -262,7 +267,7 @@ class Controller:
             try:
                 number = int(number)
                 if number < self.db.number_of_clients():
-                    self.session.status = 'UPDATE_CLIENT'
+                    self.session.status = status
                     return self.db.find_client_id(number)
                 else:
                     self.session.status = 'SELECT_CLIENT_FAILED'

@@ -211,7 +211,7 @@ class Show:
             case 'FIRST_LAUNCH':
                 content.append('Un utilisateur de l\'équipe Management va être créé')
                 content.append('afin de pouvoir continuer')
-            case 'ADD_USER' | 'UPDATE_USER' | 'VIEW_USER':
+            case 'ADD_USER' | 'UPDATE_USER' | 'VIEW_USER' | 'DELETE_USER':
                 department_name = ''
                 if self.session.new_user['department_id'] is not None:
                     department_name = self.db.get_department_list()[self.session.new_user['department_id'] - 1]

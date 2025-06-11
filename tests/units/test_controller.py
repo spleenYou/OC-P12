@@ -199,6 +199,7 @@ class TestController:
         self.add_user(controller, management_user)
         self.connect_user(controller, 1)
         self.add_user(controller, commercial_user)
+        controller.session.status = 'UPDATE_USER'
         inputs = iter(
             [
                 1,
@@ -223,7 +224,7 @@ class TestController:
         self.add_user(controller, commercial_user)
         inputs = iter(
             [
-                1,
+                0,
                 'y'
             ]
         )
@@ -265,6 +266,7 @@ class TestController:
         self.add_user(controller, commercial_user)
         self.connect_user(controller, 1)
         self.add_client(controller, client_information)
+        controller.session.status = 'UPDATE_CLIENT'
         inputs = iter(
             [
                 0,
