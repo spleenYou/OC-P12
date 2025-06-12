@@ -60,7 +60,8 @@ class Controller:
                 self.session.status = command[0]
             elif (command[0] in ['ADD', 'UPDATE', 'VIEW', 'DELETE'] and
                     command[1] in ['USER', 'CLIENT', 'CONTRACT', 'EVENT']):
-                if command[0] != 'ADD' and eval('self.db.number_of_' + command[1].lower())() > 0:
+                if (command[0] == 'ADD' or
+                   (command[0] != 'ADD' and eval('self.db.number_of_' + command[1].lower())() > 0)):
                     command = command[0] + '_' + command[1]
                     self.session.status = command
                     eval('self.' + command.lower())()
@@ -189,6 +190,21 @@ class Controller:
             self.session.status = 'BAD_PHONE'
             self.show.display()
 
+    def ask_total_amount(self):
+        total_amount = None
+        status = self.session.status
+        while total_amount is None:
+            self.session.status = status
+            total_amount = self.prompt.for_total_amount()
+            if status == 'UPDATE_CONTRACT' and total_amount == '':
+                total_amount = self.session.contract['total_amount']
+            try:
+                total_amount = int(total_amount)
+                return total_amount
+            except Exception:
+                total_amount = None
+                self.session.status = 'BAD_TOTAL_AMOUNT'
+
     @check_token_and_perm
     def add_user(self):
         self.session.new_user['name'] = self.ask_name()
@@ -245,7 +261,10 @@ class Controller:
     @check_token_and_perm
     def update_client(self):
         client_id = self.select_client()
+        if self.session.client['commercial_contact_id'] != self.session.user['id']:
+            self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
         self.session.client = self.db.get_client_information(client_id)
+        self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
         self.session.client['company_name'] = self.ask_company_name()
         self.session.client['name'] = self.ask_client_name()
         self.session.client['email'] = self.ask_email()
@@ -259,10 +278,13 @@ class Controller:
     def view_client(self):
         client_id = self.select_client()
         self.session.client = self.db.get_client_information(client_id)
+        self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
 
     @check_token_and_perm
     def delete_client(self):
         client_id = self.select_client()
+        if self.session.client['commercial_contact_id'] != self.session.user['id']:
+            self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
         self.session.client = self.db.get_client_information(client_id)
         if self.prompt.for_validation():
             self.session.status = 'DELETE_CLIENT_OK'
@@ -288,20 +310,12 @@ class Controller:
 
     @check_token_and_perm
     def add_contract(self):
-        if self.allows_to.add_contract(self.user.department_id):
-            if self.client is None:
-                self.client = self.select_client()
-            if self.client is not None:
-                total_amount = self.prompt.for_total_amount()
-                rest_amount = self.prompt.for_rest_amount()
-                result = self.db.add_contract(
-                    client_id=self.client.id,
-                    commercial_id=self.client.commercial_contact_id,
-                    total_amount=total_amount,
-                    rest_amount=rest_amount
-                )
-                return result
-            print('Add contract canceled')
-            return False
-        print('Add contract not allowed')
-        return False
+        client_id = self.select_client()
+        self.session.client = self.db.get_client_information(client_id)
+        self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
+        self.session.contract['total_amount'] = self.ask_total_amount()
+        if self.prompt.for_validation():
+            if self.db.add_client():
+                self.session.status = 'ADD_CONTRACT_OK'
+            else:
+                self.session.status = 'ADD_CONTRACT_FAILED'

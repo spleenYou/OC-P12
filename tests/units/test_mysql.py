@@ -36,13 +36,13 @@ class TestMysql:
         db = Mysql(None, authentication)
         assert db.engine is not None
 
-    def test_number_of_users_empty(self, mysql):
-        assert mysql.number_of_users() == 0
+    def test_number_of_user_empty(self, mysql):
+        assert mysql.number_of_user() == 0
 
-    def test_number_of_users_not_empty(self, mysql, management_user):
+    def test_number_of_user_not_empty(self, mysql, management_user):
         mysql.db_session.add(EpicUser(**management_user))
         mysql.db_session.commit()
-        assert mysql.number_of_users() == 1
+        assert mysql.number_of_user() == 1
 
     def test_get_password_stored(self, mysql, management_user):
         self.add_user(mysql, management_user)
@@ -108,10 +108,10 @@ class TestMysql:
     def test_delete_user(self, mysql, management_user):
         self.add_user(mysql, management_user)
         users = mysql.get_user_list()
-        assert mysql.number_of_users() == 1
+        assert mysql.number_of_user() == 1
         result = mysql.delete_user(users[0].id)
         assert result is True
-        assert mysql.number_of_users() == 0
+        assert mysql.number_of_user() == 0
 
     def test_delete_user_failed(self, mysql):
         assert mysql.delete_user(1) is False

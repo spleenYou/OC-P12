@@ -170,6 +170,8 @@ class Show:
                 title = 'Aucun client n\'est enregistré'
             case 'ADD_CONTRACT':
                 title = 'Ajout d\'un contrat'
+            case 'ADD_CONTRACT_OK':
+                title = 'Contrat ajouté'
             case 'UPDATE_CONTRACT':
                 title = 'Mise à jour d\'un contrat'
             case 'DELETE_CONTRACT':
@@ -197,7 +199,8 @@ class Show:
                   'SELECT_USER_FAILED' |
                   'BAD_SELECT_USE' |
                   'BAD_PHONE' |
-                  'SELECT_CLIENT_FAILED'):
+                  'SELECT_CLIENT_FAILED' |
+                  'BAD_TOTAL_AMOUNT'):
                 title = 'Erreur de saisie'
             case 'HELP':
                 title = 'Aide'
@@ -215,31 +218,11 @@ class Show:
             case 'FIRST_LAUNCH':
                 content.append('Un utilisateur de l\'équipe Management va être créé')
                 content.append('afin de pouvoir continuer')
-            case 'ADD_USER' | 'UPDATE_USER' | 'VIEW_USER' | 'DELETE_USER':
-                department_name = ''
-                if self.session.new_user['department_id'] is not None:
-                    department_name = self.db.get_department_list()[self.session.new_user['department_id'] - 1]
-                align = 'left'
-                content.append('Informations sur l\'utilisateur :')
-                content.append('')
-                content.append(f"{' ' * 4}Nom : {self.session.new_user['name'] or ''}")
-                content.append(f"{' ' * 4}Email : {self.session.new_user['email'] or ''}")
-                content.append(f"{' ' * 4}Mot de passe : {'**********' if self.session.new_user['password'] else ''}")
-                content.append(f"{' ' * 4}Numéro d\'employé : {self.session.new_user['employee_number'] or ''}")
-                content.append(f"{' ' * 4}Département : {department_name}")
             case 'SELECT_USER':
                 users = self.db.get_user_list()
                 for index, user in enumerate(users):
                     content.append(f'{index} - ({user.employee_number}) {user.name} \\ {user.email} \\ '
                                    f'{user.department_name}')
-            case 'ADD_CLIENT' | 'UPDATE_CLIENT' | 'VIEW_CLIENT' | 'DELETE_CLIENT':
-                align = 'left'
-                content.append('Informations sur le client :')
-                content.append('')
-                content.append(f"{' ' * 4}Nom de l\'entreprise : {self.session.client['company_name'] or ''}")
-                content.append(f"{' ' * 4}Nom du contact : {self.session.client['name'] or ''}")
-                content.append(f"{' ' * 4}Email : {self.session.client['email'] or ''}")
-                content.append(f"{' ' * 4}Téléphone : {self.session.client['phone'] or ''}")
             case 'SELECT_CLIENT':
                 clients = self.db.get_client_list()
                 for index, client in enumerate(clients):
@@ -249,7 +232,7 @@ class Show:
                 content.append('L\'application va s\'arrêter')
             case 'ADD_USER_FAILED':
                 content.append('Utilisateur non enregistré')
-                if self.db.number_of_users() == 0:
+                if self.db.number_of_user() == 0:
                     content.append('')
                     content.append('Il faut au moins un utilisateur pour utiliser l\'application')
                     content.append('')
@@ -290,5 +273,36 @@ class Show:
                 content.append('Cette commande est inconnue, veuillez recommencer.')
             case _:
                 pass
+#  To debug !!!!
+        if self.session.status[:3] in ['ADD', 'UPD', 'VIE', 'DEL']:
+            if self.session.status[-4:] in ['USER', 'IENT', 'RACT', 'VENT']:
+                department_name = ''
+                if self.session.new_user['department_id'] is not None:
+                    department_name = self.db.get_department_list()[self.session.new_user['department_id'] - 1]
+                content.append('Informations sur l\'utilisateur :')
+                content.append('')
+                content.append(f"{' ' * 4}Nom : {self.session.new_user['name'] or ''}")
+                content.append(f"{' ' * 4}Email : {self.session.new_user['email'] or ''}")
+                content.append(f"{' ' * 4}Mot de passe : {'**********' if self.session.new_user['password'] else ''}")
+                content.append(f"{' ' * 4}Numéro d\'employé : {self.session.new_user['employee_number'] or ''}")
+                content.append(f"{' ' * 4}Département : {department_name}")
+                self.show_content(content, 'left')
+                content.clear()
+            if self.session.status[-4:] in ['IENT', 'RACT', 'VENT']:
+                content.append('Informations sur le client :')
+                content.append('')
+                content.append(f"{' ' * 4}Nom de l\'entreprise : {self.session.client['company_name'] or ''}")
+                content.append(f"{' ' * 4}Nom du contact : {self.session.client['name'] or ''}")
+                content.append(f"{' ' * 4}Email : {self.session.client['email'] or ''}")
+                content.append(f"{' ' * 4}Téléphone : {self.session.client['phone'] or ''}")
+                self.show_content(content, 'left')
+                content.clear()
+            if self.session.status[-4:] in ['RACT', 'VENT']:
+                content.append(f"{' ' * 4}Montant total du contrat : {self.session.contract['total_amount']}")
+                content.append(f"{' ' * 4}Montant restant à payer : {self.session.contract['rest_amount']}")
+                content.append(f"{' ' * 4}Statut du contrat : "
+                               f"{'En cours' if self.session.contract['status'] else 'Terminé'}")
+                self.show_content(content, 'left')
+                content.clear()
         if content:
             self.show_content(content, align)

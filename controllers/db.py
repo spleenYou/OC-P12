@@ -30,6 +30,12 @@ class Mysql:
     def number_of_client(self):
         return self.db_session.query(Client).count()
 
+    def number_of_contract(self):
+        return self.db_session.query(Contract).count()
+
+    def number_of_event(self):
+        return self.db_session.query(Event).count()
+
     def get_user_information(self, user_id):
         user = self.db_session.query(EpicUser).filter(EpicUser.id == user_id).first()
         return {

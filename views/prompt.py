@@ -50,7 +50,7 @@ class Prompt:
 
     def for_client(self):
         self.show.display()
-        return input('Quel client souhaitez vous modifié ? ')
+        return input('Quel client souhaitez vous ? ')
 
     def for_validation(self):
         self.show.display()

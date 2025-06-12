@@ -20,6 +20,16 @@ class TestController:
         controller.db.add_client()
         controller.session.reset_session()
 
+    def add_contract(self, controller, contract):
+        controller.session.contract = contract
+        controller.db.add_contract()
+        controller.session.reset_session()
+
+    def add_event(self, controller, event):
+        controller.session.event = event
+        controller.db.add_event()
+        controller.session.reset_session()
+
     def connect_user(self, controller, user_id):
         controller.session.user = controller.db.get_user_information(user_id)
         controller.auth.generate_token()
@@ -249,6 +259,7 @@ class TestController:
         self.add_user(controller, management_user)
         self.connect_user(controller, 1)
         self.add_user(controller, commercial_user)
+        controller.session.status = 'VIEW_USER'
         monkeypatch.setattr('builtins.input', lambda _: 1)
         controller.view_user()
         controller.show.display()
@@ -321,6 +332,31 @@ class TestController:
         controller.view_client()
         controller.show.display()
         captured = capsys.readouterr()
+        assert 'Informations sur le client' in captured.out
+
+    def test_add_contract(
+            self,
+            controller,
+            monkeypatch,
+            capsys,
+            management_user,
+            client_information,
+            contract_information):
+        self.add_user(controller, management_user)
+        self.connect_user(controller, 1)
+        self.add_client(controller, client_information)
+        controller.session.status = 'ADD_CONTRACT'
+        inputs = iter(
+            [
+                0,
+                contract_information['total_amount'],
+                'y'
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        controller.add_contract()
+        controller.show.display()
+        captured = capsys.readouterr()
         # for capt in captured:
         #     print(capt)
-        assert 'Informations sur le client' in captured.out
+        assert 'Ajout d\'un contrat' in captured.out
