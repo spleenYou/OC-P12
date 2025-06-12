@@ -376,7 +376,6 @@ class TestController:
         self.connect_user(controller, 1)
         self.add_client(controller, client_information)
         self.add_contract(controller, contract_information, 1)
-        print(f'Nb contrat : {controller.db.number_of_contract()}')
         controller.session.status = 'UPDATE_CONTRACT'
         inputs = iter(
             [
@@ -392,7 +391,33 @@ class TestController:
         controller.update_contract()
         controller.show.display()
         captured = capsys.readouterr()
-        for capt in captured:
-            print(capt)
         assert 'Terminé' in captured.out
         assert 'Contrat mis à jour' in captured.out
+
+    def test_delete_contract(
+            self,
+            controller,
+            monkeypatch,
+            capsys,
+            commercial_user,
+            client_information,
+            contract_information):
+        self.add_user(controller, commercial_user)
+        self.connect_user(controller, 1)
+        self.add_client(controller, client_information)
+        self.add_contract(controller, contract_information, 1)
+        controller.session.status = 'DELETE_CONTRACT'
+        inputs = iter(
+            [
+                0,
+                0,
+                'y'
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        controller.delete_contract()
+        controller.show.display()
+        captured = capsys.readouterr()
+        for capt in captured:
+            print(capt)
+        assert 'Contrat supprimé' in captured.out

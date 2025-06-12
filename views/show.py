@@ -180,6 +180,10 @@ class Show:
                 title = 'Contrat mis à jour'
             case 'DELETE_CONTRACT':
                 title = 'Suppression d\'un contrat'
+            case 'DELETE_CONTRACT_OK':
+                title = 'Contrat supprimé'
+            case 'DELETE_CONTRACT_FAILED':
+                title = 'Contrat non supprimé'
             case 'SELECT_CONTRACT':
                 title = 'Selection d\'un contrat'
             case 'NO_CONTRACT':

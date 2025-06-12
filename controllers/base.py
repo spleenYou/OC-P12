@@ -369,6 +369,20 @@ class Controller:
             else:
                 self.session.status = 'UPDATE_CONTRACT_FAILED'
 
+    @check_token_and_perm
+    def delete_contract(self):
+        client_id = self.select_client()
+        self.session.client = self.db.get_client_information(client_id)
+        self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
+        contract_id = self.select_contract()
+        self.session.contract = self.db.get_contract_information(contract_id)
+        print(type(self.session.status))
+        if self.prompt.for_validation():
+            if self.db.update_contract():
+                self.session.status = 'DELETE_CONTRACT_OK'
+            else:
+                self.session.status = 'DELETE_CONTRACT_FAILED'
+
     def select_contract(self):
         status = self.session.status
         contract_id = None
