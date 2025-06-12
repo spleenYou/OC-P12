@@ -1,7 +1,8 @@
+import locale
 import pytest
 import jwt
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from controllers.models import Base
@@ -12,6 +13,8 @@ from controllers.session import Session
 from controllers.base import Controller
 from views.show import Show
 from views.prompt import Prompt
+
+locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
 
 
 @pytest.fixture
@@ -99,11 +102,12 @@ def contract_information():
 @pytest.fixture
 def event_information(date_now):
     return {
-        'support_contact_id': 2,
-        'location': 'Lieu de l\'evènement',
+        'support_contact_id': 0,
+        'location': 'Lieu de l\'évènement',
         'attendees': 100,
-        'notes': 'Note de l\'evènement',
-        'date_start': date_now
+        'notes': 'Note de l\'évènement',
+        'date_start': date_now,
+        'date_stop': date_now + timedelta(days=2)
     }
 
 
@@ -127,7 +131,7 @@ def controller(session, db_session):
 
 @pytest.fixture
 def date_now():
-    return datetime.now()
+    return date.today()
 
 
 @pytest.fixture

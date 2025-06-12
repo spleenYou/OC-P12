@@ -1,4 +1,5 @@
 import re
+from datetime import date
 from controllers.permissions import Permission
 from functools import wraps
 
@@ -406,4 +407,104 @@ class Controller:
             except Exception:
                 self.session.status = 'BAD_SELECT_CONTRACT'
             contract_id = None
+            self.show.wait()
+
+    @check_token_and_perm
+    def add_event(self):
+        client_id = self.select_client()
+        self.session.client = self.db.get_client_information(client_id)
+        self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
+        contract_id = self.select_contract()
+        self.session.contract = self.db.get_contract_information(contract_id)
+        self.session.event['location'] = self.ask_location()
+        self.session.event['attendees'] = self.ask_attendees()
+        self.session.event['date_start'] = self.ask_date_start()
+        self.session.event['date_stop'] = self.ask_date_stop()
+        self.session.event['notes'] = self.ask_notes()
+        self.session.event['support_contact_id'] = self.select_support_user()
+        if self.prompt.for_validation():
+            if self.db.add_contract():
+                self.session.status = 'ADD_EVENT_OK'
+            else:
+                self.session.status = 'ADD_EVENT_FAILED'
+
+    def ask_location(self):
+        location = self.prompt.for_location()
+        if location == '':
+            location = self.session.event['location']
+        return location
+
+    def ask_attendees(self):
+        attendees = None
+        status = self.session.status
+        while attendees is None:
+            self.session.status = status
+            attendees = self.prompt.for_attendees()
+            if status == 'UPDATE_ATTENDEES' and attendees == '':
+                attendees = self.session.event['attendees']
+            try:
+                attendees = int(attendees)
+                return attendees
+            except Exception:
+                attendees = None
+                self.session.status = 'BAD_ATTENDEES'
+                self.show.wait()
+
+    def ask_date_start(self):
+        date_start = None
+        status = self.session.status
+        while date_start is None:
+            self.session.status = status
+            date_start = self.prompt.for_date_start()
+            if status == 'UPDATE_DATE_START' and date_start == '':
+                date_start = self.session.event['date_start']
+            try:
+                day, month, year = date_start.split('/')
+                date_start = date(year=int(year), month=int(month), day=int(day))
+                return date_start
+            except Exception:
+                date_start = None
+                self.session.status = 'BAD_DATE_START'
+                self.show.wait()
+
+    def ask_date_stop(self):
+        date_stop = None
+        status = self.session.status
+        while date_stop is None:
+            self.session.status = status
+            date_stop = self.prompt.for_date_stop()
+            if status == 'UPDATE_DATE_STOP' and date_stop == '':
+                date_stop = self.session.event['date_stop']
+            try:
+                day, month, year = date_stop.split('/')
+                date_stop = date(year=int(year), month=int(month), day=int(day))
+                return date_stop
+            except Exception:
+                date_stop = None
+                self.session.status = 'BAD_DATE_STOP'
+                self.show.wait()
+
+    def ask_notes(self):
+        notes = self.prompt.for_notes()
+        if notes == '':
+            notes = self.session.event['notes']
+        return notes
+
+    def select_support_user(self):
+        user_id = None
+        status = self.session.status
+        while user_id is None:
+            self.session.status = 'SELECT_SUPPORT_USER'
+            user_id = self.prompt.for_support_user()
+            try:
+                user_id = int(user_id)
+                if user_id < self.db.number_of_user():
+                    user_id = self.db.find_support_user_id(user_id)
+                    self.session.status = status
+                    return user_id
+                else:
+                    self.session.status = 'SELECT_SUPPORT_USER_FAILED'
+            except Exception:
+                self.session.status = 'BAD_SELECT_SUPPORT_USER'
+            user_id = None
             self.show.wait()

@@ -67,6 +67,10 @@ class Prompt:
         self.show.display()
         return input('Quel utilisateur souhaitez vous modifier ? ')
 
+    def for_support_user(self):
+        self.show.display()
+        return input('Quel utilisateur souhaitez vous choisir ? ')
+
     def for_contract(self):
         self.show.display()
         return input('Quel contrat souhaitez vous ? ')
@@ -74,3 +78,23 @@ class Prompt:
     def for_contract_status(self):
         self.show.display()
         return input('Quel est le statut du contrat ? (En cours : n / Terminé : y) ')
+
+    def for_location(self):
+        self.show.display()
+        return input('Veuillez indiquer un lieu : ')
+
+    def for_notes(self):
+        self.show.display()
+        return input('Veuillez écrire une note : ')
+
+    def for_attendees(self):
+        self.show.display()
+        return input('Combien de personnes seront présentes ? ')
+
+    def for_date_start(self):
+        self.show.display()
+        return input('Veuillez rentrer une date de début (jj/mm/aaaa) : ')
+
+    def for_date_stop(self):
+        self.show.display()
+        return input('Veuillez rentrer une date de fin (jj/mm/aaaa) : ')

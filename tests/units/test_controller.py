@@ -418,8 +418,6 @@ class TestController:
         controller.delete_contract()
         controller.show.display()
         captured = capsys.readouterr()
-        for capt in captured:
-            print(capt)
         assert 'Contrat supprimé' in captured.out
 
     def test_view_contract(
@@ -441,3 +439,41 @@ class TestController:
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Informations sur le contrat' in captured.out
+
+    def test_add_event(
+            self,
+            controller,
+            monkeypatch,
+            capsys,
+            commercial_user,
+            client_information,
+            contract_information,
+            support_user,
+            event_information):
+        self.add_user(controller, commercial_user)
+        self.add_user(controller, support_user)
+        self.connect_user(controller, 1)
+        self.add_client(controller, client_information)
+        self.add_contract(controller, contract_information, 1)
+        controller.session.status = 'ADD_EVENT'
+        inputs = iter(
+            [
+                0,
+                0,
+                event_information['location'],
+                event_information['attendees'],
+                event_information['date_start'].strftime('%d/%m/%Y'),
+                event_information['date_stop'].strftime('%d/%m/%Y'),
+                event_information['notes'],
+                event_information['support_contact_id'],
+                'y'
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        controller.add_event()
+        controller.show.display()
+        captured = capsys.readouterr()
+        # for capt in captured:
+        #     print(capt)
+        assert 'Ajout d\'un évènement' in captured.out
+        assert 'Evènement ajouté' in captured.out

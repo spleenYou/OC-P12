@@ -148,6 +148,8 @@ class Show:
                 title = 'Utilisateur supprimé'
             case 'SELECT_USER':
                 title = 'Sélection d\'un utilisateur'
+            case 'SELECT_SUPPORT_USER':
+                title = 'Selection d\'un utilisateur support'
             case 'ADD_CLIENT':
                 title = 'Ajout d\'un client'
             case 'ADD_CLIENT_OK':
@@ -190,6 +192,10 @@ class Show:
                 title = 'Aucun contract enregistré'
             case 'ADD_EVENT':
                 title = 'Ajout d\'un évènement'
+            case 'ADD_EVENT_OK':
+                title = 'Evènement ajouté'
+            case 'ADD_EVENT_FAILED':
+                title = 'Evènement non ajouté'
             case 'UPDATE_EVENT':
                 title = 'Mise à jour d\'un évènement'
             case 'DELETE_EVENT':
@@ -249,6 +255,10 @@ class Show:
                     content.append(f'{index} - {contract.date_creation.strftime("%d %b %Y")} \\ '
                                    f"{contract.total_amount} \\ "
                                    f"{'Terminé' if self.session.contract['status'] else 'En cours'}")
+            case 'SELECT_SUPPORT_USER':
+                support_users = self.db.get_support_user_list()
+                for index, user in enumerate(support_users):
+                    content.append(f'{index} - {user.name} / {user.email}')
             case 'LOGIN_FAILED':
                 content.append('Vos identifiants sont inconnus')
                 content.append('L\'application va s\'arrêter')
@@ -315,7 +325,7 @@ class Show:
                 content.append(f"{' ' * 4}Mot de passe : {'**********' if self.session.new_user['password'] else ''}")
                 content.append(f"{' ' * 4}Numéro d\'employé : {self.session.new_user['employee_number'] or ''}")
                 content.append(f"{' ' * 4}Département : {department_name}")
-            if self.session.status[-6:] == 'CLIENT':
+            elif self.session.status[-6:] == 'CLIENT':
                 align = 'left'
                 content.append(f"Commercial correspondant : {self.session.new_user['name']} - "
                                f"{self.session.new_user['email']}")
@@ -328,7 +338,7 @@ class Show:
                 content.append(f"{' ' * 4}Nom du contact : {self.session.client['name'] or ''}")
                 content.append(f"{' ' * 4}Email : {self.session.client['email'] or ''}")
                 content.append(f"{' ' * 4}Téléphone : {self.session.client['phone'] or ''}")
-            if self.session.status[-8:] == 'CONTRACT':
+            elif self.session.status[-8:] == 'CONTRACT':
                 align = 'left'
                 content.append(f"Commercial : {self.session.new_user['name']} - "
                                f"{self.session.new_user['email']}")
@@ -342,5 +352,34 @@ class Show:
                 content.append(f"{' ' * 4}Montant restant à payer : {self.session.contract['rest_amount'] or '0'}")
                 content.append(f"{' ' * 4}Statut du contrat : "
                                f"{'Terminé' if self.session.contract['status'] else 'En cours'}")
+            elif self.session.status[-5:] == 'EVENT':
+                align = 'left'
+                content.append(f"Commercial : {self.session.new_user['name']} - "
+                               f"{self.session.new_user['email']}")
+                content.append(f"Client : {self.session.client['company_name']} - "
+                               f"{self.session.client['name']}")
+                content.append(f"Contrat : "
+                               f"{self.session.contract['rest_amount']}/{self.session.contract['total_amount']} - "
+                               f"{'Terminé' if self.session.contract['status'] else 'En cours'}")
+                self.show_content(content, align)
+                content.clear()
+                support_user = None
+                if self.session.event['support_contact_id'] is not None:
+                    support_user = self.db.get_user_information(self.session.event['support_contact_id'])
+                date_start = self.session.event['date_start']
+                if date_start is not None:
+                    date_start = date_start.strftime("%d %b %Y")
+                date_stop = self.session.event['date_stop']
+                if date_stop is not None:
+                    date_stop = date_stop.strftime("%d %b %Y")
+                content.append('Informations sur l\'évènement :')
+                content.append('')
+                content.append(f"Lieu : {self.session.event['location'] or ''}")
+                content.append(f"Nombre de personnes : {self.session.event['attendees'] or ''} ")
+                content.append(f"Date de début : {date_start or ''}")
+                content.append(f"Date de fin : {date_stop or ''}")
+                content.append(f"Notes : {self.session.event['notes'] or ''}")
+                content.append(f"Support : {support_user['name'] if support_user else ''} - "
+                               f"{support_user['email'] if support_user else ''}")
         if content:
             self.show_content(content, align)

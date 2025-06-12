@@ -87,6 +87,12 @@ class Mysql:
     def find_user_id(self, number):
         return self.db_session.query(EpicUser.id).order_by(EpicUser.id).all()[number][0]
 
+    def find_support_user_id(self, number):
+        return self.db_session.query(EpicUser.id) \
+            .filter(EpicUser.department_id == 2) \
+            .order_by(EpicUser.id) \
+            .all()[number][0]
+
     def find_client_id(self, number):
         return self.db_session.query(Client.id).order_by(Client.id).all()[number][0]
 
@@ -106,6 +112,9 @@ class Mysql:
 
     def get_user_list(self):
         return self.db_session.query(EpicUser).order_by(EpicUser.id).all()
+
+    def get_support_user_list(self):
+        return self.db_session.query(EpicUser).filter(EpicUser.department_id == 2).order_by(EpicUser.id).all()
 
     def delete_user(self, user_id):
         try:
