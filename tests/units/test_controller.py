@@ -421,3 +421,23 @@ class TestController:
         for capt in captured:
             print(capt)
         assert 'Contrat supprimé' in captured.out
+
+    def test_view_contract(
+            self,
+            controller,
+            monkeypatch,
+            capsys,
+            commercial_user,
+            client_information,
+            contract_information):
+        self.add_user(controller, commercial_user)
+        self.connect_user(controller, 1)
+        self.add_client(controller, client_information)
+        self.add_contract(controller, contract_information, 1)
+        controller.session.status = 'VIEW_CONTRACT'
+        inputs = iter([0, 0])
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        controller.view_contract()
+        controller.show.display()
+        captured = capsys.readouterr()
+        assert 'Informations sur le contrat' in captured.out
