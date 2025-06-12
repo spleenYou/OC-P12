@@ -31,7 +31,9 @@ class Mysql:
         return self.db_session.query(Client).count()
 
     def number_of_contract(self):
-        return self.db_session.query(Contract).count()
+        if self.session.client['id'] is None:
+            return self.db_session.query(Contract).count()
+        return self.db_session.query(Contract).filter(Contract.client_id == self.session.client['id']).count()
 
     def number_of_event(self):
         return self.db_session.query(Event).count()
@@ -87,6 +89,12 @@ class Mysql:
 
     def find_client_id(self, number):
         return self.db_session.query(Client.id).order_by(Client.id).all()[number][0]
+
+    def find_contract_id(self, number):
+        return self.db_session.query(Contract.id) \
+               .filter(Contract.client_id == self.session.client['id']) \
+               .order_by(Contract.id) \
+               .all()[number][0]
 
     def get_user_password(self):
         password = self.db_session.query(EpicUser) \

@@ -82,7 +82,7 @@ def management_user():
 @pytest.fixture
 def client_information():
     return {
-        'name': 'Nom du client',
+        'name': 'Nom du contact client',
         'email': 'client@example.fr',
         'phone': '0202020202',
         'company_name': 'Nom de l\'entreprise'

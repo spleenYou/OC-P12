@@ -1,11 +1,14 @@
 import argparse
 import os
+import locale
 from controllers.base import Controller
 from views.prompt import Prompt
 from views.show import Show
 from controllers.db import Mysql
 from controllers.authentication import Authentication
 from controllers.session import Session
+
+locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
 
 
 def main():

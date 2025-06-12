@@ -20,7 +20,8 @@ class TestController:
         controller.db.add_client()
         controller.session.reset_session()
 
-    def add_contract(self, controller, contract):
+    def add_contract(self, controller, contract, client_id):
+        controller.session.client = controller.db.get_client_information(client_id)
         controller.session.contract = contract
         controller.db.add_contract()
         controller.session.reset_session()
@@ -200,6 +201,7 @@ class TestController:
     def test_add_user(self, controller, monkeypatch, management_user, capsys, commercial_user):
         self.add_user(controller, management_user)
         self.connect_user(controller, 1)
+        controller.session.status = 'ADD_USER'
         inputs = iter(
             [
                 commercial_user['name'],
@@ -243,6 +245,7 @@ class TestController:
         self.add_user(controller, management_user)
         self.connect_user(controller, 1)
         self.add_user(controller, commercial_user)
+        controller.session.status = 'DELETE_USER'
         inputs = iter(
             [
                 0,
@@ -269,6 +272,7 @@ class TestController:
     def test_add_client(self, controller, monkeypatch, capsys, commercial_user, client_information):
         self.add_user(controller, commercial_user)
         self.connect_user(controller, 1)
+        controller.session.status = 'ADD_CLIENT'
         inputs = iter(
             [
                 client_information['company_name'],
@@ -350,6 +354,7 @@ class TestController:
             [
                 0,
                 contract_information['total_amount'],
+                contract_information['total_amount'],
                 'y'
             ]
         )
@@ -357,6 +362,37 @@ class TestController:
         controller.add_contract()
         controller.show.display()
         captured = capsys.readouterr()
-        # for capt in captured:
-        #     print(capt)
         assert 'Ajout d\'un contrat' in captured.out
+
+    def test_update_contract(
+            self,
+            controller,
+            monkeypatch,
+            capsys,
+            commercial_user,
+            client_information,
+            contract_information):
+        self.add_user(controller, commercial_user)
+        self.connect_user(controller, 1)
+        self.add_client(controller, client_information)
+        self.add_contract(controller, contract_information, 1)
+        print(f'Nb contrat : {controller.db.number_of_contract()}')
+        controller.session.status = 'UPDATE_CONTRACT'
+        inputs = iter(
+            [
+                0,
+                0,
+                '',
+                0,
+                'y',
+                'y'
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        controller.update_contract()
+        controller.show.display()
+        captured = capsys.readouterr()
+        for capt in captured:
+            print(capt)
+        assert 'Terminé' in captured.out
+        assert 'Contrat mis à jour' in captured.out

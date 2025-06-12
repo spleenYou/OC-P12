@@ -188,7 +188,7 @@ class Controller:
                 return phone
             phone = None
             self.session.status = 'BAD_PHONE'
-            self.show.display()
+            self.show.wait()
 
     def ask_total_amount(self):
         total_amount = None
@@ -199,11 +199,45 @@ class Controller:
             if status == 'UPDATE_CONTRACT' and total_amount == '':
                 total_amount = self.session.contract['total_amount']
             try:
-                total_amount = int(total_amount)
-                return total_amount
+                total_amount = float(total_amount)
+                return round(total_amount, 2)
             except Exception:
                 total_amount = None
                 self.session.status = 'BAD_TOTAL_AMOUNT'
+                self.show.wait()
+
+    def ask_rest_amount(self):
+        rest_amount = None
+        status = self.session.status
+        while rest_amount is None:
+            self.session.status = status
+            rest_amount = self.prompt.for_rest_amount()
+            if status == 'UPDATE_CONTRACT' and rest_amount == '':
+                rest_amount = self.session.contract['rest_amount']
+            try:
+                rest_amount = float(rest_amount)
+                return round(rest_amount, 2)
+            except Exception:
+                rest_amount = None
+                self.session.status = 'BAD_REST_AMOUNT'
+                self.show.wait()
+
+    def ask_status(self):
+        contract_status = None
+        status = self.session.status
+        while contract_status is None:
+            self.session.status = status
+            contract_status = self.prompt.for_contract_status().lower()
+            if status == 'UPDATE_CONTRACT' and contract_status == '':
+                contract_status = self.session.contract['status']
+            if contract_status == 'y':
+                return True
+            elif contract_status == 'n':
+                return False
+            else:
+                contract_status = None
+                self.session.status = 'BAD_CONTRACT_STATUS'
+                self.show.wait()
 
     @check_token_and_perm
     def add_user(self):
@@ -261,8 +295,6 @@ class Controller:
     @check_token_and_perm
     def update_client(self):
         client_id = self.select_client()
-        if self.session.client['commercial_contact_id'] != self.session.user['id']:
-            self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
         self.session.client = self.db.get_client_information(client_id)
         self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
         self.session.client['company_name'] = self.ask_company_name()
@@ -283,9 +315,8 @@ class Controller:
     @check_token_and_perm
     def delete_client(self):
         client_id = self.select_client()
-        if self.session.client['commercial_contact_id'] != self.session.user['id']:
-            self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
         self.session.client = self.db.get_client_information(client_id)
+        self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
         if self.prompt.for_validation():
             self.session.status = 'DELETE_CLIENT_OK'
             self.db.delete_client(client_id)
@@ -314,8 +345,44 @@ class Controller:
         self.session.client = self.db.get_client_information(client_id)
         self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
         self.session.contract['total_amount'] = self.ask_total_amount()
+        self.session.contract['rest_amount'] = self.ask_total_amount()
         if self.prompt.for_validation():
-            if self.db.add_client():
+            if self.db.add_contract():
                 self.session.status = 'ADD_CONTRACT_OK'
             else:
                 self.session.status = 'ADD_CONTRACT_FAILED'
+
+    @check_token_and_perm
+    def update_contract(self):
+        client_id = self.select_client()
+        self.session.client = self.db.get_client_information(client_id)
+        self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
+        contract_id = self.select_contract()
+        self.session.contract = self.db.get_contract_information(contract_id)
+        self.session.contract['total_amount'] = self.ask_total_amount()
+        self.session.contract['rest_amount'] = self.ask_rest_amount()
+        self.session.contract['status'] = self.ask_status()
+        print(type(self.session.status))
+        if self.prompt.for_validation():
+            if self.db.update_contract():
+                self.session.status = 'UPDATE_CONTRACT_OK'
+            else:
+                self.session.status = 'UPDATE_CONTRACT_FAILED'
+
+    def select_contract(self):
+        status = self.session.status
+        contract_id = None
+        while contract_id is None:
+            self.session.status = 'SELECT_CONTRACT'
+            contract_id = self.prompt.for_contract()
+            try:
+                contract_id = int(contract_id)
+                if contract_id < self.db.number_of_contract():
+                    self.session.status = status
+                    return self.db.find_contract_id(contract_id)
+                else:
+                    self.session.status = 'SELECT_CONTRACT_FAILED'
+            except Exception:
+                self.session.status = 'BAD_SELECT_CONTRACT'
+            contract_id = None
+            self.show.wait()

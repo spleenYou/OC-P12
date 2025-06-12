@@ -172,10 +172,18 @@ class Show:
                 title = 'Ajout d\'un contrat'
             case 'ADD_CONTRACT_OK':
                 title = 'Contrat ajouté'
+            case 'ADD_CONTRACT_FAILED':
+                title = '*impossible d\'ajouter le contrat'
             case 'UPDATE_CONTRACT':
                 title = 'Mise à jour d\'un contrat'
+            case 'UPDATE_CONTRACT_OK':
+                title = 'Contrat mis à jour'
             case 'DELETE_CONTRACT':
                 title = 'Suppression d\'un contrat'
+            case 'SELECT_CONTRACT':
+                title = 'Selection d\'un contrat'
+            case 'NO_CONTRACT':
+                title = 'Aucun contract enregistré'
             case 'ADD_EVENT':
                 title = 'Ajout d\'un évènement'
             case 'UPDATE_EVENT':
@@ -200,7 +208,11 @@ class Show:
                   'BAD_SELECT_USE' |
                   'BAD_PHONE' |
                   'SELECT_CLIENT_FAILED' |
-                  'BAD_TOTAL_AMOUNT'):
+                  'BAD_TOTAL_AMOUNT' |
+                  'BAD_REST_AMOUNT' |
+                  'SELECT_CONTRACT_FAILED' |
+                  'BAD_SELECT_CLIENT' |
+                  'BAD_CONTRACT_STATUS'):
                 title = 'Erreur de saisie'
             case 'HELP':
                 title = 'Aide'
@@ -227,6 +239,12 @@ class Show:
                 clients = self.db.get_client_list()
                 for index, client in enumerate(clients):
                     content.append(f'{index} - {client.company_name} \\ {client.name}')
+            case 'SELECT_CONTRACT':
+                contracts = self.db.get_contract_list()
+                for index, contract in enumerate(contracts):
+                    content.append(f'{index} - {contract.date_creation.strftime("%d %b %Y")} \\ '
+                                   f"{contract.total_amount} \\ "
+                                   f"{'Terminé' if self.session.contract['status'] else 'En cours'}")
             case 'LOGIN_FAILED':
                 content.append('Vos identifiants sont inconnus')
                 content.append('L\'application va s\'arrêter')
@@ -263,19 +281,26 @@ class Show:
                 content.append('Votre saisie ne correspond pas à aucun département.')
             case 'SELECT_USER_FAILED':
                 content.append('Ce numéro ne correspond pas à un utilisateur.')
-            case 'BAD_SELECT_USER' | 'BAD_SELECT_CLIENT':
-                content.append('Merci d\'entrer un numéro')
+            case ('BAD_SELECT_USER' |
+                  'BAD_SELECT_CLIENT' |
+                  'BAD_TOTAL_AMOUNT' |
+                  'BAD_REST_AMOUNT' |
+                  'BAD_SELECT_CONTRACT'):
+                content.append('Merci d\'entrer un nombre')
             case 'SELECT_CLIENT_FAILED':
                 content.append('Ce numéro ne correspond pas à un client.')
+            case 'SELECT_CONTRACT_FAILED':
+                content.append('Ce numéro ne correspond pas à un contrat.')
             case 'BAD_PHONE':
                 content.append('Numéro de téléphone incorrect')
             case 'UNKNOWN':
                 content.append('Cette commande est inconnue, veuillez recommencer.')
             case _:
                 pass
-#  To debug !!!!
+
         if self.session.status[:3] in ['ADD', 'UPD', 'VIE', 'DEL']:
-            if self.session.status[-4:] in ['USER', 'IENT', 'RACT', 'VENT']:
+            if self.session.status[-4:] == 'USER':
+                align = 'left'
                 department_name = ''
                 if self.session.new_user['department_id'] is not None:
                     department_name = self.db.get_department_list()[self.session.new_user['department_id'] - 1]
@@ -286,23 +311,32 @@ class Show:
                 content.append(f"{' ' * 4}Mot de passe : {'**********' if self.session.new_user['password'] else ''}")
                 content.append(f"{' ' * 4}Numéro d\'employé : {self.session.new_user['employee_number'] or ''}")
                 content.append(f"{' ' * 4}Département : {department_name}")
-                self.show_content(content, 'left')
+            if self.session.status[-6:] == 'CLIENT':
+                align = 'left'
+                content.append(f"Commercial correspondant : {self.session.new_user['name']} - "
+                               f"{self.session.new_user['email']}")
+                self.show_content(content, align)
                 content.clear()
-            if self.session.status[-4:] in ['IENT', 'RACT', 'VENT']:
+                content.append('')
                 content.append('Informations sur le client :')
                 content.append('')
                 content.append(f"{' ' * 4}Nom de l\'entreprise : {self.session.client['company_name'] or ''}")
                 content.append(f"{' ' * 4}Nom du contact : {self.session.client['name'] or ''}")
                 content.append(f"{' ' * 4}Email : {self.session.client['email'] or ''}")
                 content.append(f"{' ' * 4}Téléphone : {self.session.client['phone'] or ''}")
-                self.show_content(content, 'left')
+            if self.session.status[-8:] == 'CONTRACT':
+                align = 'left'
+                content.append(f"Commercial : {self.session.new_user['name']} - "
+                               f"{self.session.new_user['email']}")
+                content.append(f"Client : {self.session.client['company_name']} - "
+                               f"{self.session.client['name']}")
+                self.show_content(content, align)
                 content.clear()
-            if self.session.status[-4:] in ['RACT', 'VENT']:
-                content.append(f"{' ' * 4}Montant total du contrat : {self.session.contract['total_amount']}")
-                content.append(f"{' ' * 4}Montant restant à payer : {self.session.contract['rest_amount']}")
+                content.append('Informations sur le contrat :')
+                content.append('')
+                content.append(f"{' ' * 4}Montant total du contrat : {self.session.contract['total_amount'] or '0'}")
+                content.append(f"{' ' * 4}Montant restant à payer : {self.session.contract['rest_amount'] or '0'}")
                 content.append(f"{' ' * 4}Statut du contrat : "
-                               f"{'En cours' if self.session.contract['status'] else 'Terminé'}")
-                self.show_content(content, 'left')
-                content.clear()
+                               f"{'Terminé' if self.session.contract['status'] else 'En cours'}")
         if content:
             self.show_content(content, align)

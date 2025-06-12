@@ -34,7 +34,7 @@ class Session:
             'client_id': None,
             'total_amount': None,
             'rest_amount': None,
-            'status': None
+            'status': False
         }
         self.event = {
             'id': None,

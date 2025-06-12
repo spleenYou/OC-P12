@@ -66,3 +66,11 @@ class Prompt:
     def for_user(self):
         self.show.display()
         return input('Quel utilisateur souhaitez vous modifier ? ')
+
+    def for_contract(self):
+        self.show.display()
+        return input('Quel contrat souhaitez vous ? ')
+
+    def for_contract_status(self):
+        self.show.display()
+        return input('Quel est le statut du contrat ? (En cours : n / Terminé : y) ')
