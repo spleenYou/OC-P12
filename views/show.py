@@ -1,6 +1,10 @@
 import os
-from functools import wraps
 import math
+from rich.console import Console
+from rich.panel import Panel
+from rich.align import Align
+from rich.text import Text
+from functools import wraps
 
 
 class Show:
@@ -19,6 +23,8 @@ class Show:
         self.BOTTOM_DECORATION = "BOTTOM"
         self.session = session
         self.db = db
+        self.rich_console = Console(highlight=False)
+        self.common_width = 120
 
     def decoration(function):
         "Contour decoration"
@@ -44,25 +50,24 @@ class Show:
     def head_menu(self):
         "Shows the name of the program decorated"
 
-        content = [
-            (":::::::::: :::::::::  :::::::::::  ::::::::        :::::::::: :::     ::: ::::::::::"
-             " ::::    ::: :::::::::::"),
-            (":+:        :+:    :+:     :+:     :+:    :+:       :+:        :+:     :+: :+:       "
-             " :+:+:   :+:     :+:    "),
-            ("+:+        +:+    +:+     +:+     +:+              +:+        +:+     +:+ +:+       "
-             " :+:+:+  +:+     +:+    "),
-            ("+#++:++#   +#++:++#+      +#+     +#+              +#++:++#   +#+     +:+ +#++:++#  "
-             " +#+ +:+ +#+     +#+    "),
-            ("+#+        +#+            +#+     +#+              +#+         +#+   +#+  +#+       "
-             " +#+  +#+#+#     +#+    "),
-            ("#+#        #+#            #+#     #+#    #+#       #+#          #+#+#+#   #+#       "
-             " #+#   #+#+#     #+#    "),
-            ("########## ###        ###########  ########        ##########     ###     ##########"
-             " ###    ####     ###    ")
-        ]
-        self.show_content(content, 'center')
+        content = (":::::::::: :::::::::  :::::::::::  ::::::::        :::::::::: :::     ::: ::::::::::"
+                   " ::::    ::: :::::::::::\n"
+                   ":+:        :+:    :+:     :+:     :+:    :+:       :+:        :+:     :+: :+:       "
+                   " :+:+:   :+:     :+:    \n"
+                   "+:+        +:+    +:+     +:+     +:+              +:+        +:+     +:+ +:+       "
+                   " :+:+:+  +:+     +:+    \n"
+                   "+#++:++#   +#++:++#+      +#+     +#+              +#++:++#   +#+     +:+ +#++:++#  "
+                   " +#+ +:+ +#+     +#+    \n"
+                   "+#+        +#+            +#+     +#+              +#+         +#+   +#+  +#+       "
+                   " +#+  +#+#+#     +#+    \n"
+                   "#+#        #+#            #+#     #+#    #+#       #+#          #+#+#+#   #+#       "
+                   " #+#   #+#+#     #+#    \n"
+                   "########## ###        ###########  ########        ##########     ###     ##########"
+                   " ###    ####     ###    ")
+        panel = Panel(Align(content, align='center'), width=self.common_width, padding=1)
+        self.rich_console.print(panel)
 
-    @decoration
+    # @decoration
     def show_content(self, content, align):
         """Shows the content decorated
 
@@ -70,9 +75,11 @@ class Show:
             content (list): list of the content (str) to show
             align (str): Position of contents. Three possiblities left, center or right
         """
-        if content:
-            for text in content:
-                self.decorated_text(text, align)
+        # if content:
+        #     for text in content:
+        #         self.decorated_text(text, align)
+        panel = Panel(Align(content, align=align), width=self.common_width, padding=1)
+        self.rich_console.print(panel)
 
     def display(self, content=None, align='center'):
         """Manages the display on the console
@@ -105,7 +112,14 @@ class Show:
                 spaces_right = int(spaces_needed / 2)
                 if spaces_needed % 2 == 1:
                     spaces_right = spaces_right + 1
-        print(
+        # print(
+        #     f"{'│' * self.NUMBER_SIDE}"
+        #     f"{' ' * spaces_left}"
+        #     f"{text}"
+        #     f"{' ' * spaces_right}"
+        #     f"{'│' * self.NUMBER_SIDE}"
+        # )
+        self.rich_console.print(
             f"{'│' * self.NUMBER_SIDE}"
             f"{' ' * spaces_left}"
             f"{text}"
@@ -122,8 +136,8 @@ class Show:
         if self.session.user['id'] is not None:
             content = []
             department_name = self.db.get_department_list()[self.session.user['department_id'] - 1]
-            content.append(f"Utilisateur : {self.session.user['name']} |"
-                           f" Departement : {department_name}")
+            content = (f"Utilisateur : {self.session.user['name']}\n"
+                       f"Departement : {department_name}")
             self.show_content(content, 'left')
 
     def title(self):
@@ -132,7 +146,7 @@ class Show:
             case 'FIRST_LAUNCH':
                 title = 'Premier lancement de l\'application'
             case 'FORBIDDEN':
-                title = 'Action interdite'
+                title = '[bold red]Action interdite[/bold red]'
             case 'ADD_USER':
                 title = 'Ajout d\'un utilisateur'
             case 'ADD_USER_OK':
@@ -244,69 +258,77 @@ class Show:
             case _:
                 title = None
         if title:
-            self.show_content([title], 'center')
+            self.show_content(title, 'center')
 
     def content(self):
-        content = []
+        content = None
         align = 'center'
         match self.session.status:
             case 'FIRST_LAUNCH':
-                content.append('Un utilisateur de l\'équipe Management va être créé')
-                content.append('afin de pouvoir continuer')
+                content = ('Un utilisateur de l\'équipe Management va être créé\n'
+                           'afin de pouvoir continuer')
             case 'NO_SUPPORT_USER':
-                content.append('Pas d\'utilisateur support enregistré')
-                content.append('')
-                content.append('Un utilisateur support est obligatoire pour créer un event')
+                content = ('Pas d\'utilisateur support enregistré\n\n'
+                           'Un utilisateur support est obligatoire pour créer un event')
             case 'SELECT_USER':
                 users = self.db.get_user_list()
-                for index, user in enumerate(users):
-                    content.append(f'{index} - ({user.employee_number}) {user.name} \\ {user.email} \\ '
-                                   f'{user.department_name}')
+                lines = [
+                    f'{index} - ({user.employee_number}) {user.name} \\ {user.email} \\ '
+                    f'{user.department_name}'
+                    for index, user in enumerate(users)
+                ]
+                content = "\n".join(lines)
             case 'SELECT_CLIENT':
                 clients = self.db.get_client_list()
-                for index, client in enumerate(clients):
-                    content.append(f'{index} - {client.company_name} \\ {client.name}')
+                lines = [
+                    f'{index} - {client.company_name} \\ {client.name}'
+                    for index, client in enumerate(clients)
+                ]
+                content = "\n".join(lines)
             case 'SELECT_CONTRACT' | 'SELECT_CONTRACT_EVENT':
                 with_event = False
                 if self.session.status == 'SELECT_CONTRACT_EVENT':
                     with_event = True
                 contracts = self.db.get_contract_list(with_event)
-                for index, contract in enumerate(contracts):
-                    content.append(f'{index} - {contract.date_creation.strftime("%d %b %Y")} \\ '
-                                   f"{contract.total_amount} \\ "
-                                   f"{'Terminé' if self.session.contract['status'] else 'En cours'}")
+                lines = [
+                    f'{index} - {contract.date_creation.strftime("%d %b %Y")} \\ '
+                    f'{contract.total_amount} \\ '
+                    f'{"Terminé" if self.session.contract["status"] else "En cours"}'
+                    for index, contract in enumerate(contracts)
+                ]
+                content = "\n".join(lines)
             case 'SELECT_SUPPORT_USER':
                 support_users = self.db.get_support_user_list()
-                for index, user in enumerate(support_users):
-                    content.append(f'{index} - {user.name} / {user.email}')
+                lines = [
+                    f'{index} - {user.name} / {user.email}'
+                    for index, user in enumerate(support_users)
+                ]
+                content = "\n".join(lines)
             case 'LOGIN_FAILED':
-                content.append('Vos identifiants sont inconnus')
-                content.append('L\'application va s\'arrêter')
+                content = ('Vos identifiants sont inconnus'
+                           'L\'application va s\'arrêter')
             case 'ADD_USER_FAILED':
-                content.append('Utilisateur non enregistré')
+                content = 'Utilisateur non enregistré'
                 if self.db.number_of_user() == 0:
-                    content.append('')
-                    content.append('Il faut au moins un utilisateur pour utiliser l\'application')
-                    content.append('')
-                    content.append('Fermeture de l\'application')
+                    content = content + ('\nIl faut au moins un utilisateur pour utiliser l\'application\n'
+                                         'Fermeture de l\'application')
             case 'MAIN_MENU':
-                content.append('Merci d\'entrer la commande correspondant à ce que vous souhaiter faire')
-                content.append('Entrer "HELP" pour avoir la description des commandes')
-                content.append('Entrer "EXIT" pour quitter l\'application')
+                content = ('Merci d\'entrer la commande correspondant à ce que vous souhaiter faire\n'
+                           'Entrer "HELP" pour avoir la description des commandes\n'
+                           'Entrer "EXIT" pour quitter l\'application')
             case 'HELP':
-                content.append('Liste des actions possibles :')
-                content.append('ADD | UPDATE | VIEW | DELETE')
-                content.append('')
-                content.append('Liste des catégories possibles :')
-                content.append('USER | CLIENT | CONTRACT | EVENT')
-                content.append('')
-                content.append('Syntaxe : ACTION CATEGORIE')
-                content.append('')
-                content.append(
-                    'L\'accès à certaines actions est restreint en fonction des permissions attribuées à '
-                    'votre département.'
-                )
-                content.append('Pour les connaître, taper PERMISSION')
+                content = (
+                    """Liste des actions possibles :
+ADD | UPDATE | VIEW | DELETE
+
+Liste des catégories possibles :
+USER | CLIENT | CONTRACT | EVENT
+
+Syntaxe : ACTION CATEGORIE
+
+L\'accès à certaines actions est restreint en fonction des permissions attribuées à votre département.
+
+Pour les connaître, taper PERMISSION""")
             case 'PERMISSION':
                 permissions_table = [
                     'add_user', 'update_user', 'delete_user',
@@ -438,4 +460,4 @@ class Show:
                 content.append(f"Support : {support_user['name'] if support_user else ''} - "
                                f"{support_user['email'] if support_user else ''}")
         if content:
-            self.show_content(content, align)
+            self.show_content(Text(content, justify=align), align)
