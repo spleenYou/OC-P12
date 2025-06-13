@@ -198,6 +198,10 @@ class Show:
                 title = 'Evènement non ajouté'
             case 'UPDATE_EVENT':
                 title = 'Mise à jour d\'un évènement'
+            case 'UPDATE_EVENT_OK':
+                title = 'Evènement mis à jour'
+            case 'UPDATE_EVENT_failed':
+                title = 'Evènement non mis à jour'
             case 'DELETE_EVENT':
                 title = 'Suppression d\'un évènement'
             case 'UPDATE_SUPPORT_ON_EVENT':
@@ -240,6 +244,10 @@ class Show:
             case 'FIRST_LAUNCH':
                 content.append('Un utilisateur de l\'équipe Management va être créé')
                 content.append('afin de pouvoir continuer')
+            case 'NO_SUPPORT_USER':
+                content.append('Pas d\'utilisateur support enregistré')
+                content.append('')
+                content.append('Un utilisateur support est obligatoire pour créer un event')
             case 'SELECT_USER':
                 users = self.db.get_user_list()
                 for index, user in enumerate(users):
@@ -249,8 +257,11 @@ class Show:
                 clients = self.db.get_client_list()
                 for index, client in enumerate(clients):
                     content.append(f'{index} - {client.company_name} \\ {client.name}')
-            case 'SELECT_CONTRACT':
-                contracts = self.db.get_contract_list()
+            case 'SELECT_CONTRACT' | 'SELECT_CONTRACT_EVENT':
+                with_event = False
+                if self.session.status == 'SELECT_CONTRACT_EVENT':
+                    with_event = True
+                contracts = self.db.get_contract_list(with_event)
                 for index, contract in enumerate(contracts):
                     content.append(f'{index} - {contract.date_creation.strftime("%d %b %Y")} \\ '
                                    f"{contract.total_amount} \\ "
@@ -358,9 +369,9 @@ class Show:
                                f"{self.session.new_user['email']}")
                 content.append(f"Client : {self.session.client['company_name']} - "
                                f"{self.session.client['name']}")
-                content.append(f"Contrat : "
-                               f"{self.session.contract['rest_amount']}/{self.session.contract['total_amount']} - "
-                               f"{'Terminé' if self.session.contract['status'] else 'En cours'}")
+                content.append(f"Contrat : {'Terminé' if self.session.contract['status'] else 'En cours'}")
+                content.append(f"          Reste à payer : {self.session.contract['rest_amount']}/"
+                               f"{self.session.contract['total_amount']}")
                 self.show_content(content, align)
                 content.clear()
                 support_user = None

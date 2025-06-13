@@ -219,10 +219,10 @@ class TestMysql:
         mysql.session.client = mysql.get_client_information(1)
         self.add_contract(mysql, contract_information)
         mysql.session.contract = mysql.get_contract_information(1)
-        contracts = mysql.get_contract_list()
+        contracts = mysql.get_contract_list(False)
         assert len(contracts) == 1
         assert mysql.delete_contract(contracts[0].id) is True
-        assert len(mysql.get_contract_list()) == 0
+        assert len(mysql.get_contract_list(False)) == 0
 
     def test_delete_contract_failed(self, mysql, commercial_user, client_information, contract_information):
         self.add_user(mysql, commercial_user)
@@ -230,10 +230,10 @@ class TestMysql:
         self.add_client(mysql, client_information)
         mysql.session.client = mysql.get_client_information(1)
         self.add_contract(mysql, contract_information)
-        contracts = mysql.get_contract_list()
+        contracts = mysql.get_contract_list(False)
         assert len(contracts) == 1
         assert mysql.delete_contract(contracts[0].id + 1) is False
-        assert len(mysql.get_contract_list()) == 1
+        assert len(mysql.get_contract_list(False)) == 1
 
     def test_get_contract_list(self, mysql, commercial_user, client_information, contract_information):
         self.add_user(mysql, commercial_user)
@@ -241,7 +241,7 @@ class TestMysql:
         self.add_client(mysql, client_information)
         mysql.session.client = mysql.get_client_information(1)
         self.add_contract(mysql, contract_information)
-        result = mysql.get_contract_list()
+        result = mysql.get_contract_list(False)
         assert len(result) != 0
         assert result[0].client_id == mysql.session.client['id']
         assert result[0].total_amount == contract_information['total_amount']
@@ -287,12 +287,12 @@ class TestMysql:
         self.add_contract(mysql, contract_information)
         mysql.session.contract = mysql.get_contract_information(1)
         self.add_event(mysql, event_information)
-        mysql.session.event = mysql.get_event_information(1)
+        mysql.session.event = mysql.get_event_information()
         assert mysql.session.event['attendees'] == event_information['attendees']
         mysql.session.event['attendees'] = 200
         result = mysql.update_event()
         assert result is True
-        mysql.session.event = mysql.get_event_information(1)
+        mysql.session.event = mysql.get_event_information()
         assert mysql.session.event['attendees'] == 200
 
     def test_update_event_failed(
@@ -311,7 +311,7 @@ class TestMysql:
         self.add_contract(mysql, contract_information)
         mysql.session.contract = mysql.get_contract_information(1)
         self.add_event(mysql, event_information)
-        mysql.session.event = mysql.get_event_information(1)
+        mysql.session.event = mysql.get_event_information()
         assert mysql.session.event['attendees'] == event_information['attendees']
         mysql.session.event['id'] = 2
         result = mysql.update_event()
@@ -333,7 +333,7 @@ class TestMysql:
         self.add_contract(mysql, contract_information)
         mysql.session.contract = mysql.get_contract_information(1)
         self.add_event(mysql, event_information)
-        mysql.session.event = mysql.get_event_information(1)
+        mysql.session.event = mysql.get_event_information()
         events = mysql.get_event_list_by_client(1)
         assert len(events) == 1
         assert mysql.delete_event() is True
@@ -355,7 +355,7 @@ class TestMysql:
         self.add_contract(mysql, contract_information)
         mysql.session.contract = mysql.get_contract_information(1)
         self.add_event(mysql, event_information)
-        mysql.session.event = mysql.get_event_information(1)
+        mysql.session.event = mysql.get_event_information()
         mysql.session.event['id'] = 2
         events = mysql.get_event_list_by_client(1)
         assert len(events) == 1
@@ -378,7 +378,7 @@ class TestMysql:
         self.add_contract(mysql, contract_information)
         mysql.session.contract = mysql.get_contract_information(1)
         self.add_event(mysql, event_information)
-        mysql.session.event = mysql.get_event_information(1)
+        mysql.session.event = mysql.get_event_information()
         events = mysql.get_event_list_by_user(1)
         print(events[0].location)
         assert len(events) == 1
@@ -400,7 +400,7 @@ class TestMysql:
         self.add_contract(mysql, contract_information)
         mysql.session.contract = mysql.get_contract_information(1)
         self.add_event(mysql, event_information)
-        mysql.session.event = mysql.get_event_information(1)
+        mysql.session.event = mysql.get_event_information()
         events = mysql.get_event_list_by_user(2)
         assert len(events) == 1
         assert events[0].support_contact_id == event_information['support_contact_id']

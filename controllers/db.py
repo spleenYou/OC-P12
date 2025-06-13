@@ -27,12 +27,21 @@ class Mysql:
     def number_of_user(self):
         return self.db_session.query(EpicUser).count()
 
+    def number_of_support_user(self):
+        return self.db_session.query(EpicUser).filter(EpicUser.department_id == 2).count()
+
     def number_of_client(self):
         return self.db_session.query(Client).count()
 
-    def number_of_contract(self):
+    def number_of_contract(self, with_event):
         if self.session.client['id'] is None:
             return self.db_session.query(Contract).count()
+        if with_event:
+            return self.db_session.query(Contract) \
+                    .filter(Contract.client_id == self.session.client['id']) \
+                    .join(Event) \
+                    .filter(Event.contract_id == Contract.id) \
+                    .count()
         return self.db_session.query(Contract).filter(Contract.client_id == self.session.client['id']).count()
 
     def number_of_event(self):
@@ -96,11 +105,18 @@ class Mysql:
     def find_client_id(self, number):
         return self.db_session.query(Client.id).order_by(Client.id).all()[number][0]
 
-    def find_contract_id(self, number):
+    def find_contract_id(self, number, with_event):
+        if with_event:
+            return self.db_session.query(Contract.id) \
+                    .filter(Contract.client_id == self.session.client['id']) \
+                    .join(Event) \
+                    .filter(Event.contract_id == Contract.id) \
+                    .order_by(Contract.id) \
+                    .all()[number][0]
         return self.db_session.query(Contract.id) \
-               .filter(Contract.client_id == self.session.client['id']) \
-               .order_by(Contract.id) \
-               .all()[number][0]
+            .filter(Contract.client_id == self.session.client['id']) \
+            .order_by(Contract.id) \
+            .all()[number][0]
 
     def get_user_password(self):
         password = self.db_session.query(EpicUser) \
@@ -203,7 +219,13 @@ class Mysql:
             self.db_session.rollback()
             return False
 
-    def get_contract_list(self):
+    def get_contract_list(self, with_event):
+        if with_event:
+            return self.db_session.query(Contract) \
+                    .filter(Contract.client_id == self.session.client['id']) \
+                    .join(Event) \
+                    .filter(Event.contract_id == Contract.id) \
+                    .all()
         return self.db_session.query(Contract).filter(Contract.client_id == self.session.client['id']).all()
 
     def get_contract_information(self, contract_id):
@@ -227,7 +249,7 @@ class Mysql:
 
     def add_event(self):
         event = Event(
-            contract_id=self.session.user['id'],
+            contract_id=self.session.contract['id'],
             support_contact_id=self.session.event['support_contact_id'],
             location=self.session.event['location'],
             attendees=self.session.event['attendees'],
@@ -269,8 +291,10 @@ class Mysql:
                 .all()
         return events
 
-    def get_event_information(self, event_id):
-        event = self.db_session.query(Event).filter(Event.id == event_id).first()
+    def get_event_information(self):
+        print(self.session.contract['id'])
+        print(self.db_session.query(Event).first().contract_id)
+        event = self.db_session.query(Event).filter(Event.contract_id == self.session.contract['id']).first()
         return {
             'id': event.id,
             'support_contact_id': event.support_contact_id,

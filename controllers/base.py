@@ -394,14 +394,18 @@ class Controller:
     def select_contract(self):
         status = self.session.status
         contract_id = None
+        with_event = False
         while contract_id is None:
             self.session.status = 'SELECT_CONTRACT'
+            if status == 'UPDATE_EVENT':
+                self.session.status = 'SELECT_CONTRACT_EVENT'
+                with_event = True
             contract_id = self.prompt.for_contract()
             try:
                 contract_id = int(contract_id)
-                if contract_id < self.db.number_of_contract():
+                if contract_id < self.db.number_of_contract(with_event):
                     self.session.status = status
-                    return self.db.find_contract_id(contract_id)
+                    return self.db.find_contract_id(contract_id, with_event)
                 else:
                     self.session.status = 'SELECT_CONTRACT_FAILED'
             except Exception:
@@ -411,11 +415,34 @@ class Controller:
 
     @check_token_and_perm
     def add_event(self):
+        if self.db.number_of_support_user() > 0:
+            client_id = self.select_client()
+            self.session.client = self.db.get_client_information(client_id)
+            self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
+            contract_id = self.select_contract()
+            self.session.contract = self.db.get_contract_information(contract_id)
+            self.session.event['location'] = self.ask_location()
+            self.session.event['attendees'] = self.ask_attendees()
+            self.session.event['date_start'] = self.ask_date_start()
+            self.session.event['date_stop'] = self.ask_date_stop()
+            self.session.event['notes'] = self.ask_notes()
+            self.session.event['support_contact_id'] = self.select_support_user()
+            if self.prompt.for_validation():
+                if self.db.add_event():
+                    self.session.status = 'ADD_EVENT_OK'
+                else:
+                    self.session.status = 'ADD_EVENT_FAILED'
+        else:
+            self.session.status = 'NO_SUPPORT_USER'
+
+    @check_token_and_perm
+    def update_event(self):
         client_id = self.select_client()
         self.session.client = self.db.get_client_information(client_id)
         self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
         contract_id = self.select_contract()
         self.session.contract = self.db.get_contract_information(contract_id)
+        self.session.event = self.db.get_event_information()
         self.session.event['location'] = self.ask_location()
         self.session.event['attendees'] = self.ask_attendees()
         self.session.event['date_start'] = self.ask_date_start()
@@ -423,10 +450,10 @@ class Controller:
         self.session.event['notes'] = self.ask_notes()
         self.session.event['support_contact_id'] = self.select_support_user()
         if self.prompt.for_validation():
-            if self.db.add_contract():
-                self.session.status = 'ADD_EVENT_OK'
-            else:
-                self.session.status = 'ADD_EVENT_FAILED'
+            if self.db.update_event():
+                self.session.status = 'UPDATE_EVENT_OK'
+        else:
+            self.session.status = 'UPDATE_EVENT_FAILED'
 
     def ask_location(self):
         location = self.prompt.for_location()
@@ -440,8 +467,8 @@ class Controller:
         while attendees is None:
             self.session.status = status
             attendees = self.prompt.for_attendees()
-            if status == 'UPDATE_ATTENDEES' and attendees == '':
-                attendees = self.session.event['attendees']
+            if status == 'UPDATE_EVENT' and attendees == '':
+                return self.session.event['attendees']
             try:
                 attendees = int(attendees)
                 return attendees
@@ -456,8 +483,8 @@ class Controller:
         while date_start is None:
             self.session.status = status
             date_start = self.prompt.for_date_start()
-            if status == 'UPDATE_DATE_START' and date_start == '':
-                date_start = self.session.event['date_start']
+            if status == 'UPDATE_EVENT' and date_start == '':
+                return self.session.event['date_start']
             try:
                 day, month, year = date_start.split('/')
                 date_start = date(year=int(year), month=int(month), day=int(day))
@@ -473,8 +500,8 @@ class Controller:
         while date_stop is None:
             self.session.status = status
             date_stop = self.prompt.for_date_stop()
-            if status == 'UPDATE_DATE_STOP' and date_stop == '':
-                date_stop = self.session.event['date_stop']
+            if status == 'UPDATE_EVENT' and date_stop == '':
+                return self.session.event['date_stop']
             try:
                 day, month, year = date_stop.split('/')
                 date_stop = date(year=int(year), month=int(month), day=int(day))
@@ -496,6 +523,9 @@ class Controller:
         while user_id is None:
             self.session.status = 'SELECT_SUPPORT_USER'
             user_id = self.prompt.for_support_user()
+            if status == 'UPDATE_EVENT' and user_id == '':
+                self.session.status = status
+                return self.session.event['support_contact_id']
             try:
                 user_id = int(user_id)
                 if user_id < self.db.number_of_user():

@@ -26,7 +26,9 @@ class TestController:
         controller.db.add_contract()
         controller.session.reset_session()
 
-    def add_event(self, controller, event):
+    def add_event(self, controller, event, contract_id, support_user_id):
+        event['support_contact_id'] = support_user_id
+        controller.session.contract = controller.db.get_contract_information(contract_id)
         controller.session.event = event
         controller.db.add_event()
         controller.session.reset_session()
@@ -473,7 +475,46 @@ class TestController:
         controller.add_event()
         controller.show.display()
         captured = capsys.readouterr()
-        # for capt in captured:
-        #     print(capt)
         assert 'Ajout d\'un évènement' in captured.out
         assert 'Evènement ajouté' in captured.out
+
+    def test_update_event(
+            self,
+            controller,
+            monkeypatch,
+            capsys,
+            commercial_user,
+            client_information,
+            contract_information,
+            support_user,
+            event_information):
+        self.add_user(controller, commercial_user)
+        self.add_user(controller, support_user)
+        self.connect_user(controller, 1)
+        self.add_client(controller, client_information)
+        self.add_contract(controller, contract_information, 1)
+        self.connect_user(controller, 2)
+        self.add_event(controller, event_information, 1, 2)
+        controller.session.status = 'UPDATE_EVENT'
+        inputs = iter(
+            [
+                0,
+                0,
+                'la-bas',
+                '',
+                '',
+                '',
+                '',
+                '',
+                'y',
+                ''
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        controller.update_event()
+        controller.show.display()
+        captured = capsys.readouterr()
+        for capt in captured:
+            print(capt)
+        assert 'la-bas' in captured.out
+        assert 'Evènement mis à jour' in captured.out
