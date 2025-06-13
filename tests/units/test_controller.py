@@ -550,3 +550,36 @@ class TestController:
         for capt in captured:
             print(capt)
         assert 'Evènement supprimé' in captured.out
+
+    def test_view_event(
+            self,
+            controller,
+            monkeypatch,
+            capsys,
+            commercial_user,
+            client_information,
+            contract_information,
+            support_user,
+            event_information):
+        self.add_user(controller, commercial_user)
+        self.add_user(controller, support_user)
+        self.connect_user(controller, 1)
+        self.add_client(controller, client_information)
+        self.add_contract(controller, contract_information, 1)
+        self.connect_user(controller, 2)
+        self.add_event(controller, event_information, 1, 2)
+        controller.session.status = 'VIEW_EVENT'
+        inputs = iter(
+            [
+                0,
+                0,
+                ''
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        controller.view_event()
+        controller.show.display()
+        captured = capsys.readouterr()
+        # for capt in captured:
+        #     print(capt)
+        assert 'Informations sur l\'évènement' in captured.out
