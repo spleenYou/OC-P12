@@ -196,7 +196,7 @@ class Show:
                 title = 'Evènement ajouté'
             case 'ADD_EVENT_FAILED':
                 title = 'Evènement non ajouté'
-            case 'UPDATE_EVENT':
+            case 'UPDATE_EVENT' | 'UPDATE_SUPPORT_ON_EVENT':
                 title = 'Mise à jour d\'un évènement'
             case 'UPDATE_EVENT_OK':
                 title = 'Evènement mis à jour'
@@ -327,8 +327,9 @@ class Show:
             case _:
                 pass
 
-        if self.session.status[:3] in ['ADD', 'UPD', 'VIE', 'DEL']:
-            if self.session.status[-4:] == 'USER':
+        status = self.session.status.split('_')
+        if status[0] in ['ADD', 'UPDATE', 'VIEW', 'DELETE']:
+            if status[-1] == 'USER':
                 align = 'left'
                 department_name = ''
                 if self.session.new_user['department_id'] is not None:
@@ -340,7 +341,7 @@ class Show:
                 content.append(f"{' ' * 4}Mot de passe : {'**********' if self.session.new_user['password'] else ''}")
                 content.append(f"{' ' * 4}Numéro d\'employé : {self.session.new_user['employee_number'] or ''}")
                 content.append(f"{' ' * 4}Département : {department_name}")
-            elif self.session.status[-6:] == 'CLIENT':
+            elif status[-1] == 'CLIENT':
                 align = 'left'
                 content.append(f"Commercial correspondant : {self.session.new_user['name']} - "
                                f"{self.session.new_user['email']}")
@@ -353,7 +354,7 @@ class Show:
                 content.append(f"{' ' * 4}Nom du contact : {self.session.client['name'] or ''}")
                 content.append(f"{' ' * 4}Email : {self.session.client['email'] or ''}")
                 content.append(f"{' ' * 4}Téléphone : {self.session.client['phone'] or ''}")
-            elif self.session.status[-8:] == 'CONTRACT':
+            elif status[-1] == 'CONTRACT':
                 align = 'left'
                 content.append(f"Commercial : {self.session.new_user['name']} - "
                                f"{self.session.new_user['email']}")
@@ -367,7 +368,7 @@ class Show:
                 content.append(f"{' ' * 4}Montant restant à payer : {self.session.contract['rest_amount'] or '0'}")
                 content.append(f"{' ' * 4}Statut du contrat : "
                                f"{'Terminé' if self.session.contract['status'] else 'En cours'}")
-            elif self.session.status[-5:] == 'EVENT':
+            elif status[-1] == 'EVENT':
                 align = 'left'
                 content.append(f"Commercial : {self.session.new_user['name']} - "
                                f"{self.session.new_user['email']}")

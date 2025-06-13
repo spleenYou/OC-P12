@@ -18,9 +18,10 @@ class Controller:
     def check_token_and_perm(function):
         @wraps(function)
         def func_check(self, *args, **kwargs):
-            if not (self.session.status == 'FIRST_LAUNCH' or self.auth.check_token()):
-                return False
-            if not eval('self.allows_to.' + function.__name__)():
+            if self.db.number_of_user() > 0:
+                if not self.auth.check_token():
+                    return False
+            if not eval('self.allows_to.' + self.session.status.lower())():
                 self.session.status = 'FORBIDDEN'
                 return False
             return function(self, *args, **kwargs)
@@ -34,6 +35,7 @@ class Controller:
             self.session.new_user['department_id'] = 3
             self.session.user['department_id'] = 3
             self.session.new_user['email'] = email
+            self.session.status = 'ADD_USER'
             if not self.add_user():
                 self.show.wait()
                 return None
@@ -63,9 +65,12 @@ class Controller:
                     command[1] in ['USER', 'CLIENT', 'CONTRACT', 'EVENT']):
                 if (command[0] == 'ADD' or
                    (command[0] != 'ADD' and eval('self.db.number_of_' + command[1].lower())() > 0)):
-                    command = command[0] + '_' + command[1]
+                    if command[0] == 'UPDATE' and command[1] == 'EVENT' and self.session.user['department_id'] == 3:
+                        command = command[0] + '_SUPPORT_ON_' + command[1]
+                    else:
+                        command = command[0] + '_' + command[1]
                     self.session.status = command
-                    eval('self.' + command.lower())()
+                    eval('self.' + command.replace('_SUPPORT_ON', '').lower())()
                 else:
                     self.session.status = 'NO_' + command[1]
             else:
@@ -397,7 +402,7 @@ class Controller:
         with_event = False
         while contract_id is None:
             self.session.status = 'SELECT_CONTRACT'
-            if status == 'UPDATE_EVENT':
+            if status in ['UPDATE_EVENT', 'UPDATE_SUPPORT_ON_EVENT']:
                 self.session.status = 'SELECT_CONTRACT_EVENT'
                 with_event = True
             contract_id = self.prompt.for_contract()
@@ -443,11 +448,12 @@ class Controller:
         contract_id = self.select_contract()
         self.session.contract = self.db.get_contract_information(contract_id)
         self.session.event = self.db.get_event_information()
-        self.session.event['location'] = self.ask_location()
-        self.session.event['attendees'] = self.ask_attendees()
-        self.session.event['date_start'] = self.ask_date_start()
-        self.session.event['date_stop'] = self.ask_date_stop()
-        self.session.event['notes'] = self.ask_notes()
+        if self.session.status == 'UPDATE_EVENT':
+            self.session.event['location'] = self.ask_location()
+            self.session.event['attendees'] = self.ask_attendees()
+            self.session.event['date_start'] = self.ask_date_start()
+            self.session.event['date_stop'] = self.ask_date_stop()
+            self.session.event['notes'] = self.ask_notes()
         self.session.event['support_contact_id'] = self.select_support_user()
         if self.prompt.for_validation():
             if self.db.update_event():
@@ -545,7 +551,7 @@ class Controller:
         while user_id is None:
             self.session.status = 'SELECT_SUPPORT_USER'
             user_id = self.prompt.for_support_user()
-            if status == 'UPDATE_EVENT' and user_id == '':
+            if status in ['UPDATE_EVENT', 'UPDATE_SUPPORT_ON_EVENT'] and user_id == '':
                 self.session.status = status
                 return self.session.event['support_contact_id']
             try:
