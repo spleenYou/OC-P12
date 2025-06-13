@@ -514,7 +514,39 @@ class TestController:
         controller.update_event()
         controller.show.display()
         captured = capsys.readouterr()
-        for capt in captured:
-            print(capt)
         assert 'la-bas' in captured.out
         assert 'Evènement mis à jour' in captured.out
+
+    def test_delete_event(
+            self,
+            controller,
+            monkeypatch,
+            capsys,
+            commercial_user,
+            client_information,
+            contract_information,
+            support_user,
+            event_information):
+        self.add_user(controller, commercial_user)
+        self.add_user(controller, support_user)
+        self.connect_user(controller, 1)
+        self.add_client(controller, client_information)
+        self.add_contract(controller, contract_information, 1)
+        self.connect_user(controller, 2)
+        self.add_event(controller, event_information, 1, 2)
+        controller.session.status = 'DELETE_EVENT'
+        inputs = iter(
+            [
+                0,
+                0,
+                'y',
+                ''
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        controller.delete_event()
+        controller.show.display()
+        captured = capsys.readouterr()
+        for capt in captured:
+            print(capt)
+        assert 'Evènement supprimé' in captured.out

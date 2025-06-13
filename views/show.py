@@ -204,6 +204,10 @@ class Show:
                 title = 'Evènement non mis à jour'
             case 'DELETE_EVENT':
                 title = 'Suppression d\'un évènement'
+            case 'DELETE_EVENT_OK':
+                title = 'Evènement supprimé'
+            case 'DELETE_EVENT_FAILED':
+                title = 'Evènement non supprimé'
             case 'UPDATE_SUPPORT_ON_EVENT':
                 title = 'Mise à jour du support'
             case 'CONNECTION':

@@ -455,6 +455,20 @@ class Controller:
         else:
             self.session.status = 'UPDATE_EVENT_FAILED'
 
+    @check_token_and_perm
+    def delete_event(self):
+        client_id = self.select_client()
+        self.session.client = self.db.get_client_information(client_id)
+        self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
+        contract_id = self.select_contract()
+        self.session.contract = self.db.get_contract_information(contract_id)
+        self.session.event = self.db.get_event_information()
+        if self.prompt.for_validation():
+            if self.db.update_event():
+                self.session.status = 'DELETE_EVENT_OK'
+        else:
+            self.session.status = 'DELETE_EVENT_FAILED'
+
     def ask_location(self):
         location = self.prompt.for_location()
         if location == '':
