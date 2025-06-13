@@ -33,7 +33,7 @@ class Mysql:
     def number_of_client(self):
         return self.db_session.query(Client).count()
 
-    def number_of_contract(self, with_event):
+    def number_of_contract(self, with_event=False):
         if self.session.client['id'] is None:
             return self.db_session.query(Contract).count()
         if with_event:

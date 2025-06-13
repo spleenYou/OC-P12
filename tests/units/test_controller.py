@@ -82,9 +82,8 @@ class TestController:
         assert 'Utilisateur créé' in captured.out
         assert 'Connexion' in captured.out
         assert 'Connexion réussie' in captured.out
-        expected_text = (f"Utilisateur : {management_user['name']} | "
-                         f"Departement : {controller.db.get_department_list()[2]}")
-        assert expected_text in captured.out
+        assert f"    Utilisateur : {management_user['name']}" in captured.out
+        assert f"    Departement : {controller.db.get_department_list()[2]}" in captured.out
 
     def test_start_with_user_and_login_failed(self, monkeypatch, controller, management_user, capsys):
         controller.session.new_user = management_user
@@ -165,6 +164,22 @@ class TestController:
         assert 'Erreur de saisie' in captured.out
         assert 'Cette commande est inconnue, veuillez recommencer' in captured.out
 
+    def test_forbidden_command(self, controller, monkeypatch, management_user, capsys):
+        self.add_user(controller, management_user)
+        self.connect_user(controller, 1)
+        inputs = iter(
+            [
+                'add client',
+                '',
+                'exit',
+                ''
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        controller.main_menu()
+        captured = capsys.readouterr()
+        assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
+
     def test_exit_command(self, controller, monkeypatch, management_user, capsys):
         self.add_user(controller, management_user)
         self.connect_user(controller, 1)
@@ -214,8 +229,6 @@ class TestController:
         monkeypatch.setattr('builtins.input', lambda _: next(inputs))
         controller.main_menu()
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert 'Tableau des permissions' in captured.out
 
     def test_add_user(self, controller, monkeypatch, management_user, capsys, commercial_user):
@@ -599,8 +612,6 @@ class TestController:
         controller.delete_event()
         controller.show.display()
         captured = capsys.readouterr()
-        for capt in captured:
-            print(capt)
         assert 'Evènement supprimé' in captured.out
 
     def test_view_event(
