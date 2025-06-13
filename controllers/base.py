@@ -59,7 +59,7 @@ class Controller:
             self.session.status = 'MAIN_MENU'
             command = self.prompt.for_command()
             command = command.upper().split(' ')
-            if command[0] in ['HELP', 'EXIT']:
+            if command[0] in ['HELP', 'EXIT', 'PERMISSION']:
                 self.session.status = command[0]
             elif (command[0] in ['ADD', 'UPDATE', 'VIEW', 'DELETE'] and
                     command[1] in ['USER', 'CLIENT', 'CONTRACT', 'EVENT']):
@@ -382,7 +382,6 @@ class Controller:
         self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
         contract_id = self.select_contract()
         self.session.contract = self.db.get_contract_information(contract_id)
-        print(type(self.session.status))
         if self.prompt.for_validation():
             if self.db.update_contract():
                 self.session.status = 'DELETE_CONTRACT_OK'

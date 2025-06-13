@@ -1,5 +1,6 @@
 import os
 from functools import wraps
+import math
 
 
 class Show:
@@ -232,6 +233,8 @@ class Show:
                   'BAD_SELECT_CLIENT' |
                   'BAD_CONTRACT_STATUS'):
                 title = 'Erreur de saisie'
+            case 'PERMISSION':
+                title = 'Tableau des permissions'
             case 'HELP':
                 title = 'Aide'
             case 'EXIT':
@@ -302,6 +305,41 @@ class Show:
                     'votre département.'
                 )
                 content.append('Pour les connaître, taper PERMISSION')
+            case 'PERMISSION':
+                permissions_table = [
+                    'add_user', 'update_user', 'delete_user',
+                    'add_client', 'update_client', 'delete_client',
+                    'add_contract', 'update_contract', 'delete_contract',
+                    'add_event', 'update_event', 'delete_event',
+                ]
+                content.append('┌' + '─' * 17 + '┬' + '─' * 12 + '┬' + '─' * 9 + '┬' + '─' * 12 + '┐')
+                permissions = self.db.get_permissions()
+                department_name = self.db.get_department_list()
+                head_table = "│     Command     │"
+                for perm in permissions:
+                    head_table = head_table + f" {department_name[int(perm.department_id) - 1]} │"
+                content.append(head_table)
+                for perm in permissions_table:
+                    commercial_perm = ' ' * 10
+                    support_perm = ' '*7
+                    management_perm = ' '*10
+                    if eval('permissions[0].' + perm):
+                        commercial_perm = '    X     '
+                    if eval('permissions[1].' + perm):
+                        support_perm = '   X   '
+                    if eval('permissions[2].' + perm):
+                        management_perm = '    X     '
+                    if perm == 'update_event':
+                        management_perm = '    *     '
+                    perm = perm.replace('_', ' ')
+                    content.append('├' + '─' * 17 + '┼' + '─' * 12 + '┼' + '─' * 9 + '┼' + '─' * 12 + '┤')
+                    content.append(
+                        f"│{' ' * (8 - math.floor(len(perm)/2))}{perm}{' ' * (9 - math.ceil(len(perm)/2))}│ "
+                        f"{commercial_perm} │ {support_perm} │ {management_perm} │"
+                    )
+                content.append('└' + '─' * 17 + '┴' + '─' * 12 + '┴' + '─' * 9 + '┴' + '─' * 12 + '┘')
+                content.append('')
+                content.append('* : Le management peut mettre à jour le contact support d\'un évènement')
             case 'BAD_EMAIL':
                 content.append('Votre saisie ne correspond pas à un email.')
             case 'BAD_EMPLOYEE_NUMBER':

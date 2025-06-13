@@ -200,6 +200,24 @@ class TestController:
         assert 'USER | CLIENT | CONTRACT | EVENT' in captured.out
         assert 'Syntaxe : ACTION CATEGORIE' in captured.out
 
+    def test_permission(self, controller, monkeypatch, management_user, capsys):
+        self.add_user(controller, management_user)
+        self.connect_user(controller, 1)
+        inputs = iter(
+            [
+                'PERMISSION',
+                '',
+                'exit',
+                ''
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        controller.main_menu()
+        captured = capsys.readouterr()
+        for c in captured:
+            print(c)
+        assert 'Tableau des permissions' in captured.out
+
     def test_add_user(self, controller, monkeypatch, management_user, capsys, commercial_user):
         self.add_user(controller, management_user)
         self.connect_user(controller, 1)
