@@ -5,14 +5,15 @@ import math
 
 class Show:
     def __init__(self, db, session):
-        self.FRAME_LENGHT = 120
+        self.FRAME_LENGHT = 118
         self.SPACE_REQUIRED = 5
-        self.NUMBER_SIDE_STARS = 1
-        self.STARS_LINE_FULL = "*" * self.FRAME_LENGHT
+        self.NUMBER_SIDE = 1
+        self.STARS_LINE_FULL_TOP = '┌' + "─" * self.FRAME_LENGHT + '┐'
+        self.STARS_LINE_FULL_BOTTOM = '└' + "─" * self.FRAME_LENGHT + '┘'
         self.STARS_LINE = (
-            "*" * self.NUMBER_SIDE_STARS
-            + " " * (self.FRAME_LENGHT - 2 * self.NUMBER_SIDE_STARS)
-            + "*" * self.NUMBER_SIDE_STARS
+            "│" * self.NUMBER_SIDE
+            + " " * (self.FRAME_LENGHT * self.NUMBER_SIDE)
+            + "│" * self.NUMBER_SIDE
         )
         self.TOP_DECORATION = "TOP"
         self.BOTTOM_DECORATION = "BOTTOM"
@@ -24,11 +25,11 @@ class Show:
 
         @wraps(function)
         def text_decorated(self, *args, **kwargs):
-            print(self.STARS_LINE_FULL)
+            print(self.STARS_LINE_FULL_TOP)
             print(self.STARS_LINE)
             function(self, *args, **kwargs)
             print(self.STARS_LINE)
-            print(self.STARS_LINE_FULL)
+            print(self.STARS_LINE_FULL_BOTTOM)
             print()
         return text_decorated
 
@@ -94,7 +95,7 @@ class Show:
             text (str): Text to show and decorate
             align (str): Position of contents. Three possiblities left, center or right. Default : center
         """
-        spaces_needed = self.FRAME_LENGHT - 2 * self.NUMBER_SIDE_STARS - len(text)
+        spaces_needed = self.FRAME_LENGHT * self.NUMBER_SIDE - len(text)
         match align:
             case "left":
                 spaces_left = self.SPACE_REQUIRED
@@ -105,10 +106,11 @@ class Show:
                 if spaces_needed % 2 == 1:
                     spaces_right = spaces_right + 1
         print(
-            f"{'*' * self.NUMBER_SIDE_STARS}"
-            f"{' ' * spaces_left}{text}"
+            f"{'│' * self.NUMBER_SIDE}"
+            f"{' ' * spaces_left}"
+            f"{text}"
             f"{' ' * spaces_right}"
-            f"{'*' * self.NUMBER_SIDE_STARS}"
+            f"{'│' * self.NUMBER_SIDE}"
         )
 
     def wait(self):
