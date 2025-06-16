@@ -84,7 +84,10 @@ class Show:
             'PERMISSION': 'Tableau des permissions',
             'HELP': 'Aide',
             'EXIT': 'Au revoir',
-            'MAIN_MENU': 'Menu principal'
+            'MAIN_MENU': 'Menu principal',
+            'PASSWORD_FIRST_TIME': 'Définition du mot de passe',
+            'PASSWORD_SECOND_TIME': 'Définition du mot de passe',
+            'PASSWORD_MATCH_FAILED': 'Erreur de saisie',
         }
         self.SIMPLE_CONTENTS = {
             'FIRST_LAUNCH': ('Un utilisateur de l\'équipe Management va être créé\n'
@@ -117,7 +120,10 @@ class Show:
                      ' attribuées à votre département.\n\n'
                      'Pour les connaître, taper PERMISSION'),
             'LOGIN_FAILED': ('Vos identifiants sont inconnus\n'
-                             'L\'application va s\'arrêter')
+                             'L\'application va s\'arrêter'),
+            'PASSWORD_FIRST_TIME': 'Bienvenue pour votre première connexion.\n\nVeuillez définir votre mot de passe',
+            'PASSWORD_SECOND_TIME': ('Bienvenue pour votre première connexion.\n\n'
+                                     'Veuillez entrer une deuxième fois votre mot de passe')
         }
 
     def display(self, content=None, align='center'):
@@ -175,11 +181,6 @@ class Show:
                    "########## ###        ###########  ########        ##########     ###     ##########"
                    " ###    ####     ###    ")
         self.show_content(content, 'center', 'cyan')
-
-    def wait(self):
-        "SHow a waiting line if a pause is needed"
-        self.display()
-        self.rich_console.input('\nAppuyer sur une touche pour continuer...')
 
     def session_information(self):
         if self.session.user['id'] is not None and self.session.status != 'LOGIN_OK':
@@ -302,8 +303,6 @@ class Show:
                     department_name = self.db.get_department_list()[self.session.new_user['department_id'] - 1]
                 content.add_row('Nom', self.session.new_user['name'] or '')
                 content.add_row('Email', self.session.new_user['email'] or '')
-                if status[0] == 'ADD':
-                    content.add_row('Mot de passe', '*' * 10 if self.session.new_user['password'] else '')
                 content.add_row('Numéro d\'employé', str(employee_number))
                 content.add_row('Département', department_name)
             elif status[-1] == 'CLIENT':

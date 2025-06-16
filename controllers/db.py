@@ -69,11 +69,18 @@ class Mysql:
         new_user = EpicUser(
             name=self.session.new_user['name'],
             email=self.session.new_user['email'],
-            password=self.auth.hash_password(self.session.new_user['password']),
+            password=None,
             employee_number=self.session.new_user['employee_number'],
             department_id=self.session.new_user['department_id']
         )
         return self.add_in_db(new_user)
+
+    def update_password_user(self, password):
+        count = self.db_session.query(EpicUser) \
+            .filter(EpicUser.email == self.session.user['email']) \
+            .update({'password': self.auth.hash_password(self.session.user['password'])})
+        self.db_session.commit()
+        return count > 0
 
     def update_user(self):
         print(self.session.new_user)

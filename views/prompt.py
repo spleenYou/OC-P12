@@ -8,14 +8,14 @@ class NewPrompt(Prompt):
 
 
 class Ask:
-    def __init__(self, show, db):
+    def __init__(self, show, db, session):
         self.display = show.display
+        self.session = session
         self.db = db
         self.console = Console(file=sys.stdout, force_terminal=False)
         departments = ' | '.join(f'{i + 1} {d}' for i, d in enumerate(self.db.get_department_list()))
         self.PROMPTS = {
             'email': 'Veuillez entrer votre e-mail :',
-            'password': 'Veuillez entrer votre mot de passe :',
             'name': 'Veuillez entrer le nom  :',
             'employee_number': 'Veuillez entrer votre numéro d\'employé :',
             'department': f'Veuillez entrer votre le numéro de votre équipe ({departments}) :',
@@ -39,11 +39,23 @@ class Ask:
 
     def thing(self, thing):
         self.display()
-        text = '\n[dark_orange3]' + self.PROMPTS[thing] + '[/dark_orange3]'
+        prompt = ''
+        if thing in self.PROMPTS:
+            prompt = self.PROMPTS[thing]
+        else:
+            prompt = 'Veuillez entrer votre mot de passe :'
+            if self.session.status == 'PASSWORD_SECOND_TIME':
+                prompt = 'Veuillez entrer votre mot de passe (vérification) :'
+        text = '\n[dark_orange3]' + prompt + '[/dark_orange3]'
         if thing == 'password':
-            return Prompt.ask(text, password=True, show_default=False)
+            return NewPrompt.ask(text, password=True, show_default=False)
         return NewPrompt.ask(text, show_default=False)
 
     def validation(self):
         self.display()
         return Confirm.ask('[bold yellow]Souhaitez-vous continuer ?[/bold yellow]', default=True)
+
+    def wait(self):
+        "SHow a waiting line if a pause is needed"
+        self.display()
+        NewPrompt.ask('\n[dark_orange3] Appuyer sur une touche pour continuer... [/dark_orange3]')

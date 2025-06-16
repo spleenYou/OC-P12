@@ -10,7 +10,7 @@ class Controller:
         self.auth = auth(session)
         self.db = db(session, self.auth)
         self.show = show(self.db, session)
-        self.prompt = prompt(self.show, self.db)
+        self.prompt = prompt(self.show, self.db, session)
         self.allows_to = Permission(self.db, session)
         self.email_regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
         self.phone_regex = re.compile(r'^\+?[0-9](?:\d{1,3} ?){1,5}\d{1,4}$')
@@ -29,27 +29,33 @@ class Controller:
 
     def start(self, email):
         if self.db.number_of_user() == 0:
-            self.show.wait()
+            self.prompt.wait()
             self.auth.generate_secret_key()
             self.session.new_user['department_id'] = 3
             self.session.user['department_id'] = 3
             self.session.new_user['email'] = email
             self.session.status = 'ADD_USER'
             if not self.add_user():
-                self.show.wait()
+                self.prompt.wait()
                 return None
-            self.show.wait()
+            self.prompt.wait()
         self.session.status = 'CONNECTION'
         self.session.user["email"] = self.ask_email(email)
+        password_in_db = self.db.get_user_password()
+        if password_in_db is None:
+            self.session.status = 'PASSWORD_FIRST_TIME'
+            password = self.ask_password()
+            self.db.update_password_user(password)
+            password_in_db = self.db.get_user_password()
         password = self.prompt.thing('password')
-        if self.auth.check_password(password, self.db.get_user_password()):
+        if self.auth.check_password(password, password_in_db):
             user_id = self.db.get_user_id(self.session.user["email"])
             self.session.user = self.db.get_user_information(user_id)
             self.auth.generate_token()
             self.session.status = 'LOGIN_OK'
         else:
             self.session.status = 'LOGIN_FAILED'
-        self.show.wait()
+        self.prompt.wait()
         return None
 
     def main_menu(self):
@@ -75,7 +81,7 @@ class Controller:
             else:
                 self.session.status = 'UNKNOWN'
             if command != self.session.status or command[:4] == 'VIEW':
-                self.show.wait()
+                self.prompt.wait()
             self.session.reset_session()
 
     def ask_name(self):
@@ -98,7 +104,7 @@ class Controller:
             elif not re.fullmatch(self.email_regex, email or ''):
                 email = None
                 self.session.status = 'BAD_EMAIL'
-                self.show.wait()
+                self.prompt.wait()
         return email
 
     def ask_employee_number(self):
@@ -114,7 +120,7 @@ class Controller:
             except Exception:
                 employee_number = None
                 self.session.status = 'BAD_EMPLOYEE_NUMBER'
-                self.show.wait()
+                self.prompt.wait()
         return employee_number
 
     def ask_password(self):
@@ -122,13 +128,26 @@ class Controller:
         password = None
         while password is None:
             self.session.status = status
+            if status == 'PASSWORD_FIRST_TIME' and self.session.user['password'] is not None:
+                self.session.status = 'PASSWORD_SECOND_TIME'
             password = self.prompt.thing('password')
-            if status == 'UPDATE_USER' and password == '':
+            if status == 'PASSWORD_FIRST_TIME' and password != '':
+                if self.session.user['password'] is None:
+                    self.session.user['password'] = password
+                    password = None
+                elif password == self.session.user['password']:
+                    self.session.status = 'CONNECTION'
+                else:
+                    self.session.status = 'PASSWORD_MATCH_FAILED'
+                    password = None
+                    self.session.user['password'] = None
+                    self.prompt.wait()
+            elif status == 'UPDATE_USER' and password == '':
                 password = self.session.new_user['password']
             elif password == '':
                 password = None
                 self.session.status = 'EMPTY_PASSWORD'
-                self.show.wait()
+                self.prompt.wait()
         return password
 
     def ask_department(self):
@@ -146,7 +165,7 @@ class Controller:
             except Exception:
                 department_id = None
                 self.session.status = 'BAD_DEPARTMENT'
-                self.show.wait()
+                self.prompt.wait()
         return department_id
 
     def select_user(self):
@@ -166,7 +185,7 @@ class Controller:
             except Exception:
                 self.session.status = 'BAD_SELECT_USER'
             number = None
-            self.show.wait()
+            self.prompt.wait()
 
     def ask_client_name(self):
         name = self.prompt.thing('client_name')
@@ -192,7 +211,7 @@ class Controller:
                 return phone
             phone = None
             self.session.status = 'BAD_PHONE'
-            self.show.wait()
+            self.prompt.wait()
 
     def ask_total_amount(self):
         total_amount = None
@@ -208,7 +227,7 @@ class Controller:
             except Exception:
                 total_amount = None
                 self.session.status = 'BAD_TOTAL_AMOUNT'
-                self.show.wait()
+                self.prompt.wait()
 
     def ask_rest_amount(self):
         rest_amount = None
@@ -224,7 +243,7 @@ class Controller:
             except Exception:
                 rest_amount = None
                 self.session.status = 'BAD_REST_AMOUNT'
-                self.show.wait()
+                self.prompt.wait()
 
     def ask_status(self):
         contract_status = None
@@ -241,14 +260,13 @@ class Controller:
             else:
                 contract_status = None
                 self.session.status = 'BAD_CONTRACT_STATUS'
-                self.show.wait()
+                self.prompt.wait()
 
     @check_token_and_perm
     def add_user(self):
         self.session.new_user['name'] = self.ask_name()
         if self.session.new_user['email'] is None:
             self.session.new_user['email'] = self.ask_email()
-        self.session.new_user['password'] = self.ask_password()
         self.session.new_user['employee_number'] = self.ask_employee_number()
         if self.session.new_user['department_id'] is None:
             self.session.new_user['department_id'] = self.ask_department()
@@ -265,7 +283,6 @@ class Controller:
         self.session.new_user = self.db.get_user_information(user_id)
         self.session.new_user['name'] = self.ask_name()
         self.session.new_user['email'] = self.ask_email()
-        self.session.new_user['password'] = self.auth.hash_password(self.ask_password())
         self.session.new_user['employee_number'] = self.ask_employee_number()
         self.session.new_user['department_id'] = self.ask_department()
         if self.prompt.validation():
@@ -350,7 +367,7 @@ class Controller:
             except Exception:
                 self.session.status = 'BAD_SELECT_CLIENT'
             number = None
-            self.show.wait()
+            self.prompt.wait()
 
     @check_token_and_perm
     def add_contract(self):
@@ -423,7 +440,7 @@ class Controller:
             except Exception:
                 self.session.status = 'BAD_SELECT_CONTRACT'
             contract_id = None
-            self.show.wait()
+            self.prompt.wait()
 
     @check_token_and_perm
     def add_event(self):
@@ -514,7 +531,7 @@ class Controller:
             except Exception:
                 attendees = None
                 self.session.status = 'BAD_ATTENDEES'
-                self.show.wait()
+                self.prompt.wait()
 
     def ask_date_start(self):
         date_start = None
@@ -531,7 +548,7 @@ class Controller:
             except Exception:
                 date_start = None
                 self.session.status = 'BAD_DATE_START'
-                self.show.wait()
+                self.prompt.wait()
 
     def ask_date_stop(self):
         date_stop = None
@@ -548,7 +565,7 @@ class Controller:
             except Exception:
                 date_stop = None
                 self.session.status = 'BAD_DATE_STOP'
-                self.show.wait()
+                self.prompt.wait()
 
     def ask_notes(self):
         notes = self.prompt.thing('notes')
@@ -576,4 +593,4 @@ class Controller:
             except Exception:
                 self.session.status = 'BAD_SELECT_SUPPORT_USER'
             user_id = None
-            self.show.wait()
+            self.prompt.wait()

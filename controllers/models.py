@@ -20,7 +20,7 @@ class EpicUser(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(100), nullable=False)
     email = Column(String(255), unique=True, nullable=False)
-    password = Column(String(255), nullable=False)
+    password = Column(String(255), nullable=True)
     employee_number = Column(Integer, unique=True, nullable=False)
     department_id = Column(Integer, ForeignKey('departments.id'), nullable=False)
     date_creation = Column(DateTime, default=func.now())
