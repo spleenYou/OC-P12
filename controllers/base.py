@@ -286,6 +286,7 @@ class Controller:
 
     @check_token_and_perm
     def add_client(self):
+        self.session.new_user = self.session.user.copy()
         self.session.client['company_name'] = self.ask_company_name()
         self.session.client['name'] = self.ask_client_name()
         self.session.client['email'] = self.ask_email()

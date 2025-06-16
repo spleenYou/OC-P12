@@ -7,3 +7,4 @@ __pycache__
 .coverage
 .vscode/*
 add_element_for_test.py
+empty_db.py

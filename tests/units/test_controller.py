@@ -51,6 +51,8 @@ class TestController:
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: False)
         controller.start(None)
         captured = capsys.readouterr()
+        for c in captured:
+            print(c)
         assert 'Premier lancement de l\'application' in captured.out
         assert 'Utilisateur non enregistré' in captured.out
 
@@ -128,6 +130,7 @@ class TestController:
         monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
         controller.main_menu()
         captured = capsys.readouterr()
+        assert 'Menu principal' in captured.out
         assert 'Merci d\'entrer la commande correspondant à ce que vous souhaitez faire' in captured.out
         assert 'Entrer "HELP" pour avoir la description des commandes' in captured.out
         assert 'Entrer "EXIT" pour quitter l\'application' in captured.out

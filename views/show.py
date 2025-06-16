@@ -274,11 +274,13 @@ class Show:
                 content = '* : Le management peut mettre à jour le contact support d\'un évènement'
 
         status = self.session.status.split('_')
-        if status[0] in ['ADD', 'UPDATE', 'VIEW', 'DELETE']:
+        if (status[0] in ['ADD', 'UPDATE', 'VIEW', 'DELETE'] and
+                status[-1] in ['USER', 'CLIENT', 'CONTRACT', 'EVENT']):
             content = Table(show_header=False, show_lines=True)
             content.add_column(justify='left')
             content.add_column(justify='left')
             if status[-1] == 'USER':
+                employee_number = self.session.new_user['employee_number'] or ''
                 department_name = ''
                 if self.session.new_user['department_id'] is not None:
                     department_name = self.db.get_department_list()[self.session.new_user['department_id'] - 1]
@@ -286,7 +288,7 @@ class Show:
                 content.add_row('Email', self.session.new_user['email'] or '')
                 if status[0] == 'ADD':
                     content.add_row('Mot de passe', '*' * 10 if self.session.new_user['password'] else '')
-                content.add_row('Numéro d\'employé', str(self.session.new_user['employee_number']) or '')
+                content.add_row('Numéro d\'employé', str(employee_number))
                 content.add_row('Département', department_name)
             elif status[-1] == 'CLIENT':
                 content.add_row('Nom de l\'entreprise', self.session.client['company_name'] or '')
