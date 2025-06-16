@@ -134,14 +134,19 @@ class Show:
         self.title()
         self.content()
 
-    def show_content(self, content, align):
+    def show_content(self, content, align, border_style):
         """Shows the content decorated
 
         Args:
             content (list): list of the content (str) to show
             align (str): Position of contents. Three possiblities left, center or right
         """
-        panel = Panel(Align(content, align=align), width=self.common_width, padding=1)
+        panel = Panel(
+            Align(content, align=align, style='dark_orange3'),
+            width=self.common_width,
+            padding=1,
+            border_style=border_style
+        )
         self.rich_console.print(panel)
 
     def clear_screen(self):
@@ -169,7 +174,7 @@ class Show:
                    " #+#   #+#+#     #+#    \n"
                    "########## ###        ###########  ########        ##########     ###     ##########"
                    " ###    ####     ###    ")
-        self.show_content(content, 'center')
+        self.show_content(content, 'center', 'cyan')
 
     def wait(self):
         "SHow a waiting line if a pause is needed"
@@ -182,16 +187,27 @@ class Show:
             department_name = self.db.get_department_list()[self.session.user['department_id'] - 1]
             content = (f"    Utilisateur : {self.session.user['name']}\n"
                        f"    Departement : {department_name}")
-            self.show_content(content, 'left')
+            self.show_content(content, 'left', 'cyan')
 
     def title(self):
-        self.show_content(self.TITLES[self.session.status], 'center')
+        border_style = 'cyan'
+        status = self.session.status.split('_')
+        if status[0] in ['BAD', 'UNKNOWN'] or status[-1] == 'FAILED':
+            border_style = 'red'
+        elif status[-1] == 'OK':
+            border_style = 'green'
+        text_color = 'dark_orange3' if border_style == 'cyan' else border_style
+        self.show_content(
+            f'[bold {text_color}]' + self.TITLES[self.session.status] + f'[/bold {text_color}]',
+            'center',
+            border_style
+        )
 
     def content(self):
         content = None
         align = 'center'
         if self.session.status in self.SIMPLE_CONTENTS:
-            self.show_content(Text(self.SIMPLE_CONTENTS[self.session.status], justify=align), align)
+            self.show_content(Text(self.SIMPLE_CONTENTS[self.session.status], justify=align), align, 'cyan')
             return None
         match self.session.status:
             case 'SELECT_USER':
@@ -210,7 +226,7 @@ class Show:
                         user.email,
                         user.department_name
                     )
-                self.show_content(content, align)
+                self.show_content(content, align, 'cyan')
                 content = ''
             case ('SELECT_CLIENT' |
                   'SELECT_CLIENT_WITH_EVENT' |
@@ -327,6 +343,6 @@ class Show:
                 content.add_row('Notes', self.session.event['notes'] or '')
         if content:
             if isinstance(content, str):
-                self.show_content(Text(content, justify=align), align)
+                self.show_content(Text(content, justify=align), align, 'cyan')
             else:
-                self.show_content(content, align)
+                self.show_content(content, align, 'cyan')
