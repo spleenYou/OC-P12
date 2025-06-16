@@ -193,7 +193,7 @@ class TestMysql:
         mysql.session.client = mysql.get_client_information(1)
         self.add_contract(mysql, contract_information)
         mysql.session.contract = mysql.get_contract_information(1)
-        assert mysql.session.contract['rest_amount'] == contract_information['total_amount']
+        assert mysql.session.contract['rest_amount'] == int(contract_information['total_amount'])
         mysql.session.contract['rest_amount'] = 500
         result = mysql.update_contract()
         assert result is True
@@ -207,7 +207,7 @@ class TestMysql:
         mysql.session.client = mysql.get_client_information(1)
         self.add_contract(mysql, contract_information)
         mysql.session.contract = mysql.get_contract_information(1)
-        assert mysql.session.contract['rest_amount'] == contract_information['total_amount']
+        assert mysql.session.contract['rest_amount'] == int(contract_information['total_amount'])
         mysql.session.contract['id'] = 2
         result = mysql.update_contract()
         assert result is False
@@ -244,8 +244,8 @@ class TestMysql:
         result = mysql.get_contract_list()
         assert len(result) != 0
         assert result[0].client_id == mysql.session.client['id']
-        assert result[0].total_amount == contract_information['total_amount']
-        assert result[0].rest_amount == contract_information['total_amount']
+        assert result[0].total_amount == int(contract_information['total_amount'])
+        assert result[0].rest_amount == int(contract_information['total_amount'])
 
     def test_add_event(
             self,
@@ -288,7 +288,7 @@ class TestMysql:
         mysql.session.contract = mysql.get_contract_information(1)
         self.add_event(mysql, event_information)
         mysql.session.event = mysql.get_event_information()
-        assert mysql.session.event['attendees'] == event_information['attendees']
+        assert mysql.session.event['attendees'] == int(event_information['attendees'])
         mysql.session.event['attendees'] = 200
         result = mysql.update_event()
         assert result is True
@@ -312,7 +312,7 @@ class TestMysql:
         mysql.session.contract = mysql.get_contract_information(1)
         self.add_event(mysql, event_information)
         mysql.session.event = mysql.get_event_information()
-        assert mysql.session.event['attendees'] == event_information['attendees']
+        assert mysql.session.event['attendees'] == int(event_information['attendees'])
         mysql.session.event['id'] = 2
         result = mysql.update_event()
         assert result is False
@@ -382,7 +382,7 @@ class TestMysql:
         events = mysql.get_event_list_by_user(1)
         print(events[0].location)
         assert len(events) == 1
-        assert events[0].support_contact_id == event_information['support_contact_id']
+        assert events[0].support_contact_id == int(event_information['support_contact_id'])
 
     def test_get_event_list_by_support_user(
             self,
@@ -403,4 +403,4 @@ class TestMysql:
         mysql.session.event = mysql.get_event_information()
         events = mysql.get_event_list_by_user(2)
         assert len(events) == 1
-        assert events[0].support_contact_id == event_information['support_contact_id']
+        assert events[0].support_contact_id == int(event_information['support_contact_id'])

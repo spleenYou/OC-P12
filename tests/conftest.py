@@ -95,16 +95,16 @@ def client_information():
 @pytest.fixture
 def contract_information():
     return {
-        'total_amount': 1000
+        'total_amount': '1000'
     }
 
 
 @pytest.fixture
 def event_information(date_now):
     return {
-        'support_contact_id': 0,
+        'support_contact_id': '0',
         'location': 'Lieu de l\'évènement',
-        'attendees': 100,
+        'attendees': '100',
         'notes': 'Note de l\'évènement',
         'date_start': date_now,
         'date_stop': date_now + timedelta(days=2)

@@ -51,8 +51,6 @@ class TestController:
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: False)
         controller.start(None)
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert 'Premier lancement de l\'application' in captured.out
         assert 'Utilisateur non enregistré' in captured.out
 
@@ -271,7 +269,7 @@ class TestController:
         controller.session.status = 'DELETE_USER'
         inputs = iter(
             [
-                0,
+                '0',
                 'y'
             ]
         )
@@ -286,7 +284,7 @@ class TestController:
         self.connect_user(controller, 1)
         self.add_user(controller, commercial_user)
         controller.session.status = 'VIEW_USER'
-        monkeypatch.setattr('builtins.input', lambda *args: 1)
+        monkeypatch.setattr('builtins.input', lambda *args: '1')
         controller.view_user()
         controller.show.display()
         captured = capsys.readouterr()
@@ -318,7 +316,7 @@ class TestController:
         controller.session.status = 'UPDATE_CLIENT'
         inputs = iter(
             [
-                0,
+                '0',
                 'Nouvelle entreprise',
                 '',
                 '',
@@ -340,7 +338,7 @@ class TestController:
         controller.session.status = 'DELETE_CLIENT'
         inputs = iter(
             [
-                0,
+                '0',
                 'y'
             ]
         )
@@ -355,7 +353,7 @@ class TestController:
         self.connect_user(controller, 1)
         self.add_client(controller, client_information)
         controller.session.status = 'VIEW_CLIENT'
-        monkeypatch.setattr('builtins.input', lambda *args: 0)
+        monkeypatch.setattr('builtins.input', lambda *args: '0')
         controller.view_client()
         controller.show.display()
         captured = capsys.readouterr()
@@ -375,7 +373,7 @@ class TestController:
         controller.session.status = 'ADD_CONTRACT'
         inputs = iter(
             [
-                0,
+                '0',
                 contract_information['total_amount'],
                 contract_information['total_amount'],
                 'y'
@@ -402,10 +400,10 @@ class TestController:
         controller.session.status = 'UPDATE_CONTRACT'
         inputs = iter(
             [
-                0,
-                0,
+                '0',
+                '0',
                 '',
-                0,
+                '0',
                 'y'
             ]
         )
@@ -432,8 +430,8 @@ class TestController:
         controller.session.status = 'DELETE_CONTRACT'
         inputs = iter(
             [
-                0,
-                0,
+                '0',
+                '0',
                 'y'
             ]
         )
@@ -456,7 +454,7 @@ class TestController:
         self.add_client(controller, client_information)
         self.add_contract(controller, contract_information, 1)
         controller.session.status = 'VIEW_CONTRACT'
-        inputs = iter([0, 0])
+        inputs = iter(['0', '0'])
         monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
         controller.view_contract()
         controller.show.display()
@@ -481,8 +479,8 @@ class TestController:
         controller.session.status = 'ADD_EVENT'
         inputs = iter(
             [
-                0,
-                0,
+                '0',
+                '0',
                 event_information['location'],
                 event_information['attendees'],
                 event_information['date_start'].strftime('%d/%m/%Y'),
@@ -520,8 +518,8 @@ class TestController:
         controller.session.status = 'UPDATE_EVENT'
         inputs = iter(
             [
-                0,
-                0,
+                '0',
+                '0',
                 'la-bas',
                 '',
                 '',
@@ -560,8 +558,8 @@ class TestController:
         controller.session.status = 'UPDATE_SUPPORT_ON_EVENT'
         inputs = iter(
             [
-                0,
-                0,
+                '0',
+                '0',
                 '',
                 'y',
                 ''
@@ -593,8 +591,8 @@ class TestController:
         controller.session.status = 'DELETE_EVENT'
         inputs = iter(
             [
-                0,
-                0,
+                '0',
+                '0',
                 ''
             ]
         )
@@ -625,8 +623,8 @@ class TestController:
         controller.session.status = 'VIEW_EVENT'
         inputs = iter(
             [
-                0,
-                0,
+                '0',
+                '0',
                 ''
             ]
         )
