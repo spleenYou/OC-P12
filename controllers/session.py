@@ -9,7 +9,7 @@ class Session:
             'employee_number': None,
             'department_id': None
         }
-        self.status = None
+        self.status = 'FIRST_LAUNCH'
         self.token = None
 
     def reset_session(self):

@@ -71,7 +71,7 @@ class Show:
     def wait(self):
         "SHow a waiting line if a pause is needed"
         self.display()
-        input("Appuyer sur une touche pour continuer...")
+        input("\nAppuyer sur une touche pour continuer...")
 
     def session_information(self):
         if self.session.user['id'] is not None and self.session.status != 'LOGIN_OK':
@@ -144,7 +144,7 @@ class Show:
                 title = 'Contrat supprimé'
             case 'DELETE_CONTRACT_FAILED':
                 title = 'Contrat non supprimé'
-            case 'SELECT_CONTRACT':
+            case 'SELECT_CONTRACT' | 'SELECT_CONTRACT_WITHOUT_EVENT':
                 title = 'Selection d\'un contrat'
             case 'NO_CONTRACT':
                 title = 'Aucun contract enregistré'
@@ -241,11 +241,8 @@ class Show:
                     for index, client in enumerate(clients)
                 ]
                 content = "\n".join(lines)
-            case 'SELECT_CONTRACT' | 'SELECT_CONTRACT_EVENT':
-                with_event = False
-                if self.session.status == 'SELECT_CONTRACT_EVENT':
-                    with_event = True
-                contracts = self.db.get_contract_list(with_event)
+            case 'SELECT_CONTRACT' | 'SELECT_CONTRACT_WITH_EVENT' | 'SELECT_CONTRACT_WITHOUT_EVENT':
+                contracts = self.db.get_contract_list()
                 lines = [
                     f'{index} - {contract.date_creation.strftime("%d %b %Y")} \\ '
                     f'{contract.total_amount} \\ '
@@ -260,7 +257,7 @@ class Show:
                 content.add_column(justify='left')
                 content.add_column(justify='left')
                 for index, user in enumerate(support_users):
-                    content.add_row(index, user.name, user.email)
+                    content.add_row(str(index), user.name, user.email)
             case 'LOGIN_FAILED':
                 content = ('Vos identifiants sont inconnus\n'
                            'L\'application va s\'arrêter')
@@ -382,8 +379,8 @@ Pour les connaître, taper PERMISSION""")
                            f"{self.session.new_user['email']}\n"
                            f"{' ' * 4}Client : {self.session.client['company_name']} - "
                            f"{self.session.client['name']}\n"
-                           f"{' ' * 4}Contrat : {'Terminé' if self.session.contract['status'] else 'En cours'}"
-                           f"          Reste à payer : {self.session.contract['rest_amount']}/"
+                           f"{' ' * 4}Contrat : {'Terminé' if self.session.contract['status'] else 'En cours'}\n"
+                           f"{' ' * 4}Reste à payer : {self.session.contract['rest_amount']}/"
                            f"{self.session.contract['total_amount']}")
                 self.show_content(content, align)
                 content = ''

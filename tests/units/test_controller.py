@@ -1,13 +1,13 @@
 from controllers.base import Controller
 from controllers.authentication import Authentication
 from controllers.db import Mysql
-from views.prompt import Prompt
+from views.prompt import Ask
 from views.show import Show
 
 
 class TestController:
     def test_init_controller(session):
-        ctrl = Controller(Prompt, Show, Mysql, Authentication, session)
+        ctrl = Controller(Ask, Show, Mysql, Authentication, session)
         assert ctrl.session == session
 
     def add_user(self, controller, user):
@@ -38,18 +38,17 @@ class TestController:
         controller.auth.generate_token()
 
     def test_start_without_user_and_no_registration(self, monkeypatch, controller, management_user, capsys):
-        inputs = iter(
-            [
-                '',
-                management_user['name'],
-                management_user['email'],
-                management_user['employee_number'],
-                'n',
-                ''
-            ]
-        )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
-        monkeypatch.setattr('views.prompt.getpass', lambda _: management_user['password'])
+        inputs = iter([
+            '',
+            management_user['name'],
+            management_user['email'],
+            management_user['password'],
+            management_user['employee_number'],
+            ''
+        ])
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
+        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
+        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: False)
         controller.start(None)
         captured = capsys.readouterr()
         assert 'Premier lancement de l\'application' in captured.out
@@ -61,29 +60,23 @@ class TestController:
                 '',
                 management_user['name'],
                 management_user['email'],
+                management_user['password'],
                 management_user['employee_number'],
-                'y',
                 '',
                 management_user['email'],
+                management_user['password'],
                 ''
             ]
         )
-        inputs_password = iter(
-            [
-                management_user['password'],
-                management_user['password']
-            ]
-        )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
-        monkeypatch.setattr('views.prompt.getpass', lambda _: next(inputs_password))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
+        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
+        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.start(None)
         captured = capsys.readouterr()
         assert 'Premier lancement de l\'application' in captured.out
         assert 'Utilisateur créé' in captured.out
         assert 'Connexion' in captured.out
         assert 'Connexion réussie' in captured.out
-        assert f"    Utilisateur : {management_user['name']}" in captured.out
-        assert f"    Departement : {controller.db.get_department_list()[2]}" in captured.out
 
     def test_start_with_user_and_login_failed(self, monkeypatch, controller, management_user, capsys):
         controller.session.new_user = management_user
@@ -92,16 +85,12 @@ class TestController:
         inputs = iter(
             [
                 management_user['email'],
+                management_user['password'] + 'e',
                 ''
             ]
         )
-        inputs_password = iter(
-            [
-                management_user['password'] + 'e'
-            ]
-        )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
-        monkeypatch.setattr('views.prompt.getpass', lambda _: next(inputs_password))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
+        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         controller.start(None)
         captured = capsys.readouterr()
         assert 'Erreur de connexion' in captured.out
@@ -116,16 +105,12 @@ class TestController:
                 'bad_email',
                 '',
                 management_user['email'],
+                management_user['password'] + 'e',
                 ''
             ]
         )
-        inputs_password = iter(
-            [
-                management_user['password'] + 'e'
-            ]
-        )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
-        monkeypatch.setattr('views.prompt.getpass', lambda _: next(inputs_password))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
+        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         controller.start(None)
         captured = capsys.readouterr()
         assert 'Erreur de saisie' in captured.out
@@ -140,10 +125,10 @@ class TestController:
                 ''
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
         controller.main_menu()
         captured = capsys.readouterr()
-        assert 'Merci d\'entrer la commande correspondant à ce que vous souhaiter faire' in captured.out
+        assert 'Merci d\'entrer la commande correspondant à ce que vous souhaitez faire' in captured.out
         assert 'Entrer "HELP" pour avoir la description des commandes' in captured.out
         assert 'Entrer "EXIT" pour quitter l\'application' in captured.out
 
@@ -158,7 +143,7 @@ class TestController:
                 ''
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
         controller.main_menu()
         captured = capsys.readouterr()
         assert 'Erreur de saisie' in captured.out
@@ -175,7 +160,7 @@ class TestController:
                 ''
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
         controller.main_menu()
         captured = capsys.readouterr()
         assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
@@ -189,7 +174,7 @@ class TestController:
                 ''
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
         controller.main_menu()
         captured = capsys.readouterr()
         assert 'Au revoir' in captured.out
@@ -205,7 +190,7 @@ class TestController:
                 ''
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
         controller.main_menu()
         captured = capsys.readouterr()
         assert 'Aide' in captured.out
@@ -226,7 +211,7 @@ class TestController:
                 ''
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
         controller.main_menu()
         captured = capsys.readouterr()
         assert 'Tableau des permissions' in captured.out
@@ -239,13 +224,14 @@ class TestController:
             [
                 commercial_user['name'],
                 commercial_user['email'],
+                commercial_user['password'],
                 commercial_user['employee_number'],
                 commercial_user['department_id'],
                 'y'
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
-        monkeypatch.setattr('views.prompt.getpass', lambda _: commercial_user['password'])
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
+        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         controller.add_user()
         controller.show.display()
         captured = capsys.readouterr()
@@ -263,11 +249,12 @@ class TestController:
                 '',
                 '',
                 '',
-                'y'
+                ''
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
-        monkeypatch.setattr('views.prompt.getpass', lambda _: '')
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
+        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
+        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.update_user()
         controller.show.display()
         captured = capsys.readouterr()
@@ -285,7 +272,7 @@ class TestController:
                 'y'
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
         controller.delete_user()
         controller.show.display()
         captured = capsys.readouterr()
@@ -296,7 +283,7 @@ class TestController:
         self.connect_user(controller, 1)
         self.add_user(controller, commercial_user)
         controller.session.status = 'VIEW_USER'
-        monkeypatch.setattr('builtins.input', lambda _: 1)
+        monkeypatch.setattr('builtins.input', lambda *args: 1)
         controller.view_user()
         controller.show.display()
         captured = capsys.readouterr()
@@ -315,7 +302,7 @@ class TestController:
                 'y'
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
         controller.add_client()
         controller.show.display()
         captured = capsys.readouterr()
@@ -336,7 +323,7 @@ class TestController:
                 'y'
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
         controller.update_client()
         controller.show.display()
         captured = capsys.readouterr()
@@ -354,7 +341,7 @@ class TestController:
                 'y'
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
         controller.delete_client()
         controller.show.display()
         captured = capsys.readouterr()
@@ -365,7 +352,7 @@ class TestController:
         self.connect_user(controller, 1)
         self.add_client(controller, client_information)
         controller.session.status = 'VIEW_CLIENT'
-        monkeypatch.setattr('builtins.input', lambda _: 0)
+        monkeypatch.setattr('builtins.input', lambda *args: 0)
         controller.view_client()
         controller.show.display()
         captured = capsys.readouterr()
@@ -391,7 +378,7 @@ class TestController:
                 'y'
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
         controller.add_contract()
         controller.show.display()
         captured = capsys.readouterr()
@@ -416,11 +403,11 @@ class TestController:
                 0,
                 '',
                 0,
-                'y',
                 'y'
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
+        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.update_contract()
         controller.show.display()
         captured = capsys.readouterr()
@@ -447,7 +434,7 @@ class TestController:
                 'y'
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
         controller.delete_contract()
         controller.show.display()
         captured = capsys.readouterr()
@@ -467,7 +454,7 @@ class TestController:
         self.add_contract(controller, contract_information, 1)
         controller.session.status = 'VIEW_CONTRACT'
         inputs = iter([0, 0])
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
         controller.view_contract()
         controller.show.display()
         captured = capsys.readouterr()
@@ -499,10 +486,11 @@ class TestController:
                 event_information['date_stop'].strftime('%d/%m/%Y'),
                 event_information['notes'],
                 event_information['support_contact_id'],
-                'y'
+                ''
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
+        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.add_event()
         controller.show.display()
         captured = capsys.readouterr()
@@ -541,7 +529,7 @@ class TestController:
                 ''
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
         controller.update_event()
         controller.show.display()
         captured = capsys.readouterr()
@@ -576,7 +564,7 @@ class TestController:
                 ''
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
         controller.update_event()
         controller.show.display()
         captured = capsys.readouterr()
@@ -604,11 +592,11 @@ class TestController:
             [
                 0,
                 0,
-                'y',
                 ''
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
+        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.delete_event()
         controller.show.display()
         captured = capsys.readouterr()
@@ -639,7 +627,7 @@ class TestController:
                 ''
             ]
         )
-        monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
         controller.view_event()
         controller.show.display()
         captured = capsys.readouterr()

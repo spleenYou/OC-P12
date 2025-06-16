@@ -1,100 +1,45 @@
-from getpass import getpass
+from rich.prompt import Prompt, Confirm
+from rich.console import Console
+import sys
 
 
-class Prompt:
-    def __init__(self, show):
-        self.show = show
+class Ask:
+    def __init__(self, show, db):
+        self.display = show.display
+        self.db = db
+        self.console = Console(file=sys.stdout, force_terminal=False)
+        departments = ' | '.join(f'{i + 1} {d}' for i, d in enumerate(self.db.get_department_list()))
+        self.PROMPTS = {
+            'email': 'Veuillez entrer votre e-mail :',
+            'password': 'Veuillez entrer votre mot de passe :',
+            'name': 'Veuillez entrer le nom :',
+            'employee_number': 'Veuillez entrer votre numéro d\'employé :',
+            'department': f'Veuillez entrer votre le numéro de votre équipe ({departments}) :',
+            'client_name': 'Veuillez entrer le nom du contact client :',
+            'company_name': 'Veuillez entrer le nom de l\'entreprise :',
+            'phone': 'Veuillez entrer le numéro de téléphone du client :',
+            'total_amount': 'Veuillez indiquer le montant total du contrat :',
+            'rest_amount': 'Veuillez indiquer le reste à payer pour ce contrat :',
+            'location': 'Veuillez indiquer un lieu :',
+            'notes': 'Veuillez écrire une note (optionnel) :',
+            'attendees': 'Veuillez entrer le nombre de personnes présentes :',
+            'date_start': 'Veuillez rentrer une date de début (jj/mm/aaaa) :',
+            'date_stop': 'Veuillez rentrer une date de fin (jj/mm/aaaa) :',
+            'contract_status': 'Veuillez entrer statut du contrat (En cours n / Terminé y) :',
+            'user': 'Veuillez entrer le numéro d\'un utilisateur :',
+            'support_user': 'Veuillez entrer le numéro d\'un utilisateur :',
+            'client': 'Veuillez entrer le numéro d\'un client :',
+            'contract': 'Veuillez entrer le numéro d\'un contrat :',
+            'command': '> '
+        }
 
-    def for_name(self):
-        self.show.display()
-        return input('Veuillez entrer le nom : ')
+    def thing(self, thing):
+        self.display()
+        text = '\n' + self.PROMPTS[thing]
+        if thing == 'password':
+            return Prompt.ask(text, password=True)
+        return self.console.input(text)
 
-    def for_client_name(self):
-        self.show.display()
-        return input('Veuillez entrer le nom du contact client : ')
-
-    def for_company_name(self):
-        self.show.display()
-        return input('Veuillez entrer le nom de l\'entreprise : ')
-
-    def for_email(self):
-        self.show.display()
-        return input('Veuillez entrer votre email : ')
-
-    def for_password(self):
-        self.show.display()
-        return getpass('Veuillez entrer votre mot de passe : ')
-
-    def for_employee_number(self):
-        self.show.display()
-        return input('Veuillez entrer votre numéro d\'employé : ')
-
-    def for_department(self, department_list):
-        self.show.display()
-        departments = ''
-        for index, department in enumerate(department_list):
-            departments = departments + f'{index + 1} : {department} | '
-        return input(f'Veuillez entrer votre le numéro de votre équipe ({departments[:-3]}) : ')
-
-    def for_phone(self):
-        self.show.display()
-        return input('Veuillez entrer le numéro de téléphone du client : ')
-
-    def for_total_amount(self):
-        self.show.display()
-        return input('Veuillez indiquer le montant total du contrat : ')
-
-    def for_rest_amount(self):
-        self.show.display()
-        return input('Veuillez indiquer le reste à payer pour ce contrat : ')
-
-    def for_client(self):
-        self.show.display()
-        return input('Quel client souhaitez vous ? ')
-
-    def for_validation(self):
-        self.show.display()
-        choice = input('Souhaitez vous continuer (y/n) ? ')
-        if choice in ['y', 'Y']:
-            return True
-        return False
-
-    def for_command(self):
-        self.show.display()
-        return input('> ')
-
-    def for_user(self):
-        self.show.display()
-        return input('Quel utilisateur souhaitez vous modifier ? ')
-
-    def for_support_user(self):
-        self.show.display()
-        return input('Quel utilisateur souhaitez vous choisir ? ')
-
-    def for_contract(self):
-        self.show.display()
-        return input('Quel contrat souhaitez vous ? ')
-
-    def for_contract_status(self):
-        self.show.display()
-        return input('Quel est le statut du contrat ? (En cours : n / Terminé : y) ')
-
-    def for_location(self):
-        self.show.display()
-        return input('Veuillez indiquer un lieu : ')
-
-    def for_notes(self):
-        self.show.display()
-        return input('Veuillez écrire une note : ')
-
-    def for_attendees(self):
-        self.show.display()
-        return input('Combien de personnes seront présentes ? ')
-
-    def for_date_start(self):
-        self.show.display()
-        return input('Veuillez rentrer une date de début (jj/mm/aaaa) : ')
-
-    def for_date_stop(self):
-        self.show.display()
-        return input('Veuillez rentrer une date de fin (jj/mm/aaaa) : ')
+    def validation(self):
+        self.display()
+        return Confirm.ask('[bold yellow]Souhaitez-vous continuer ?[/bold yellow]', default=True)

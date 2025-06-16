@@ -219,10 +219,10 @@ class TestMysql:
         mysql.session.client = mysql.get_client_information(1)
         self.add_contract(mysql, contract_information)
         mysql.session.contract = mysql.get_contract_information(1)
-        contracts = mysql.get_contract_list(False)
+        contracts = mysql.get_contract_list()
         assert len(contracts) == 1
         assert mysql.delete_contract(contracts[0].id) is True
-        assert len(mysql.get_contract_list(False)) == 0
+        assert len(mysql.get_contract_list()) == 0
 
     def test_delete_contract_failed(self, mysql, commercial_user, client_information, contract_information):
         self.add_user(mysql, commercial_user)
@@ -230,10 +230,10 @@ class TestMysql:
         self.add_client(mysql, client_information)
         mysql.session.client = mysql.get_client_information(1)
         self.add_contract(mysql, contract_information)
-        contracts = mysql.get_contract_list(False)
+        contracts = mysql.get_contract_list()
         assert len(contracts) == 1
         assert mysql.delete_contract(contracts[0].id + 1) is False
-        assert len(mysql.get_contract_list(False)) == 1
+        assert len(mysql.get_contract_list()) == 1
 
     def test_get_contract_list(self, mysql, commercial_user, client_information, contract_information):
         self.add_user(mysql, commercial_user)
@@ -241,7 +241,7 @@ class TestMysql:
         self.add_client(mysql, client_information)
         mysql.session.client = mysql.get_client_information(1)
         self.add_contract(mysql, contract_information)
-        result = mysql.get_contract_list(False)
+        result = mysql.get_contract_list()
         assert len(result) != 0
         assert result[0].client_id == mysql.session.client['id']
         assert result[0].total_amount == contract_information['total_amount']

@@ -33,14 +33,16 @@ class Mysql:
     def number_of_client(self):
         return self.db_session.query(Client).count()
 
-    def number_of_contract(self, with_event=False):
+    def number_of_contract(self):
         if self.session.client['id'] is None:
             return self.db_session.query(Contract).count()
-        if with_event:
+        elif self.session.status == 'SELECT_CONTRACT_WITHOUT_EVENT':
             return self.db_session.query(Contract) \
-                    .filter(Contract.client_id == self.session.client['id']) \
-                    .join(Event) \
-                    .filter(Event.contract_id == Contract.id) \
+                    .filter((Contract.client_id == self.session.client['id']) & ~Contract.event.any()) \
+                    .count()
+        elif self.session.status == 'SELECT_CONTRACT_WITH_EVENT':
+            return self.db_session.query(Contract) \
+                    .filter((Contract.client_id == self.session.client['id']) & Contract.event.any()) \
                     .count()
         return self.db_session.query(Contract).filter(Contract.client_id == self.session.client['id']).count()
 
@@ -105,12 +107,15 @@ class Mysql:
     def find_client_id(self, number):
         return self.db_session.query(Client.id).order_by(Client.id).all()[number][0]
 
-    def find_contract_id(self, number, with_event):
-        if with_event:
+    def find_contract_id(self, number):
+        if self.session.status == 'SELECT_CONTRACT_WITHOUT_EVENT':
             return self.db_session.query(Contract.id) \
-                    .filter(Contract.client_id == self.session.client['id']) \
-                    .join(Event) \
-                    .filter(Event.contract_id == Contract.id) \
+                    .filter((Contract.client_id == self.session.client['id']) & ~Contract.event.any()) \
+                    .order_by(Contract.id) \
+                    .all()[number][0]
+        if self.session.status == 'SELECT_CONTRACT_WITH_EVENT':
+            return self.db_session.query(Contract.id) \
+                    .filter((Contract.client_id == self.session.client['id']) & Contract.event.any()) \
                     .order_by(Contract.id) \
                     .all()[number][0]
         return self.db_session.query(Contract.id) \
@@ -219,14 +224,19 @@ class Mysql:
             self.db_session.rollback()
             return False
 
-    def get_contract_list(self, with_event):
-        if with_event:
+    def get_contract_list(self):
+        if self.session.status == 'SELECT_CONTRACT_WITH_EVENT':
             return self.db_session.query(Contract) \
                     .filter(Contract.client_id == self.session.client['id']) \
                     .join(Event) \
                     .filter(Event.contract_id == Contract.id) \
                     .all()
-        return self.db_session.query(Contract).filter(Contract.client_id == self.session.client['id']).all()
+        elif self.session.status == 'SELECT_CONTRACT_WITHOUT_EVENT':
+            return self.db_session.query(Contract) \
+                    .filter((Contract.client_id == self.session.client['id']) & ~Contract.event.any()) \
+                    .all()
+        else:
+            return self.db_session.query(Contract).filter(Contract.client_id == self.session.client['id']).all()
 
     def get_contract_information(self, contract_id):
         contract = self.db_session.query(Contract).filter(Contract.id == contract_id).first()
