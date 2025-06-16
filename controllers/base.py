@@ -330,7 +330,9 @@ class Controller:
         status = self.session.status
         number = None
         while number is None:
-            if status == 'ADD_EVENT':
+            if status in ['UPDATE_CONTRACT', 'DELETE_CONTRACT', 'VIEW_CONTRACT']:
+                self.session.status = 'SELECT_CLIENT_WITH_CONTRACT'
+            elif status == 'ADD_EVENT':
                 self.session.status = 'SELECT_CLIENT_WITHOUT_EVENT'
             elif status in ['UPDATE_EVENT', 'DELETE_EVENT', 'VIEW_EVENT']:
                 self.session.status = 'SELECT_CLIENT_WITH_EVENT'

@@ -31,6 +31,8 @@ class Mysql:
         return self.db_session.query(EpicUser).filter(EpicUser.department_id == 2).count()
 
     def number_of_client(self):
+        if self.session.status == 'SELECT_CLIENT_WITH_CONTRACT':
+            return self.db_session.query(Client).filter(Client.contracts.any()).count()
         return self.db_session.query(Client).count()
 
     def number_of_contract(self):
@@ -105,6 +107,11 @@ class Mysql:
             .all()[number][0]
 
     def find_client_id(self, number):
+        if self.session.status == 'SELECT_CLIENT_WITH_CONTRACT':
+            return self.db_session.query(Client.id) \
+                        .filter(Client.contracts.any()) \
+                        .order_by(Client.id) \
+                        .all()[number][0]
         if self.session.status == 'SELECT_CLIENT_WITHOUT_EVENT':
             return self.db_session.query(Client.id) \
                         .filter((Client.contracts.any()) & (~Client.contracts.any(Contract.event.any()))) \
@@ -192,6 +199,10 @@ class Mysql:
         elif self.session.status in ['SELECT_CLIENT_WITHOUT_EVENT', 'ADD_EVENT']:
             return self.db_session.query(Client) \
                         .filter((Client.contracts.any()) & (Client.contracts.any(~Contract.event.any()))) \
+                        .all()
+        elif self.session.status == 'SELECT_CLIENT_WITH_CONTRACT':
+            return self.db_session.query(Client) \
+                        .filter(Client.contracts.any()) \
                         .all()
         else:
             return self.db_session.query(Client).all()

@@ -36,6 +36,7 @@ class Show:
             'SELECT_CLIENT': 'Selection d\'un client',
             'SELECT_CLIENT_WITH_EVENT': 'Selection d\'un client',
             'SELECT_CLIENT_WITHOUT_EVENT': 'Selection d\'un client',
+            'SELECT_CLIENT_WITH_CONTRACT': 'Selection d\'un client',
             'VIEW_CLIENT': 'Informations sur le client',
             'NO_CLIENT': 'Aucun client n\'est enregistré',
             'ADD_CONTRACT': 'Ajout d\'un contrat',
@@ -211,7 +212,10 @@ class Show:
                     )
                 self.show_content(content, align)
                 content = ''
-            case 'SELECT_CLIENT' | 'SELECT_CLIENT_WITH_EVENT' | 'SELECT_CLIENT_WITHOUT_EVENT':
+            case ('SELECT_CLIENT' |
+                  'SELECT_CLIENT_WITH_EVENT' |
+                  'SELECT_CLIENT_WITHOUT_EVENT' |
+                  'SELECT_CLIENT_WITH_CONTRACT'):
                 clients = self.db.get_client_list()
                 lines = [
                     f'{index} - {client.company_name} \\ {client.name}'
@@ -291,8 +295,8 @@ class Show:
                 content.add_row('Téléphone', self.session.client['phone'] or '')
                 content.add_row('Commercial', self.session.new_user['name'] + ' - ' + self.session.new_user['email'])
             elif status[-1] == 'CONTRACT':
-                content.add_row('Client', self.session.client['company_name'] + '-' + self.session.client['name'])
-                content.add_row('Commercial', self.session.new_user['name'] + '-' + self.session.new_user['email'])
+                content.add_row('Client', self.session.client['company_name'] + ' - ' + self.session.client['name'])
+                content.add_row('Commercial', self.session.new_user['name'] + ' - ' + self.session.new_user['email'])
                 content.add_row('Montant total', str(self.session.contract['total_amount']) or '0')
                 content.add_row('Reste à payer', str(self.session.contract['rest_amount']) or '0')
                 content.add_row('Statut', 'Terminé' if self.session.contract['status'] else 'En cours')
@@ -306,17 +310,16 @@ class Show:
                 date_stop = self.session.event['date_stop']
                 if date_stop is not None:
                     date_stop = date_stop.strftime("%d %b %Y")
-                content.add_row('Client', self.session.client['company_name'] + '-' + self.session.client['name'])
-                content.add_row('Commercial', self.session.new_user['name'] + '-' + self.session.new_user['email'])
+                content.add_row('Client', self.session.client['company_name'] + ' - ' + self.session.client['name'])
+                content.add_row('Commercial', self.session.new_user['name'] + ' - ' + self.session.new_user['email'])
                 content.add_row('Support',
                                 support_user['name'] if support_user else ''
                                 + '-' +
                                 support_user['email'] if support_user else '')
                 content.add_row('Statut du contrat', 'Terminé' if self.session.contract['status'] else 'En cours')
-                content.add_row('Reste à payer',
-                                f"{self.session.contract['rest_amount']} / {self.session.contract['total_amount']}")
+                content.add_row('Reste à payer', f"{self.session.contract['rest_amount']}")
                 content.add_row('Lieu', self.session.event['location'] or '')
-                content.add_row('Nombre de personnes', self.session.event['attendees'] or '')
+                content.add_row('Nombre de personnes', str(self.session.event['attendees']) or '')
                 content.add_row('Date de début', date_start or '')
                 content.add_row('Date de fin', date_stop or '')
                 content.add_row('Notes', self.session.event['notes'] or '')
