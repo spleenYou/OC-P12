@@ -68,6 +68,7 @@ class Show:
             'LOGIN_FAILED': 'Erreur de connexion',
             'LOGIN_OK': '[green]Connexion réussie[/green]',
             'UNKNOWN': 'Erreur de saisie',
+            'BAD_SELECT_CONTRACT': 'Erreur de saisie',
             'BAD_EMAIL': 'Erreur de saisie',
             'BAD_EMPLOYEE_NUMBER': 'Erreur de saisie',
             'SELECT_USER_FAILED': 'Erreur de saisie',
@@ -270,52 +271,32 @@ class Show:
 
         status = self.session.status.split('_')
         if status[0] in ['ADD', 'UPDATE', 'VIEW', 'DELETE']:
+            content = Table(show_header=False, show_lines=True)
+            content.add_column(justify='left')
+            content.add_column(justify='left')
             if status[-1] == 'USER':
-                align = 'left'
                 department_name = ''
                 if self.session.new_user['department_id'] is not None:
                     department_name = self.db.get_department_list()[self.session.new_user['department_id'] - 1]
-                content = (f"{' ' * 4}Informations sur l\'utilisateur :\n\n"
-                           f"{' ' * 8}Nom : {self.session.new_user['name'] or ''}\n"
-                           f"{' ' * 8}Email : {self.session.new_user['email'] or ''}\n"
-                           f"{' ' * 8}Mot de passe : {'**********' if self.session.new_user['password'] else ''}\n"
-                           f"{' ' * 8}Numéro d\'employé : {self.session.new_user['employee_number'] or ''}\n"
-                           f"{' ' * 8}Département : {department_name}")
+                content.add_row('Nom', self.session.new_user['name'] or '')
+                content.add_row('Email', self.session.new_user['email'] or '')
+                if status[0] == 'ADD':
+                    content.add_row('Mot de passe', '*' * 10 if self.session.new_user['password'] else '')
+                content.add_row('Numéro d\'employé', str(self.session.new_user['employee_number']) or '')
+                content.add_row('Département', department_name)
             elif status[-1] == 'CLIENT':
-                align = 'left'
-                content = (f"{' ' * 4}Commercial : {self.session.new_user['name']} - "
-                           f"{self.session.new_user['email']}")
-                self.show_content(content, align)
-                content = ''
-                content = (f"{' ' * 4}Informations sur le client :\n\n"
-                           f"{' ' * 8}Nom de l\'entreprise : {self.session.client['company_name'] or ''}\n"
-                           f"{' ' * 8}Nom du contact : {self.session.client['name'] or ''}\n"
-                           f"{' ' * 8}Email : {self.session.client['email'] or ''}\n"
-                           f"{' ' * 8}Téléphone : {self.session.client['phone'] or ''}")
+                content.add_row('Nom de l\'entreprise', self.session.client['company_name'] or '')
+                content.add_row('Nom du contact', self.session.client['name'] or '')
+                content.add_row('Email', self.session.client['email'] or '')
+                content.add_row('Téléphone', self.session.client['phone'] or '')
+                content.add_row('Commercial', self.session.new_user['name'] + ' - ' + self.session.new_user['email'])
             elif status[-1] == 'CONTRACT':
-                align = 'left'
-                content = (f"{' ' * 4}Commercial : {self.session.new_user['name']} - "
-                           f"{self.session.new_user['email']}\n"
-                           f"{' ' * 4}Client : {self.session.client['company_name']} - "
-                           f"{self.session.client['name']}")
-                self.show_content(content, align)
-                content = ''
-                content = (f"{' ' * 4}Informations sur le contrat :\n\n"
-                           f"{' ' * 8}Montant total du contrat : {self.session.contract['total_amount'] or '0'}\n"
-                           f"{' ' * 8}Montant restant à payer : {self.session.contract['rest_amount'] or '0'}\n"
-                           f"{' ' * 8}Statut du contrat : "
-                           f"{'Terminé' if self.session.contract['status'] else 'En cours'}")
+                content.add_row('Client', self.session.client['company_name'] + '-' + self.session.client['name'])
+                content.add_row('Commercial', self.session.new_user['name'] + '-' + self.session.new_user['email'])
+                content.add_row('Montant total', str(self.session.contract['total_amount']) or '0')
+                content.add_row('Reste à payer', str(self.session.contract['rest_amount']) or '0')
+                content.add_row('Statut', 'Terminé' if self.session.contract['status'] else 'En cours')
             elif status[-1] == 'EVENT':
-                align = 'left'
-                content = (f"{' ' * 4}Commercial : {self.session.new_user['name']} - "
-                           f"{self.session.new_user['email']}\n"
-                           f"{' ' * 4}Client : {self.session.client['company_name']} - "
-                           f"{self.session.client['name']}\n"
-                           f"{' ' * 4}Contrat : {'Terminé' if self.session.contract['status'] else 'En cours'}\n"
-                           f"{' ' * 4}Reste à payer : {self.session.contract['rest_amount']}/"
-                           f"{self.session.contract['total_amount']}")
-                self.show_content(content, align)
-                content = ''
                 support_user = None
                 if self.session.event['support_contact_id'] is not None:
                     support_user = self.db.get_user_information(self.session.event['support_contact_id'])
@@ -325,14 +306,20 @@ class Show:
                 date_stop = self.session.event['date_stop']
                 if date_stop is not None:
                     date_stop = date_stop.strftime("%d %b %Y")
-                content = (f"{' ' * 4}Informations sur l\'évènement :\n\n"
-                           f"{' ' * 8}Lieu : {self.session.event['location'] or ''}\n"
-                           f"{' ' * 8}Nombre de personnes : {self.session.event['attendees'] or ''}\n"
-                           f"{' ' * 8}Date de début : {date_start or ''}\n"
-                           f"{' ' * 8}Date de fin : {date_stop or ''}\n"
-                           f"{' ' * 8}Notes : {self.session.event['notes'] or ''}\n"
-                           f"{' ' * 8}Support : {support_user['name'] if support_user else ''} - "
-                           f"{support_user['email'] if support_user else ''}")
+                content.add_row('Client', self.session.client['company_name'] + '-' + self.session.client['name'])
+                content.add_row('Commercial', self.session.new_user['name'] + '-' + self.session.new_user['email'])
+                content.add_row('Support',
+                                support_user['name'] if support_user else ''
+                                + '-' +
+                                support_user['email'] if support_user else '')
+                content.add_row('Statut du contrat', 'Terminé' if self.session.contract['status'] else 'En cours')
+                content.add_row('Reste à payer',
+                                f"{self.session.contract['rest_amount']} / {self.session.contract['total_amount']}")
+                content.add_row('Lieu', self.session.event['location'] or '')
+                content.add_row('Nombre de personnes', self.session.event['attendees'] or '')
+                content.add_row('Date de début', date_start or '')
+                content.add_row('Date de fin', date_stop or '')
+                content.add_row('Notes', self.session.event['notes'] or '')
         if content:
             if isinstance(content, str):
                 self.show_content(Text(content, justify=align), align)
