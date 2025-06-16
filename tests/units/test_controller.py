@@ -287,7 +287,7 @@ class TestController:
         controller.view_user()
         controller.show.display()
         captured = capsys.readouterr()
-        assert 'Informations sur un utilisateur' in captured.out
+        assert 'Informations sur l\'utilisateur' in captured.out
 
     def test_add_client(self, controller, monkeypatch, capsys, commercial_user, client_information):
         self.add_user(controller, commercial_user)

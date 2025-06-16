@@ -12,6 +12,135 @@ class Show:
         self.db = db
         self.rich_console = Console(highlight=False)
         self.common_width = 120
+        self.TITLES = {
+            'FIRST_LAUNCH': 'Premier lancement de l\'application',
+            'FORBIDDEN': '[bold red]Vous n\'êtes pas autorisé à faire cette action[/bold red]',
+            'ADD_USER': 'Ajout d\'un utilisateur',
+            'ADD_USER_OK': 'Utilisateur créé',
+            'UPDATE_USER': 'Mise à jour d\'un utilisateur',
+            'UPDATE_USER_OK': 'Utilisateur modifié',
+            'UPDATE_USER_FAILED': 'Utilisateur non modifié',
+            'VIEW_USER': 'Informations sur l\'utilisateur',
+            'DELETE_USER': 'Suppression d\'un utilisateur',
+            'DELETE_USER_OK': 'Utilisateur supprimé',
+            'SELECT_USER': 'Sélection d\'un utilisateur',
+            'SELECT_SUPPORT_USER': 'Selection d\'un utilisateur support',
+            'ADD_CLIENT': 'Ajout d\'un client',
+            'ADD_CLIENT_OK': 'Client ajoutè',
+            'ADD_CLIENT_FAILED': 'Impossible d\'ajouter le client',
+            'UPDATE_CLIENT': 'Mise à jour d\'un client',
+            'UPDATE_CLIENT_OK': 'Client mis à jour',
+            'UPDATE_CLIENT_FAILED': 'Client non mis à jour',
+            'DELETE_CLIENT': 'Suppression d\'un client',
+            'DELETE_CLIENT_OK': 'Client supprimé',
+            'SELECT_CLIENT': 'Selection d\'un client',
+            'SELECT_CLIENT_WITH_EVENT': 'Selection d\'un client',
+            'SELECT_CLIENT_WITHOUT_EVENT': 'Selection d\'un client',
+            'VIEW_CLIENT': 'Informations sur le client',
+            'NO_CLIENT': 'Aucun client n\'est enregistré',
+            'ADD_CONTRACT': 'Ajout d\'un contrat',
+            'ADD_CONTRACT_OK': 'Contrat ajouté',
+            'ADD_CONTRACT_FAILED': '*impossible d\'ajouter le contrat',
+            'UPDATE_CONTRACT': 'Mise à jour d\'un contrat',
+            'UPDATE_CONTRACT_OK': 'Contrat mis à jour',
+            'DELETE_CONTRACT': 'Suppression d\'un contrat',
+            'DELETE_CONTRACT_OK': 'Contrat supprimé',
+            'DELETE_CONTRACT_FAILED': 'Contrat non supprimé',
+            'SELECT_CONTRACT': 'Selection d\'un contrat',
+            'SELECT_CONTRACT_WITH_EVENT': 'Selection d\'un contrat',
+            'SELECT_CONTRACT_WITHOUT_EVENT': 'Selection d\'un contrat',
+            'VIEW_CONTRACT': 'Informations sur le contrat',
+            'NO_CONTRACT': 'Aucun contract enregistré',
+            'ADD_EVENT': 'Ajout d\'un évènement',
+            'ADD_EVENT_OK': 'Evènement ajouté',
+            'ADD_EVENT_FAILED': 'Evènement non ajouté',
+            'UPDATE_EVENT': 'Mise à jour d\'un évènement',
+            'UPDATE_EVENT_OK': 'Evènement mis à jour',
+            'UPDATE_EVENT_failed': 'Evènement non mis à jour',
+            'DELETE_EVENT': 'Suppression d\'un évènement',
+            'DELETE_EVENT_OK': 'Evènement supprimé',
+            'DELETE_EVENT_FAILED': 'Evènement non supprimé',
+            'UPDATE_SUPPORT_ON_EVENT': 'Mise à jour du support',
+            'VIEW_EVENT': 'Informations sur l\'évènement',
+            'CONNECTION': 'Connexion',
+            'ERROR': 'Erreur',
+            'ADD_USER_FAILED': 'Erreur',
+            'LOGIN_FAILED': 'Erreur de connexion',
+            'LOGIN_OK': '[green]Connexion réussie[/green]',
+            'UNKNOWN': 'Erreur de saisie',
+            'BAD_EMAIL': 'Erreur de saisie',
+            'BAD_EMPLOYEE_NUMBER': 'Erreur de saisie',
+            'SELECT_USER_FAILED': 'Erreur de saisie',
+            'BAD_SELECT_USE': 'Erreur de saisie',
+            'BAD_PHONE': 'Erreur de saisie',
+            'SELECT_CLIENT_FAILED': 'Erreur de saisie',
+            'BAD_TOTAL_AMOUNT': 'Erreur de saisie',
+            'BAD_REST_AMOUNT': 'Erreur de saisie',
+            'SELECT_CONTRACT_FAILED': 'Erreur de saisie',
+            'BAD_SELECT_CLIENT': 'Erreur de saisie',
+            'BAD_CONTRACT_STATUS': 'Erreur de saisie',
+            'PERMISSION': 'Tableau des permissions',
+            'HELP': 'Aide',
+            'EXIT': 'Au revoir',
+            'MAIN_MENU': 'Menu principal'
+        }
+        self.SIMPLE_CONTENTS = {
+            'FIRST_LAUNCH': ('Un utilisateur de l\'équipe Management va être créé\n'
+                             'afin de pouvoir continuer'),
+            'NO_SUPPORT_USER': ('Pas d\'utilisateur support enregistré\n\n'
+                                'Un utilisateur support est obligatoire pour créer un event'),
+            'NO_CLIENT_WITHOUT_EVENT': 'Pas de client avec contrat sans évènement',
+            'BAD_EMAIL': 'Votre saisie ne correspond pas à un email.',
+            'BAD_EMPLOYEE_NUMBER': 'Votre saisie ne correspond pas à un numéro d\'employé.',
+            'BAD_DEPARTMENT': 'Votre saisie ne correspond pas à aucun département.',
+            'SELECT_USER_FAILED': 'Ce numéro ne correspond pas à un utilisateur.',
+            'BAD_SELECT_USER': 'Merci d\'entrer un nombre',
+            'BAD_SELECT_CLIENT': 'Merci d\'entrer un nombre',
+            'BAD_TOTAL_AMOUNT': 'Merci d\'entrer un nombre',
+            'BAD_REST_AMOUNT': 'Merci d\'entrer un nombre',
+            'BAD_SELECT_CONTRACT': 'Merci d\'entrer un nombre',
+            'SELECT_CLIENT_FAILED': 'Ce numéro ne correspond pas à un client.',
+            'SELECT_CONTRACT_FAILED': 'Ce numéro ne correspond pas à un contrat.',
+            'BAD_PHONE': 'Numéro de téléphone incorrect',
+            'UNKNOWN': 'Cette commande est inconnue, veuillez recommencer.',
+            'MAIN_MENU': ('Merci d\'entrer la commande correspondant à ce que vous souhaitez faire\n\n'
+                          'Entrer "HELP" pour avoir la description des commandes\n'
+                          'Entrer "EXIT" pour quitter l\'application'),
+            'HELP': ('Liste des actions possibles :\n '
+                     'ADD | UPDATE | VIEW | DELETE\n\n '
+                     'Liste des catégories possibles :\n '
+                     'USER | CLIENT | CONTRACT | EVENT\n\n '
+                     'Syntaxe : ACTION CATEGORIE\n\n'
+                     'L\'accès à certaines actions est restreint en fonction des permissions'
+                     ' attribuées à votre département.\n\n'
+                     'Pour les connaître, taper PERMISSION'),
+            'LOGIN_FAILED': ('Vos identifiants sont inconnus\n'
+                             'L\'application va s\'arrêter')
+        }
+
+    def display(self, content=None, align='center'):
+        """Manages the display on the console
+
+        Args:
+            title (str): Title to show
+            content (list): List of the text to show
+            align (str): Position of the content. Three possiblities left, center or right
+        """
+        self.clear_screen()
+        self.head_menu()
+        self.session_information()
+        self.title()
+        self.content()
+
+    def show_content(self, content, align):
+        """Shows the content decorated
+
+        Args:
+            content (list): list of the content (str) to show
+            align (str): Position of contents. Three possiblities left, center or right
+        """
+        panel = Panel(Align(content, align=align), width=self.common_width, padding=1)
+        self.rich_console.print(panel)
 
     def clear_screen(self):
         "Clean the console for all os"
@@ -38,40 +167,12 @@ class Show:
                    " #+#   #+#+#     #+#    \n"
                    "########## ###        ###########  ########        ##########     ###     ##########"
                    " ###    ####     ###    ")
-        panel = Panel(Align(content, align='center'), width=self.common_width, padding=1)
-        self.rich_console.print(panel)
-
-    def show_content(self, content, align):
-        """Shows the content decorated
-
-        Args:
-            content (list): list of the content (str) to show
-            align (str): Position of contents. Three possiblities left, center or right
-        """
-        # if content:
-        #     for text in content:
-        #         self.decorated_text(text, align)
-        panel = Panel(Align(content, align=align), width=self.common_width, padding=1)
-        self.rich_console.print(panel)
-
-    def display(self, content=None, align='center'):
-        """Manages the display on the console
-
-        Args:
-            title (str): Title to show
-            content (list): List of the text to show
-            align (str): Position of the content. Three possiblities left, center or right
-        """
-        self.clear_screen()
-        self.head_menu()
-        self.session_information()
-        self.title()
-        self.content()
+        self.show_content(content, 'center')
 
     def wait(self):
         "SHow a waiting line if a pause is needed"
         self.display()
-        input("\nAppuyer sur une touche pour continuer...")
+        self.rich_console.input('\nAppuyer sur une touche pour continuer...')
 
     def session_information(self):
         if self.session.user['id'] is not None and self.session.status != 'LOGIN_OK':
@@ -82,144 +183,17 @@ class Show:
             self.show_content(content, 'left')
 
     def title(self):
-        title = None
-        match self.session.status:
-            case 'FIRST_LAUNCH':
-                title = 'Premier lancement de l\'application'
-            case 'FORBIDDEN':
-                title = '[bold red]Vous n\'êtes pas autorisé à faire cette action[/bold red]'
-            case 'ADD_USER':
-                title = 'Ajout d\'un utilisateur'
-            case 'ADD_USER_OK':
-                title = 'Utilisateur créé'
-            case 'UPDATE_USER':
-                title = 'Mise à jour d\'un utilisateur'
-            case 'UPDATE_USER_OK':
-                title = 'Utilisateur modifié'
-            case 'UPDATE_USER_FAILED':
-                title = 'Utilisateur non modifié'
-            case 'VIEW_USER':
-                title = 'Informations sur un utilisateur'
-            case 'DELETE_USER':
-                title = 'Suppression d\'un utilisateur'
-            case 'DELETE_USER_OK':
-                title = 'Utilisateur supprimé'
-            case 'SELECT_USER':
-                title = 'Sélection d\'un utilisateur'
-            case 'SELECT_SUPPORT_USER':
-                title = 'Selection d\'un utilisateur support'
-            case 'ADD_CLIENT':
-                title = 'Ajout d\'un client'
-            case 'ADD_CLIENT_OK':
-                title = 'Client ajoutè'
-            case 'ADD_CLIENT_FAILED':
-                title = 'Impossible d\'ajouter le client'
-            case 'UPDATE_CLIENT':
-                title = 'Mise à jour d\'un client'
-            case 'UPDATE_CLIENT_OK':
-                title = 'Client mis à jour'
-            case 'UPDATE_CLIENT_FAILED':
-                title = 'Client non mis à jour'
-            case 'DELETE_CLIENT':
-                title = 'Suppression d\'un client'
-            case 'DELETE_CLIENT_OK':
-                title = 'Client supprimé'
-            case 'SELECT_CLIENT' | 'SELECT_CLIENT_WITH_EVENT' | 'SELECT_CLIENT_WITHOUT_EVENT':
-                title = 'Selection d\'un client'
-            case 'NO_CLIENT':
-                title = 'Aucun client n\'est enregistré'
-            case 'ADD_CONTRACT':
-                title = 'Ajout d\'un contrat'
-            case 'ADD_CONTRACT_OK':
-                title = 'Contrat ajouté'
-            case 'ADD_CONTRACT_FAILED':
-                title = '*impossible d\'ajouter le contrat'
-            case 'UPDATE_CONTRACT':
-                title = 'Mise à jour d\'un contrat'
-            case 'UPDATE_CONTRACT_OK':
-                title = 'Contrat mis à jour'
-            case 'DELETE_CONTRACT':
-                title = 'Suppression d\'un contrat'
-            case 'DELETE_CONTRACT_OK':
-                title = 'Contrat supprimé'
-            case 'DELETE_CONTRACT_FAILED':
-                title = 'Contrat non supprimé'
-            case 'SELECT_CONTRACT' | 'SELECT_CONTRACT_WITHOUT_EVENT':
-                title = 'Selection d\'un contrat'
-            case 'NO_CONTRACT':
-                title = 'Aucun contract enregistré'
-            case 'ADD_EVENT':
-                title = 'Ajout d\'un évènement'
-            case 'ADD_EVENT_OK':
-                title = 'Evènement ajouté'
-            case 'ADD_EVENT_FAILED':
-                title = 'Evènement non ajouté'
-            case 'UPDATE_EVENT' | 'UPDATE_SUPPORT_ON_EVENT':
-                title = 'Mise à jour d\'un évènement'
-            case 'UPDATE_EVENT_OK':
-                title = 'Evènement mis à jour'
-            case 'UPDATE_EVENT_failed':
-                title = 'Evènement non mis à jour'
-            case 'DELETE_EVENT':
-                title = 'Suppression d\'un évènement'
-            case 'DELETE_EVENT_OK':
-                title = 'Evènement supprimé'
-            case 'DELETE_EVENT_FAILED':
-                title = 'Evènement non supprimé'
-            case 'UPDATE_SUPPORT_ON_EVENT':
-                title = 'Mise à jour du support'
-            case 'CONNECTION':
-                title = 'Connexion'
-            case 'ERROR' | 'ADD_USER_FAILED' | 'ADD_CLIENT_FAILED':
-                title = 'Erreur'
-            case 'LOGIN_FAILED':
-                title = 'Erreur de connexion'
-            case 'LOGIN_OK':
-                title = '[green]Connexion réussie[/green]'
-            case ('UNKNOWN' |
-                  'BAD_EMAIL' |
-                  'BAD_EMPLOYEE_NUMBER' |
-                  'BAD_EMPLOYEE_NUMBER' |
-                  'SELECT_USER_FAILED' |
-                  'BAD_SELECT_USE' |
-                  'BAD_PHONE' |
-                  'SELECT_CLIENT_FAILED' |
-                  'BAD_TOTAL_AMOUNT' |
-                  'BAD_REST_AMOUNT' |
-                  'SELECT_CONTRACT_FAILED' |
-                  'BAD_SELECT_CLIENT' |
-                  'BAD_CONTRACT_STATUS'):
-                title = 'Erreur de saisie'
-            case 'PERMISSION':
-                title = 'Tableau des permissions'
-            case 'HELP':
-                title = 'Aide'
-            case 'EXIT':
-                title = 'Au revoir'
-            case _:
-                title = None
-        if title:
-            self.show_content(title, 'center')
+        self.show_content(self.TITLES[self.session.status], 'center')
 
     def content(self):
         content = None
         align = 'center'
+        if self.session.status in self.SIMPLE_CONTENTS:
+            self.show_content(Text(self.SIMPLE_CONTENTS[self.session.status], justify=align), align)
+            return None
         match self.session.status:
-            case 'FIRST_LAUNCH':
-                content = ('Un utilisateur de l\'équipe Management va être créé\n'
-                           'afin de pouvoir continuer')
-            case 'NO_SUPPORT_USER':
-                content = ('Pas d\'utilisateur support enregistré\n\n'
-                           'Un utilisateur support est obligatoire pour créer un event')
-            case 'NO_CLIENT_WITHOUT_EVENT':
-                content = ('Pas de client avec contrat sans évènement')
             case 'SELECT_USER':
                 users = self.db.get_user_list()
-                # lines = [
-                #     f'{index} - ({user.employee_number}) {user.name} \\ {user.email} \\ '
-                #     f'{user.department_name}'
-                #     for index, user in enumerate(users)
-                # ]
                 content = Table(show_lines=True)
                 content.add_column('N°', justify='left')
                 content.add_column('Numéro employé', justify='left')
@@ -260,31 +234,11 @@ class Show:
                 content.add_column(justify='left')
                 for index, user in enumerate(support_users):
                     content.add_row(str(index), user.name, user.email)
-            case 'LOGIN_FAILED':
-                content = ('Vos identifiants sont inconnus\n'
-                           'L\'application va s\'arrêter')
             case 'ADD_USER_FAILED':
                 content = 'Utilisateur non enregistré'
                 if self.db.number_of_user() == 0:
                     content = content + ('\nIl faut au moins un utilisateur pour utiliser l\'application\n'
                                          'Fermeture de l\'application')
-            case 'MAIN_MENU':
-                content = ('Merci d\'entrer la commande correspondant à ce que vous souhaitez faire\n\n'
-                           'Entrer "HELP" pour avoir la description des commandes\n'
-                           'Entrer "EXIT" pour quitter l\'application')
-            case 'HELP':
-                content = (
-                    """Liste des actions possibles :
-ADD | UPDATE | VIEW | DELETE
-
-Liste des catégories possibles :
-USER | CLIENT | CONTRACT | EVENT
-
-Syntaxe : ACTION CATEGORIE
-
-L\'accès à certaines actions est restreint en fonction des permissions attribuées à votre département.
-
-Pour les connaître, taper PERMISSION""")
             case 'PERMISSION':
                 permissions_table = [
                     'add_user', 'update_user', 'delete_user',
@@ -313,30 +267,6 @@ Pour les connaître, taper PERMISSION""")
                     perm = perm.replace('_', ' ')
                     content.add_row(perm, commercial_perm, support_perm, management_perm)
                 content = '* : Le management peut mettre à jour le contact support d\'un évènement'
-            case 'BAD_EMAIL':
-                content = 'Votre saisie ne correspond pas à un email.'
-            case 'BAD_EMPLOYEE_NUMBER':
-                content = 'Votre saisie ne correspond pas à un numéro d\'employé.'
-            case 'BAD_DEPARTMENT':
-                content = 'Votre saisie ne correspond pas à aucun département.'
-            case 'SELECT_USER_FAILED':
-                content = 'Ce numéro ne correspond pas à un utilisateur.'
-            case ('BAD_SELECT_USER' |
-                  'BAD_SELECT_CLIENT' |
-                  'BAD_TOTAL_AMOUNT' |
-                  'BAD_REST_AMOUNT' |
-                  'BAD_SELECT_CONTRACT'):
-                content = 'Merci d\'entrer un nombre'
-            case 'SELECT_CLIENT_FAILED':
-                content = 'Ce numéro ne correspond pas à un client.'
-            case 'SELECT_CONTRACT_FAILED':
-                content = 'Ce numéro ne correspond pas à un contrat.'
-            case 'BAD_PHONE':
-                content = 'Numéro de téléphone incorrect'
-            case 'UNKNOWN':
-                content = 'Cette commande est inconnue, veuillez recommencer.'
-            case _:
-                pass
 
         status = self.session.status.split('_')
         if status[0] in ['ADD', 'UPDATE', 'VIEW', 'DELETE']:
