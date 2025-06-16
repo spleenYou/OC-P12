@@ -105,7 +105,18 @@ class Mysql:
             .all()[number][0]
 
     def find_client_id(self, number):
-        return self.db_session.query(Client.id).order_by(Client.id).all()[number][0]
+        if self.session.status == 'SELECT_CLIENT_WITHOUT_EVENT':
+            return self.db_session.query(Client.id) \
+                        .filter((Client.contracts.any()) & (~Client.contracts.any(Contract.event.any()))) \
+                        .order_by(Client.id) \
+                        .all()[number][0]
+        if self.session.status == 'SELECT_CLIENT_WITH_EVENT':
+            return self.db_session.query(Client.id) \
+                        .filter(Client.contracts.any(Contract.event.any())) \
+                        .order_by(Client.id) \
+                        .all()[number][0]
+        else:
+            return self.db_session.query(Client.id).order_by(Client.id).all()[number][0]
 
     def find_contract_id(self, number):
         if self.session.status == 'SELECT_CONTRACT_WITHOUT_EVENT':
@@ -176,7 +187,14 @@ class Mysql:
             return False
 
     def get_client_list(self):
-        return self.db_session.query(Client).all()
+        if self.session.status == 'SELECT_CLIENT_WITH_EVENT':
+            return self.db_session.query(Client).filter(Client.contracts.any(Contract.event.any())).all()
+        elif self.session.status in ['SELECT_CLIENT_WITHOUT_EVENT', 'ADD_EVENT']:
+            return self.db_session.query(Client) \
+                        .filter((Client.contracts.any()) & (Client.contracts.any(~Contract.event.any()))) \
+                        .all()
+        else:
+            return self.db_session.query(Client).all()
 
     def get_client_information(self, client_id):
         client = self.db_session.query(Client).filter(Client.id == client_id).first()

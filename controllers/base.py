@@ -330,7 +330,12 @@ class Controller:
         status = self.session.status
         number = None
         while number is None:
-            self.session.status = 'SELECT_CLIENT'
+            if status == 'ADD_EVENT':
+                self.session.status = 'SELECT_CLIENT_WITHOUT_EVENT'
+            elif status in ['UPDATE_EVENT', 'DELETE_EVENT', 'VIEW_EVENT']:
+                self.session.status = 'SELECT_CLIENT_WITH_EVENT'
+            else:
+                self.session.status = 'SELECT_CLIENT'
             number = self.prompt.thing('client')
             try:
                 number = int(number)
@@ -419,7 +424,8 @@ class Controller:
 
     @check_token_and_perm
     def add_event(self):
-        if self.db.number_of_support_user() > 0:
+        nb_client = len(self.db.get_client_list())
+        if self.db.number_of_support_user() > 0 and nb_client > 0:
             client_id = self.select_client()
             self.session.client = self.db.get_client_information(client_id)
             self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
@@ -437,7 +443,10 @@ class Controller:
                 else:
                     self.session.status = 'ADD_EVENT_FAILED'
         else:
-            self.session.status = 'NO_SUPPORT_USER'
+            if nb_client == 0:
+                self.session.status = 'NO_CLIENT_WITHOUT_EVENT'
+            else:
+                self.session.status = 'NO_SUPPORT_USER'
 
     @check_token_and_perm
     def update_event(self):

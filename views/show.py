@@ -124,7 +124,7 @@ class Show:
                 title = 'Suppression d\'un client'
             case 'DELETE_CLIENT_OK':
                 title = 'Client supprimé'
-            case 'SELECT_CLIENT':
+            case 'SELECT_CLIENT' | 'SELECT_CLIENT_WITH_EVENT' | 'SELECT_CLIENT_WITHOUT_EVENT':
                 title = 'Selection d\'un client'
             case 'NO_CLIENT':
                 title = 'Aucun client n\'est enregistré'
@@ -211,6 +211,8 @@ class Show:
             case 'NO_SUPPORT_USER':
                 content = ('Pas d\'utilisateur support enregistré\n\n'
                            'Un utilisateur support est obligatoire pour créer un event')
+            case 'NO_CLIENT_WITHOUT_EVENT':
+                content = ('Pas de client avec contrat sans évènement')
             case 'SELECT_USER':
                 users = self.db.get_user_list()
                 # lines = [
@@ -234,7 +236,7 @@ class Show:
                     )
                 self.show_content(content, align)
                 content = ''
-            case 'SELECT_CLIENT':
+            case 'SELECT_CLIENT' | 'SELECT_CLIENT_WITH_EVENT' | 'SELECT_CLIENT_WITHOUT_EVENT':
                 clients = self.db.get_client_list()
                 lines = [
                     f'{index} - {client.company_name} \\ {client.name}'
