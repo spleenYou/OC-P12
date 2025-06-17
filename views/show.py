@@ -123,7 +123,8 @@ class Show:
                              'L\'application va s\'arrêter'),
             'PASSWORD_FIRST_TIME': 'Bienvenue pour votre première connexion.\n\nVeuillez définir votre mot de passe',
             'PASSWORD_SECOND_TIME': ('Bienvenue pour votre première connexion.\n\n'
-                                     'Veuillez entrer une deuxième fois votre mot de passe')
+                                     'Veuillez entrer une deuxième fois votre mot de passe'),
+            'PASSWORD_MATCH_FAILED': 'Les mots de passe ne sont pas identiques'
         }
 
     def display(self, content=None, align='center'):

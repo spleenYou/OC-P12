@@ -24,7 +24,9 @@ class Controller:
             if not eval('self.allows_to.' + self.session.status.lower())():
                 self.session.status = 'FORBIDDEN'
                 return False
-            return function(self, *args, **kwargs)
+            result = function(self, *args, **kwargs)
+            self.prompt.wait()
+            return result
         return func_check
 
     def start(self, email):
@@ -36,9 +38,7 @@ class Controller:
             self.session.new_user['email'] = email
             self.session.status = 'ADD_USER'
             if not self.add_user():
-                self.prompt.wait()
                 return None
-            self.prompt.wait()
         self.session.status = 'CONNECTION'
         self.session.user["email"] = self.ask_email(email)
         password_in_db = self.db.get_user_password()
@@ -55,7 +55,7 @@ class Controller:
             self.session.status = 'LOGIN_OK'
         else:
             self.session.status = 'LOGIN_FAILED'
-        self.prompt.wait()
+            self.prompt.wait()
         return None
 
     def main_menu(self):
@@ -134,21 +134,20 @@ class Controller:
             if status == 'PASSWORD_FIRST_TIME' and password != '':
                 if self.session.user['password'] is None:
                     self.session.user['password'] = password
-                    password = None
                 elif password == self.session.user['password']:
                     self.session.status = 'CONNECTION'
+                    return None
                 else:
                     self.session.status = 'PASSWORD_MATCH_FAILED'
-                    password = None
                     self.session.user['password'] = None
                     self.prompt.wait()
             elif status == 'UPDATE_USER' and password == '':
                 password = self.session.new_user['password']
             elif password == '':
-                password = None
                 self.session.status = 'EMPTY_PASSWORD'
                 self.prompt.wait()
-        return password
+            password = None
+        return None
 
     def ask_department(self):
         status = self.session.status
