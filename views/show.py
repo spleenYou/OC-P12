@@ -78,10 +78,12 @@ class Show:
             'BAD_SELECT_USE': 'Erreur de saisie',
             'BAD_PHONE': 'Erreur de saisie',
             'SELECT_CLIENT_FAILED': 'Erreur de saisie',
+            'BAD_DEPARTMENT': 'Erreur de saisie',
             'BAD_TOTAL_AMOUNT': 'Erreur de saisie',
             'BAD_REST_AMOUNT': 'Erreur de saisie',
             'BAD_DATE_START': 'Erreur de saisie',
             'BAD_DATE_STOP': 'Erreur de saisie',
+            'PASSWORD_EMPTY': 'Erreur de saisie',
             'SELECT_CONTRACT_FAILED': 'Erreur de saisie',
             'BAD_SELECT_CLIENT': 'Erreur de saisie',
             'BAD_CONTRACT_STATUS': 'Erreur de saisie',
@@ -91,15 +93,16 @@ class Show:
             'MAIN_MENU': 'Menu principal',
             'PASSWORD_FIRST_TIME': 'Définition du mot de passe',
             'PASSWORD_SECOND_TIME': 'Définition du mot de passe',
-            'PASSWORD_MATCH_FAILED': 'Erreur de saisie'
+            'PASSWORD_MATCH_FAILED': 'Erreur de saisie',
+            'BAD_TOKEN': 'Déconnexion automatique'
         }
         self.SIMPLE_CONTENTS = {
             'FIRST_LAUNCH': ('Un utilisateur de l\'équipe Management va être créé\n'
                              'afin de pouvoir continuer'),
             'NO_CLIENT_WITHOUT_EVENT': 'Pas de client avec contrat sans évènement',
-            'BAD_EMAIL': 'Votre saisie ne correspond pas à un email.',
+            'BAD_EMAIL': 'Votre saisie ne correspond pas à une adresse mail.',
             'BAD_EMPLOYEE_NUMBER': 'Votre saisie ne correspond pas à un numéro d\'employé.',
-            'BAD_DEPARTMENT': 'Votre saisie ne correspond pas à aucun département.',
+            'BAD_DEPARTMENT': 'Votre saisie ne correspond pas à un département.',
             'SELECT_USER_FAILED': 'Ce numéro ne correspond pas à un utilisateur.',
             'BAD_SELECT_USER': 'Merci d\'entrer un nombre',
             'BAD_SELECT_CLIENT': 'Merci d\'entrer un nombre',
@@ -127,7 +130,9 @@ class Show:
             'PASSWORD_SECOND_TIME': ('Bienvenue pour votre première connexion.\n\n'
                                      'Veuillez entrer une deuxième fois votre mot de passe'),
             'PASSWORD_MATCH_FAILED': 'Les mots de passe ne sont pas identiques',
-            'BAD_CONTRACT_STATUS': 'Cette réponse n\'est pas possible.\n\nMerci d\'indiquer y or n comme demandé'
+            'BAD_CONTRACT_STATUS': 'Cette réponse n\'est pas possible.\n\nMerci d\'indiquer y or n comme demandé',
+            'PASSWORD_EMPTY': 'Votre mot de passe ne peut pas être vide.',
+            'BAD_TOKEN': 'Vous avez été déconnecté, merci de vous reconnecter.'
         }
 
     def display(self, content=None, align='center'):

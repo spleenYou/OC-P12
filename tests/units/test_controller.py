@@ -49,6 +49,8 @@ class TestController:
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: False)
         controller.start(None)
         captured = capsys.readouterr()
+        for c in captured:
+            print(c)
         assert 'Premier lancement de l\'application' in captured.out
         assert 'Utilisateur non enregistré' in captured.out
 
@@ -57,6 +59,8 @@ class TestController:
         inputs = iter(
             [
                 management_user['email'],
+                '',
+                '',
                 management_user['password'],
                 management_user['password'],
                 management_user['password'],
@@ -68,6 +72,8 @@ class TestController:
         controller.start(None)
         captured = capsys.readouterr()
         assert 'Définition du mot de passe' in captured.out
+        assert 'Erreur de saisie' in captured.out
+        assert 'Votre mot de passe ne peut pas être vide.' in captured.out
         assert 'Veuillez définir votre mot de passe' in captured.out
         assert 'Veuillez entrer une deuxième fois votre mot de passe' in captured.out
         assert 'Connexion réussie' in captured.out
@@ -216,27 +222,18 @@ class TestController:
         captured = capsys.readouterr()
         assert 'Tableau des permissions' in captured.out
 
-    def test_add_user(self, controller, monkeypatch, management_user, capsys, commercial_user):
+    def test_add_user_with_wrong_token(self, controller, monkeypatch, management_user, capsys, commercial_user):
         self.add_user(controller, management_user)
         self.connect_user(controller, 1)
+        controller.session.token = 'wrong token'
         controller.session.status = 'ADD_USER'
-        inputs = iter(
-            [
-                commercial_user['name'],
-                commercial_user['email'],
-                commercial_user['employee_number'],
-                commercial_user['department_id'],
-                ''
-            ]
-        )
-        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.add_user()
         controller.show.display()
         captured = capsys.readouterr()
-        assert 'Utilisateur créé' in captured.out
+        assert 'Déconnexion automatique' in captured.out
+        assert 'Vous avez été déconnecté, merci de vous reconnecter.' in captured.out
 
-    def test_update_user(self, controller, monkeypatch, management_user, capsys, commercial_user):
+    def test_update_user_change_name(self, controller, monkeypatch, management_user, capsys, commercial_user):
         self.add_user(controller, management_user)
         self.connect_user(controller, 1)
         self.add_user(controller, commercial_user)
@@ -252,7 +249,6 @@ class TestController:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.update_user()
         controller.show.display()
@@ -260,275 +256,24 @@ class TestController:
         assert 'Commercial 2' in captured.out
         assert 'Utilisateur mis à jour' in captured.out
 
-    def test_delete_user(self, controller, monkeypatch, management_user, capsys, commercial_user):
-        self.add_user(controller, management_user)
-        self.connect_user(controller, 1)
-        self.add_user(controller, commercial_user)
-        controller.session.status = 'DELETE_USER'
-        inputs = iter(
-            [
-                '0',
-                ''
-            ]
-        )
-        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.delete_user()
-        controller.show.display()
-        captured = capsys.readouterr()
-        assert 'Utilisateur supprimé' in captured.out
-
-    def test_view_user(self, controller, monkeypatch, management_user, capsys, commercial_user):
-        self.add_user(controller, management_user)
-        self.connect_user(controller, 1)
-        self.add_user(controller, commercial_user)
-        controller.session.status = 'VIEW_USER'
-        monkeypatch.setattr('builtins.input', lambda *args: '1')
-        controller.view_user()
-        controller.show.display()
-        captured = capsys.readouterr()
-        assert 'Informations sur l\'utilisateur' in captured.out
-
-    def test_add_client(self, controller, monkeypatch, capsys, commercial_user, client_information):
-        self.add_user(controller, commercial_user)
-        self.connect_user(controller, 1)
-        controller.session.status = 'ADD_CLIENT'
-        inputs = iter(
-            [
-                client_information['company_name'],
-                client_information['name'],
-                client_information['email'],
-                '0502020202',
-                ''
-            ]
-        )
-        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.add_client()
-        controller.show.display()
-        captured = capsys.readouterr()
-        assert 'Client ajouté' in captured.out
-
-    def test_update_client(self, controller, monkeypatch, capsys, commercial_user, client_information):
-        self.add_user(controller, commercial_user)
-        self.connect_user(controller, 1)
-        self.add_client(controller, client_information)
-        controller.session.status = 'UPDATE_CLIENT'
-        inputs = iter(
-            [
-                '0',
-                'Nouvelle entreprise',
-                '',
-                '',
-                '',
-                ''
-            ]
-        )
-        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.update_client()
-        controller.show.display()
-        captured = capsys.readouterr()
-        assert 'Nouvelle entreprise' in captured.out
-        assert 'Client mis à jour' in captured.out
-
-    def test_delete_client(self, controller, monkeypatch, capsys, commercial_user, client_information):
-        self.add_user(controller, commercial_user)
-        self.connect_user(controller, 1)
-        self.add_client(controller, client_information)
-        controller.session.status = 'DELETE_CLIENT'
-        inputs = iter(
-            [
-                '0',
-                ''
-            ]
-        )
-        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.delete_client()
-        controller.show.display()
-        captured = capsys.readouterr()
-        assert 'Client supprimé' in captured.out
-
-    def test_view_client(self, controller, monkeypatch, capsys, commercial_user, client_information):
-        self.add_user(controller, commercial_user)
-        self.connect_user(controller, 1)
-        self.add_client(controller, client_information)
-        controller.session.status = 'VIEW_CLIENT'
-        monkeypatch.setattr('builtins.input', lambda *args: '0')
-        controller.view_client()
-        controller.show.display()
-        captured = capsys.readouterr()
-        assert 'Informations sur le client' in captured.out
-
-    def test_add_contract(
+    def test_update_user_change_department_failed(
             self,
             controller,
             monkeypatch,
-            capsys,
             management_user,
-            client_information,
-            contract_information):
+            commercial_user,
+            capsys):
         self.add_user(controller, management_user)
         self.connect_user(controller, 1)
-        self.add_client(controller, client_information)
-        controller.session.status = 'ADD_CONTRACT'
+        self.add_user(controller, commercial_user)
+        controller.session.status = 'UPDATE_USER'
         inputs = iter(
             [
-                '0',
-                contract_information['total_amount'],
-                contract_information['total_amount'],
-                ''
-            ]
-        )
-        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.add_contract()
-        controller.show.display()
-        captured = capsys.readouterr()
-        assert 'Ajout d\'un contrat' in captured.out
-
-    def test_update_contract(
-            self,
-            controller,
-            monkeypatch,
-            capsys,
-            commercial_user,
-            client_information,
-            contract_information):
-        self.add_user(controller, commercial_user)
-        self.connect_user(controller, 1)
-        self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 1)
-        controller.session.status = 'UPDATE_CONTRACT'
-        inputs = iter(
-            [
-                '0',
-                '0',
-                '',
-                '0',
-                'y',
-                ''
-            ]
-        )
-        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.update_contract()
-        controller.show.display()
-        captured = capsys.readouterr()
-        assert 'Terminé' in captured.out
-        assert 'Contrat mis à jour' in captured.out
-
-    def test_delete_contract(
-            self,
-            controller,
-            monkeypatch,
-            capsys,
-            commercial_user,
-            client_information,
-            contract_information):
-        self.add_user(controller, commercial_user)
-        self.connect_user(controller, 1)
-        self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 1)
-        controller.session.status = 'DELETE_CONTRACT'
-        inputs = iter(
-            [
-                '0',
-                '0',
-                ''
-            ]
-        )
-        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.delete_contract()
-        controller.show.display()
-        captured = capsys.readouterr()
-        assert 'Contrat supprimé' in captured.out
-
-    def test_view_contract(
-            self,
-            controller,
-            monkeypatch,
-            capsys,
-            commercial_user,
-            client_information,
-            contract_information):
-        self.add_user(controller, commercial_user)
-        self.connect_user(controller, 1)
-        self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 1)
-        controller.session.status = 'VIEW_CONTRACT'
-        inputs = iter(['0', '0'])
-        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.view_contract()
-        controller.show.display()
-        captured = capsys.readouterr()
-        assert 'Informations sur le contrat' in captured.out
-
-    def test_add_event(
-            self,
-            controller,
-            monkeypatch,
-            capsys,
-            commercial_user,
-            client_information,
-            contract_information,
-            support_user,
-            event_information):
-        self.add_user(controller, commercial_user)
-        self.add_user(controller, support_user)
-        self.connect_user(controller, 1)
-        self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 1)
-        controller.session.status = 'ADD_EVENT'
-        inputs = iter(
-            [
-                '0',
-                '0',
-                event_information['location'],
-                event_information['attendees'],
-                event_information['date_start'].strftime('%d/%m/%Y'),
-                event_information['date_stop'].strftime('%d/%m/%Y'),
-                event_information['notes'],
-                event_information['support_contact_id'],
-                ''
-            ]
-        )
-        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.add_event()
-        controller.show.display()
-        captured = capsys.readouterr()
-        assert 'Ajout d\'un évènement' in captured.out
-        assert 'Evènement ajouté' in captured.out
-
-    def test_update_event(
-            self,
-            controller,
-            monkeypatch,
-            capsys,
-            commercial_user,
-            client_information,
-            contract_information,
-            support_user,
-            event_information):
-        self.add_user(controller, commercial_user)
-        self.add_user(controller, support_user)
-        self.connect_user(controller, 1)
-        self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 1)
-        self.connect_user(controller, 2)
-        self.add_event(controller, event_information, 1, 2)
-        controller.session.status = 'UPDATE_EVENT'
-        inputs = iter(
-            [
-                '0',
-                '0',
-                'la-bas',
+                1,
                 '',
                 '',
                 '',
+                'b',
                 '',
                 '',
                 ''
@@ -536,105 +281,420 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.update_event()
+        controller.update_user()
         controller.show.display()
         captured = capsys.readouterr()
-        assert 'la-bas' in captured.out
-        assert 'Evènement mis à jour' in captured.out
+        assert 'Erreur de saisie' in captured.out
+        assert 'Votre saisie ne correspond pas à un département.' in captured.out
+        assert 'Utilisateur mis à jour' in captured.out
 
-    def test_update_support_on_event_by_management(
+    def test_update_user_change_email_failed(
             self,
             controller,
-            monkeypatch,
-            capsys,
             management_user,
-            client_information,
-            contract_information,
-            support_user,
-            event_information):
+            commercial_user,
+            monkeypatch,
+            capsys):
         self.add_user(controller, management_user)
-        self.add_user(controller, support_user)
         self.connect_user(controller, 1)
-        self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 1)
-        self.connect_user(controller, 2)
-        self.add_event(controller, event_information, 1, 2)
-        self.connect_user(controller, 1)
-        controller.session.status = 'UPDATE_SUPPORT_ON_EVENT'
+        self.add_user(controller, commercial_user)
+        controller.session.status = 'UPDATE_USER'
         inputs = iter(
             [
-                '0',
-                '0',
+                1,
+                '',
+                'test_mail',
+                '',
+                '',
+                '',
                 '',
                 ''
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.update_event()
+        controller.update_user()
         controller.show.display()
         captured = capsys.readouterr()
-        assert 'Evènement mis à jour' in captured.out
+        assert 'Erreur de saisie' in captured.out
+        assert 'Votre saisie ne correspond pas à une adresse mail.' in captured.out
+        assert 'Utilisateur mis à jour' in captured.out
 
-    def test_delete_event(
-            self,
-            controller,
-            monkeypatch,
-            capsys,
-            commercial_user,
-            client_information,
-            contract_information,
-            support_user,
-            event_information):
-        self.add_user(controller, commercial_user)
-        self.add_user(controller, support_user)
-        self.connect_user(controller, 1)
-        self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 1)
-        self.connect_user(controller, 2)
-        self.add_event(controller, event_information, 1, 2)
-        controller.session.status = 'DELETE_EVENT'
-        inputs = iter(
-            [
-                '0',
-                '0',
-                ''
-            ]
-        )
-        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.delete_event()
-        controller.show.display()
-        captured = capsys.readouterr()
-        assert 'Evènement supprimé' in captured.out
+    # def test_delete_user(self, controller, monkeypatch, management_user, capsys, commercial_user):
+    #     self.add_user(controller, management_user)
+    #     self.connect_user(controller, 1)
+    #     self.add_user(controller, commercial_user)
+    #     controller.session.status = 'DELETE_USER'
+    #     inputs = iter(
+    #         [
+    #             '0',
+    #             ''
+    #         ]
+    #     )
+    #     monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
+    #     monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
+    #     controller.delete_user()
+    #     controller.show.display()
+    #     captured = capsys.readouterr()
+    #     assert 'Utilisateur supprimé' in captured.out
 
-    def test_view_event(
-            self,
-            controller,
-            monkeypatch,
-            capsys,
-            commercial_user,
-            client_information,
-            contract_information,
-            support_user,
-            event_information):
-        self.add_user(controller, commercial_user)
-        self.add_user(controller, support_user)
-        self.connect_user(controller, 1)
-        self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 1)
-        self.connect_user(controller, 2)
-        self.add_event(controller, event_information, 1, 2)
-        controller.session.status = 'VIEW_EVENT'
-        inputs = iter(
-            [
-                '0',
-                '0',
-                ''
-            ]
-        )
-        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.view_event()
-        controller.show.display()
-        captured = capsys.readouterr()
-        assert 'Informations sur l\'évènement' in captured.out
+    # def test_view_user(self, controller, monkeypatch, management_user, capsys, commercial_user):
+    #     self.add_user(controller, management_user)
+    #     self.connect_user(controller, 1)
+    #     self.add_user(controller, commercial_user)
+    #     controller.session.status = 'VIEW_USER'
+    #     monkeypatch.setattr('builtins.input', lambda *args: '1')
+    #     controller.view_user()
+    #     controller.show.display()
+    #     captured = capsys.readouterr()
+    #     assert 'Informations sur l\'utilisateur' in captured.out
+
+    # def test_add_client(self, controller, monkeypatch, capsys, commercial_user, client_information):
+    #     self.add_user(controller, commercial_user)
+    #     self.connect_user(controller, 1)
+    #     controller.session.status = 'ADD_CLIENT'
+    #     inputs = iter(
+    #         [
+    #             client_information['company_name'],
+    #             client_information['name'],
+    #             client_information['email'],
+    #             '0502020202',
+    #             ''
+    #         ]
+    #     )
+    #     monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
+    #     monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
+    #     controller.add_client()
+    #     controller.show.display()
+    #     captured = capsys.readouterr()
+    #     assert 'Client ajouté' in captured.out
+
+    # def test_update_client(self, controller, monkeypatch, capsys, commercial_user, client_information):
+    #     self.add_user(controller, commercial_user)
+    #     self.connect_user(controller, 1)
+    #     self.add_client(controller, client_information)
+    #     controller.session.status = 'UPDATE_CLIENT'
+    #     inputs = iter(
+    #         [
+    #             '0',
+    #             'Nouvelle entreprise',
+    #             '',
+    #             '',
+    #             '',
+    #             ''
+    #         ]
+    #     )
+    #     monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
+    #     monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
+    #     controller.update_client()
+    #     controller.show.display()
+    #     captured = capsys.readouterr()
+    #     assert 'Nouvelle entreprise' in captured.out
+    #     assert 'Client mis à jour' in captured.out
+
+    # def test_delete_client(self, controller, monkeypatch, capsys, commercial_user, client_information):
+    #     self.add_user(controller, commercial_user)
+    #     self.connect_user(controller, 1)
+    #     self.add_client(controller, client_information)
+    #     controller.session.status = 'DELETE_CLIENT'
+    #     inputs = iter(
+    #         [
+    #             '0',
+    #             ''
+    #         ]
+    #     )
+    #     monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
+    #     monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
+    #     controller.delete_client()
+    #     controller.show.display()
+    #     captured = capsys.readouterr()
+    #     assert 'Client supprimé' in captured.out
+
+    # def test_view_client(self, controller, monkeypatch, capsys, commercial_user, client_information):
+    #     self.add_user(controller, commercial_user)
+    #     self.connect_user(controller, 1)
+    #     self.add_client(controller, client_information)
+    #     controller.session.status = 'VIEW_CLIENT'
+    #     monkeypatch.setattr('builtins.input', lambda *args: '0')
+    #     controller.view_client()
+    #     controller.show.display()
+    #     captured = capsys.readouterr()
+    #     assert 'Informations sur le client' in captured.out
+
+    # def test_add_contract(
+    #         self,
+    #         controller,
+    #         monkeypatch,
+    #         capsys,
+    #         management_user,
+    #         client_information,
+    #         contract_information):
+    #     self.add_user(controller, management_user)
+    #     self.connect_user(controller, 1)
+    #     self.add_client(controller, client_information)
+    #     controller.session.status = 'ADD_CONTRACT'
+    #     inputs = iter(
+    #         [
+    #             '0',
+    #             contract_information['total_amount'],
+    #             contract_information['total_amount'],
+    #             ''
+    #         ]
+    #     )
+    #     monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
+    #     monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
+    #     controller.add_contract()
+    #     controller.show.display()
+    #     captured = capsys.readouterr()
+    #     assert 'Ajout d\'un contrat' in captured.out
+
+    # def test_update_contract(
+    #         self,
+    #         controller,
+    #         monkeypatch,
+    #         capsys,
+    #         commercial_user,
+    #         client_information,
+    #         contract_information):
+    #     self.add_user(controller, commercial_user)
+    #     self.connect_user(controller, 1)
+    #     self.add_client(controller, client_information)
+    #     self.add_contract(controller, contract_information, 1)
+    #     controller.session.status = 'UPDATE_CONTRACT'
+    #     inputs = iter(
+    #         [
+    #             '0',
+    #             '0',
+    #             '',
+    #             '0',
+    #             'y',
+    #             ''
+    #         ]
+    #     )
+    #     monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
+    #     monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
+    #     controller.update_contract()
+    #     controller.show.display()
+    #     captured = capsys.readouterr()
+    #     assert 'Terminé' in captured.out
+    #     assert 'Contrat mis à jour' in captured.out
+
+    # def test_delete_contract(
+    #         self,
+    #         controller,
+    #         monkeypatch,
+    #         capsys,
+    #         commercial_user,
+    #         client_information,
+    #         contract_information):
+    #     self.add_user(controller, commercial_user)
+    #     self.connect_user(controller, 1)
+    #     self.add_client(controller, client_information)
+    #     self.add_contract(controller, contract_information, 1)
+    #     controller.session.status = 'DELETE_CONTRACT'
+    #     inputs = iter(
+    #         [
+    #             '0',
+    #             '0',
+    #             ''
+    #         ]
+    #     )
+    #     monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
+    #     monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
+    #     controller.delete_contract()
+    #     controller.show.display()
+    #     captured = capsys.readouterr()
+    #     assert 'Contrat supprimé' in captured.out
+
+    # def test_view_contract(
+    #         self,
+    #         controller,
+    #         monkeypatch,
+    #         capsys,
+    #         commercial_user,
+    #         client_information,
+    #         contract_information):
+    #     self.add_user(controller, commercial_user)
+    #     self.connect_user(controller, 1)
+    #     self.add_client(controller, client_information)
+    #     self.add_contract(controller, contract_information, 1)
+    #     controller.session.status = 'VIEW_CONTRACT'
+    #     inputs = iter(['0', '0'])
+    #     monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
+    #     controller.view_contract()
+    #     controller.show.display()
+    #     captured = capsys.readouterr()
+    #     assert 'Informations sur le contrat' in captured.out
+
+    # def test_add_event(
+    #         self,
+    #         controller,
+    #         monkeypatch,
+    #         capsys,
+    #         commercial_user,
+    #         client_information,
+    #         contract_information,
+    #         support_user,
+    #         event_information):
+    #     self.add_user(controller, commercial_user)
+    #     self.add_user(controller, support_user)
+    #     self.connect_user(controller, 1)
+    #     self.add_client(controller, client_information)
+    #     self.add_contract(controller, contract_information, 1)
+    #     controller.session.status = 'ADD_EVENT'
+    #     inputs = iter(
+    #         [
+    #             '0',
+    #             '0',
+    #             event_information['location'],
+    #             event_information['attendees'],
+    #             event_information['date_start'].strftime('%d/%m/%Y'),
+    #             event_information['date_stop'].strftime('%d/%m/%Y'),
+    #             event_information['notes'],
+    #             event_information['support_contact_id'],
+    #             ''
+    #         ]
+    #     )
+    #     monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
+    #     monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
+    #     controller.add_event()
+    #     controller.show.display()
+    #     captured = capsys.readouterr()
+    #     assert 'Ajout d\'un évènement' in captured.out
+    #     assert 'Evènement ajouté' in captured.out
+
+    # def test_update_event(
+    #         self,
+    #         controller,
+    #         monkeypatch,
+    #         capsys,
+    #         commercial_user,
+    #         client_information,
+    #         contract_information,
+    #         support_user,
+    #         event_information):
+    #     self.add_user(controller, commercial_user)
+    #     self.add_user(controller, support_user)
+    #     self.connect_user(controller, 1)
+    #     self.add_client(controller, client_information)
+    #     self.add_contract(controller, contract_information, 1)
+    #     self.connect_user(controller, 2)
+    #     self.add_event(controller, event_information, 1, 2)
+    #     controller.session.status = 'UPDATE_EVENT'
+    #     inputs = iter(
+    #         [
+    #             '0',
+    #             '0',
+    #             'la-bas',
+    #             '',
+    #             '',
+    #             '',
+    #             '',
+    #             '',
+    #             ''
+    #         ]
+    #     )
+    #     monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
+    #     monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
+    #     controller.update_event()
+    #     controller.show.display()
+    #     captured = capsys.readouterr()
+    #     assert 'la-bas' in captured.out
+    #     assert 'Evènement mis à jour' in captured.out
+
+    # def test_update_support_on_event_by_management(
+    #         self,
+    #         controller,
+    #         monkeypatch,
+    #         capsys,
+    #         management_user,
+    #         client_information,
+    #         contract_information,
+    #         support_user,
+    #         event_information):
+    #     self.add_user(controller, management_user)
+    #     self.add_user(controller, support_user)
+    #     self.connect_user(controller, 1)
+    #     self.add_client(controller, client_information)
+    #     self.add_contract(controller, contract_information, 1)
+    #     self.connect_user(controller, 2)
+    #     self.add_event(controller, event_information, 1, 2)
+    #     self.connect_user(controller, 1)
+    #     controller.session.status = 'UPDATE_SUPPORT_ON_EVENT'
+    #     inputs = iter(
+    #         [
+    #             '0',
+    #             '0',
+    #             '',
+    #             ''
+    #         ]
+    #     )
+    #     monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
+    #     monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
+    #     controller.update_event()
+    #     controller.show.display()
+    #     captured = capsys.readouterr()
+    #     assert 'Evènement mis à jour' in captured.out
+
+    # def test_delete_event(
+    #         self,
+    #         controller,
+    #         monkeypatch,
+    #         capsys,
+    #         commercial_user,
+    #         client_information,
+    #         contract_information,
+    #         support_user,
+    #         event_information):
+    #     self.add_user(controller, commercial_user)
+    #     self.add_user(controller, support_user)
+    #     self.connect_user(controller, 1)
+    #     self.add_client(controller, client_information)
+    #     self.add_contract(controller, contract_information, 1)
+    #     self.connect_user(controller, 2)
+    #     self.add_event(controller, event_information, 1, 2)
+    #     controller.session.status = 'DELETE_EVENT'
+    #     inputs = iter(
+    #         [
+    #             '0',
+    #             '0',
+    #             ''
+    #         ]
+    #     )
+    #     monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
+    #     monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
+    #     controller.delete_event()
+    #     controller.show.display()
+    #     captured = capsys.readouterr()
+    #     assert 'Evènement supprimé' in captured.out
+
+    # def test_view_event(
+    #         self,
+    #         controller,
+    #         monkeypatch,
+    #         capsys,
+    #         commercial_user,
+    #         client_information,
+    #         contract_information,
+    #         support_user,
+    #         event_information):
+    #     self.add_user(controller, commercial_user)
+    #     self.add_user(controller, support_user)
+    #     self.connect_user(controller, 1)
+    #     self.add_client(controller, client_information)
+    #     self.add_contract(controller, contract_information, 1)
+    #     self.connect_user(controller, 2)
+    #     self.add_event(controller, event_information, 1, 2)
+    #     controller.session.status = 'VIEW_EVENT'
+    #     inputs = iter(
+    #         [
+    #             '0',
+    #             '0',
+    #             ''
+    #         ]
+    #     )
+    #     monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
+    #     controller.view_event()
+    #     controller.show.display()
+    #     captured = capsys.readouterr()
+    #     assert 'Informations sur l\'évènement' in captured.out

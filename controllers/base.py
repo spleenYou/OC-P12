@@ -20,6 +20,7 @@ class Controller:
         def func_check(self, *args, **kwargs):
             if self.db.number_of_user() > 0:
                 if not self.auth.check_token():
+                    self.session.status = 'BAD_TOKEN'
                     return False
             if not eval('self.allows_to.' + self.session.status.lower())():
                 self.session.status = 'FORBIDDEN'
@@ -83,6 +84,8 @@ class Controller:
             if (command != self.session.status or command[:4] == 'VIEW') and self.session.status[-2:] != 'OK':
                 self.prompt.wait()
             self.session.reset_session()
+            if self.session.status == 'BAD_TOKEN':
+                self.start(None)
 
     def ask_name(self):
         name = self.prompt.thing('name')
@@ -141,13 +144,10 @@ class Controller:
                     self.session.status = 'PASSWORD_MATCH_FAILED'
                     self.session.user['password'] = None
                     self.prompt.wait()
-            elif status == 'UPDATE_USER' and password == '':
-                password = self.session.new_user['password']
-            elif password == '':
-                self.session.status = 'EMPTY_PASSWORD'
+            else:
+                self.session.status = 'PASSWORD_EMPTY'
                 self.prompt.wait()
             password = None
-        return None
 
     def ask_department(self):
         status = self.session.status
