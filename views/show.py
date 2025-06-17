@@ -125,7 +125,8 @@ class Show:
             'PASSWORD_FIRST_TIME': 'Bienvenue pour votre première connexion.\n\nVeuillez définir votre mot de passe',
             'PASSWORD_SECOND_TIME': ('Bienvenue pour votre première connexion.\n\n'
                                      'Veuillez entrer une deuxième fois votre mot de passe'),
-            'PASSWORD_MATCH_FAILED': 'Les mots de passe ne sont pas identiques'
+            'PASSWORD_MATCH_FAILED': 'Les mots de passe ne sont pas identiques',
+            'BAD_CONTRACT_STATUS': 'Cette réponse n\'est pas possible.\n\nMerci d\'indiquer y or n comme demandé'
         }
 
     def display(self, content=None, align='center'):
@@ -316,8 +317,8 @@ class Show:
             elif status[-1] == 'CONTRACT':
                 content.add_row('Client', self.session.client['company_name'] + ' - ' + self.session.client['name'])
                 content.add_row('Commercial', self.session.new_user['name'] + ' - ' + self.session.new_user['email'])
-                content.add_row('Montant total', str(self.session.contract['total_amount']) or '0')
-                content.add_row('Reste à payer', str(self.session.contract['rest_amount']) or '0')
+                content.add_row('Montant total', str(self.session.contract['total_amount'] or '0'))
+                content.add_row('Reste à payer', str(self.session.contract['rest_amount'] or '0'))
                 content.add_row('Statut', 'Terminé' if self.session.contract['status'] else 'En cours')
             elif status[-1] == 'EVENT':
                 support_user = None

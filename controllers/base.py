@@ -251,7 +251,7 @@ class Controller:
             self.session.status = status
             contract_status = self.prompt.thing('contract_status').lower()
             if status == 'UPDATE_CONTRACT' and contract_status == '':
-                contract_status = self.session.contract['status']
+                return self.session.contract['status']
             if contract_status == 'y':
                 return True
             elif contract_status == 'n':

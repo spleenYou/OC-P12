@@ -72,6 +72,30 @@ class TestController:
         assert 'Veuillez entrer une deuxième fois votre mot de passe' in captured.out
         assert 'Connexion réussie' in captured.out
 
+    def test_login_first_time_password_not_match(self, monkeypatch, controller, management_user, capsys):
+        self.add_user(controller, management_user)
+        inputs = iter(
+            [
+                management_user['email'],
+                management_user['password'],
+                management_user['password'] + 'e',
+                '',
+                management_user['password'],
+                management_user['password'],
+                management_user['password'],
+                'exit',
+                ''
+            ]
+        )
+        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
+        controller.start(None)
+        captured = capsys.readouterr()
+        assert 'Définition du mot de passe' in captured.out
+        assert 'Veuillez définir votre mot de passe' in captured.out
+        assert 'Veuillez entrer une deuxième fois votre mot de passe' in captured.out
+        assert 'Erreur de saisie' in captured.out
+        assert 'Les mots de passe ne sont pas identiques' in captured.out
+
     def test_start_with_user_and_login_failed(self, monkeypatch, controller, management_user, capsys):
         controller.session.new_user = management_user
         controller.db.add_user()

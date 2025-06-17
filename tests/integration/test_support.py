@@ -1,19 +1,19 @@
-class TestCommercial:
-    def connect_user(self, controller, commercial_user, monkeypatch):
+class TestSupport:
+    def connect_user(self, controller, support_user, monkeypatch):
         inputs = iter(
             [
-                commercial_user['password'],
+                support_user['password'],
                 ''
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.session.new_user = commercial_user
+        controller.session.new_user = support_user
         controller.db.add_user()
         controller.session.reset_session()
-        controller.session.user['email'] = commercial_user['email']
-        controller.session.user['password'] = commercial_user['password']
+        controller.session.user['email'] = support_user['email']
+        controller.session.user['password'] = support_user['password']
         controller.db.update_password_user()
-        controller.start(commercial_user['email'])
+        controller.start(support_user['email'])
 
     def add_client(self, controller, client):
         controller.session.client = client
@@ -66,8 +66,8 @@ class TestCommercial:
             'date_stop': None
         }
 
-    def test_add_user(self, controller, commercial_user, monkeypatch, capsys):
-        self.connect_user(controller, commercial_user, monkeypatch)
+    def test_add_user(self, controller, support_user, monkeypatch, capsys):
+        self.connect_user(controller, support_user, monkeypatch)
         inputs = iter(
             [
                 'ADD USER',
@@ -81,8 +81,8 @@ class TestCommercial:
         captured = capsys.readouterr()
         assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
-    def test_update_user(self, controller, commercial_user, monkeypatch, capsys):
-        self.connect_user(controller, commercial_user, monkeypatch)
+    def test_update_user(self, controller, support_user, monkeypatch, capsys):
+        self.connect_user(controller, support_user, monkeypatch)
         inputs = iter(
             [
                 'UPDATE USER',
@@ -96,8 +96,8 @@ class TestCommercial:
         captured = capsys.readouterr()
         assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
-    def test_delete_user(self, controller, commercial_user, monkeypatch, capsys):
-        self.connect_user(controller, commercial_user, monkeypatch)
+    def test_delete_user(self, controller, support_user, monkeypatch, capsys):
+        self.connect_user(controller, support_user, monkeypatch)
         inputs = iter(
             [
                 'DELETE USER',
@@ -111,8 +111,8 @@ class TestCommercial:
         captured = capsys.readouterr()
         assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
-    def test_view_user(self, controller, commercial_user, monkeypatch, capsys):
-        self.connect_user(controller, commercial_user, monkeypatch)
+    def test_view_user(self, controller, support_user, monkeypatch, capsys):
+        self.connect_user(controller, support_user, monkeypatch)
         inputs = iter(
             [
                 'VIEW USER',
@@ -128,72 +128,55 @@ class TestCommercial:
         assert 'Sélection d\'un utilisateur' in captured.out
         assert 'Informations sur l\'utilisateur' in captured.out
 
-    def test_add_client(self, controller, commercial_user, client_information, monkeypatch, capsys):
-        self.connect_user(controller, commercial_user, monkeypatch)
+    def test_add_client(self, controller, support_user, monkeypatch, capsys):
+        self.connect_user(controller, support_user, monkeypatch)
         inputs = iter(
             [
                 'ADD CLIENT',
-                client_information['company_name'],
-                client_information['name'],
-                client_information['email'],
-                client_information['phone'],
                 '',
                 'exit',
                 ''
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.main_menu()
         captured = capsys.readouterr()
-        assert 'Ajout d\'un client' in captured.out
-        assert 'Client ajouté' in captured.out
+        assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
-    def test_update_client(self, controller, commercial_user, client_information, monkeypatch, capsys):
-        self.connect_user(controller, commercial_user, monkeypatch)
+    def test_update_client(self, controller, support_user, client_information, monkeypatch, capsys):
+        self.connect_user(controller, support_user, monkeypatch)
         self.add_client(controller, client_information)
         inputs = iter(
             [
                 'UPDATE CLIENT',
-                '0',
-                '',
-                client_information['name'] + '2',
-                '',
-                '',
                 '',
                 'exit',
                 ''
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.main_menu()
         captured = capsys.readouterr()
-        assert 'Mise à jour d\'un client' in captured.out
-        assert client_information['name'] + '2' in captured.out
-        assert 'Client mis à jour' in captured.out
+        assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
-    def test_delete_client(self, controller, commercial_user, client_information, monkeypatch, capsys):
-        self.connect_user(controller, commercial_user, monkeypatch)
+    def test_delete_client(self, controller, support_user, client_information, monkeypatch, capsys):
+        self.connect_user(controller, support_user, monkeypatch)
         self.add_client(controller, client_information)
         inputs = iter(
             [
                 'DELETE CLIENT',
-                '0',
                 '',
                 'exit',
                 ''
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.main_menu()
         captured = capsys.readouterr()
-        assert 'Suppression d\'un client' in captured.out
-        assert 'Client supprimé' in captured.out
+        assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
-    def test_view_client(self, controller, commercial_user, client_information, monkeypatch, capsys):
-        self.connect_user(controller, commercial_user, monkeypatch)
+    def test_view_client(self, controller, support_user, client_information, monkeypatch, capsys):
+        self.connect_user(controller, support_user, monkeypatch)
         self.add_client(controller, client_information)
         inputs = iter(
             [
@@ -214,12 +197,12 @@ class TestCommercial:
     def test_add_contract(
             self,
             controller,
-            commercial_user,
+            support_user,
             client_information,
             contract_information,
             monkeypatch,
             capsys):
-        self.connect_user(controller, commercial_user, monkeypatch)
+        self.connect_user(controller, support_user, monkeypatch)
         self.add_client(controller, client_information)
         inputs = iter(
             [
@@ -230,82 +213,43 @@ class TestCommercial:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.main_menu()
         captured = capsys.readouterr()
         assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
-    def test_update_contract_without_change(
+    def test_update_contract(
             self,
             controller,
-            commercial_user,
+            support_user,
             client_information,
             contract_information,
             monkeypatch,
             capsys):
-        self.connect_user(controller, commercial_user, monkeypatch)
+        self.connect_user(controller, support_user, monkeypatch)
         self.add_client(controller, client_information)
         self.add_contract(controller, contract_information, 1)
         inputs = iter(
             [
                 'UPDATE CONTRACT',
-                '0',
-                '0',
-                '',
-                '',
-                '',
                 '',
                 'exit',
                 ''
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.main_menu()
         captured = capsys.readouterr()
-        assert 'Mise à jour d\'un contrat' in captured.out
-        assert 'Contrat mis à jour' in captured.out
-
-    def test_update_contract_with_change(
-            self,
-            controller,
-            commercial_user,
-            client_information,
-            contract_information,
-            monkeypatch,
-            capsys):
-        self.connect_user(controller, commercial_user, monkeypatch)
-        self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 1)
-        inputs = iter(
-            [
-                'UPDATE CONTRACT',
-                '0',
-                '0',
-                '10',
-                '10',
-                'n',
-                '',
-                'exit',
-                ''
-            ]
-        )
-        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.main_menu()
-        captured = capsys.readouterr()
-        assert 'Mise à jour d\'un contrat' in captured.out
-        assert 'Contrat mis à jour' in captured.out
+        assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
     def test_delete_contract(
             self,
             controller,
-            commercial_user,
+            support_user,
             client_information,
             contract_information,
             monkeypatch,
             capsys):
-        self.connect_user(controller, commercial_user, monkeypatch)
+        self.connect_user(controller, support_user, monkeypatch)
         self.add_client(controller, client_information)
         self.add_contract(controller, contract_information, 1)
         inputs = iter(
@@ -322,18 +266,17 @@ class TestCommercial:
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.main_menu()
         captured = capsys.readouterr()
-        assert 'Suppression d\'un contrat' in captured.out
-        assert 'Contrat supprimé' in captured.out
+        assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
     def test_view_contract(
             self,
             controller,
-            commercial_user,
+            support_user,
             client_information,
             contract_information,
             monkeypatch,
             capsys):
-        self.connect_user(controller, commercial_user, monkeypatch)
+        self.connect_user(controller, support_user, monkeypatch)
         self.add_client(controller, client_information)
         self.add_contract(controller, contract_information, 1)
         inputs = iter(
@@ -358,35 +301,24 @@ class TestCommercial:
             support_user,
             client_information,
             contract_information,
-            event_information,
             monkeypatch,
             capsys):
-        self.connect_user(controller, support_user, monkeypatch)
         self.connect_user(controller, commercial_user, monkeypatch)
+        self.connect_user(controller, support_user, monkeypatch)
         self.add_client(controller, client_information)
         self.add_contract(controller, contract_information, 1)
         inputs = iter(
             [
                 'ADD EVENT',
-                '0',
-                '0',
-                event_information['location'],
-                event_information['attendees'],
-                event_information['date_start'].strftime('%d/%m/%Y'),
-                event_information['date_stop'].strftime('%d/%m/%Y'),
-                event_information['notes'],
-                '',
                 '',
                 'exit',
                 ''
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.main_menu()
         captured = capsys.readouterr()
-        assert 'Ajout d\'un évènement' in captured.out
-        assert 'Evènement ajouté' in captured.out
+        assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
     def test_update_event(
             self,
@@ -398,23 +330,34 @@ class TestCommercial:
             event_information,
             monkeypatch,
             capsys):
-        self.connect_user(controller, support_user, monkeypatch)
         self.connect_user(controller, commercial_user, monkeypatch)
+        self.connect_user(controller, support_user, monkeypatch)
         self.add_client(controller, client_information)
         self.add_contract(controller, contract_information, 1)
         self.add_event(controller, event_information, 1, 1)
         inputs = iter(
             [
                 'UPDATE EVENT',
+                '0',
+                '0',
+                'Pas loin',
+                '',
+                '',
+                '',
+                '',
+                '',
                 '',
                 'exit',
                 ''
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
+        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.main_menu()
         captured = capsys.readouterr()
-        assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
+        assert 'Mise à jour de l\'évènement' in captured.out
+        assert 'Pas loin' in captured.out
+        assert 'Evènement mis à jour' in captured.out
 
     def test_delete_event(
             self,
@@ -426,8 +369,8 @@ class TestCommercial:
             event_information,
             monkeypatch,
             capsys):
-        self.connect_user(controller, support_user, monkeypatch)
         self.connect_user(controller, commercial_user, monkeypatch)
+        self.connect_user(controller, support_user, monkeypatch)
         self.add_client(controller, client_information)
         self.add_contract(controller, contract_information, 1)
         self.add_event(controller, event_information, 1, 1)
@@ -458,8 +401,8 @@ class TestCommercial:
             event_information,
             monkeypatch,
             capsys):
-        self.connect_user(controller, support_user, monkeypatch)
         self.connect_user(controller, commercial_user, monkeypatch)
+        self.connect_user(controller, support_user, monkeypatch)
         self.add_client(controller, client_information)
         self.add_contract(controller, contract_information, 1)
         self.add_event(controller, event_information, 1, 1)
@@ -474,7 +417,6 @@ class TestCommercial:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.main_menu()
         captured = capsys.readouterr()
         assert 'Informations sur l\'évènement' in captured.out
