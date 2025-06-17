@@ -43,15 +43,16 @@ class TestMysql:
         mysql.db_session.commit()
         assert mysql.number_of_user() == 1
 
-    # todo
-    # def test_get_password_stored(self, mysql, management_user):
-    #     self.add_user(mysql, management_user)
-    #     mysql.session.user = mysql.session.new_user
-    #     password = mysql.get_user_password()
-    #     assert re.search(
-    #         "[$]{1}argon2id[$]{1}v=19[$]{1}m=65536,t=4,p=1[$]{1}[+.\x00-9a-zA-Z]{22}[$]{1}[+.\x00-9a-zA-Z]{43}",
-    #         password
-    #     ) is not None
+    def test_get_password_stored(self, mysql, management_user):
+        self.add_user(mysql, management_user)
+        mysql.session.user['email'] = management_user['email']
+        mysql.session.user['password'] = management_user['password']
+        mysql.update_password_user()
+        password = mysql.get_user_password()
+        assert re.search(
+            "[$]{1}argon2id[$]{1}v=19[$]{1}m=65536,t=4,p=1[$]{1}[+.\x00-9a-zA-Z]{22}[$]{1}[+.\x00-9a-zA-Z]{43}",
+            password
+        ) is not None
 
     def test_get_password_failed(self, mysql):
         assert mysql.get_user_password() is False
@@ -404,3 +405,58 @@ class TestMysql:
         events = mysql.get_event_list_by_user(2)
         assert len(events) == 1
         assert events[0].support_contact_id == int(event_information['support_contact_id'])
+
+    def test_number_of_contract_without_client(self, mysql):
+        assert mysql.number_of_contract() == 0
+
+    def test_number_of_event(self, mysql):
+        assert mysql.number_of_event() == 0
+
+    def test_get_user_id(self, mysql, commercial_user):
+        self.add_user(mysql, commercial_user)
+        assert mysql.get_user_id(commercial_user['email']) == 1
+
+    def test_find_client_id(self, mysql, commercial_user, client_information, contract_information, event_information):
+        self.add_user(mysql, commercial_user)
+        mysql.session.user = mysql.get_user_information(1)
+        self.add_client(mysql, client_information)
+        client_information['email'] = 'client2@example.com'
+        self.add_client(mysql, client_information)
+        mysql.session.client = mysql.get_client_information(1)
+        self.add_contract(mysql, contract_information)
+        mysql.session.client = mysql.get_client_information(2)
+        self.add_contract(mysql, contract_information)
+        mysql.session.contract = mysql.get_contract_information(1)
+        self.add_event(mysql, event_information)
+        assert mysql.find_client_id(1) == 2
+        mysql.session.status = 'SELECT_CLIENT_WITH_CONTRACT'
+        assert mysql.find_client_id(0) == 1
+        mysql.session.status = 'SELECT_CLIENT_WITHOUT_EVENT'
+        assert mysql.find_client_id(0) == 2
+        mysql.session.status = 'SELECT_CLIENT_WITH_EVENT'
+        assert mysql.find_client_id(0) == 1
+
+    def test_find_contract_id(
+            self,
+            mysql,
+            commercial_user,
+            client_information,
+            contract_information,
+            event_information):
+        self.add_user(mysql, commercial_user)
+        mysql.session.user = mysql.get_user_information(1)
+        self.add_client(mysql, client_information)
+        client_information['email'] = 'client2@example.com'
+        self.add_client(mysql, client_information)
+        mysql.session.client = mysql.get_client_information(1)
+        self.add_contract(mysql, contract_information)
+        mysql.session.client = mysql.get_client_information(2)
+        self.add_contract(mysql, contract_information)
+        mysql.session.contract = mysql.get_contract_information(1)
+        self.add_event(mysql, event_information)
+        assert mysql.find_contract_id(0) == 2
+        mysql.session.status = 'SELECT_CONTRACT_WITHOUT_EVENT'
+        assert mysql.find_contract_id(0) == 2
+        mysql.session.client = mysql.get_client_information(1)
+        mysql.session.status = 'SELECT_CONTRACT_WITH_EVENT'
+        assert mysql.find_contract_id(0) == 1

@@ -75,7 +75,7 @@ class Mysql:
         )
         return self.add_in_db(new_user)
 
-    def update_password_user(self, password):
+    def update_password_user(self):
         count = self.db_session.query(EpicUser) \
             .filter(EpicUser.email == self.session.user['email']) \
             .update({'password': self.auth.hash_password(self.session.user['password'])})

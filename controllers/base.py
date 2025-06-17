@@ -44,8 +44,8 @@ class Controller:
         password_in_db = self.db.get_user_password()
         if password_in_db is None:
             self.session.status = 'PASSWORD_FIRST_TIME'
-            password = self.ask_password()
-            self.db.update_password_user(password)
+            self.ask_password()
+            self.db.update_password_user()
             password_in_db = self.db.get_user_password()
         password = self.prompt.thing('password')
         if self.auth.check_password(password, password_in_db):
