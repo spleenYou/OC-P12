@@ -1,6 +1,6 @@
 import os
 import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import secrets
 from argon2 import PasswordHasher
 from dotenv import set_key, load_dotenv, find_dotenv, get_key
@@ -26,8 +26,7 @@ class Authentication:
     def generate_token(self):
         self.session.token = jwt.encode(
             payload={
-                'email': self.session.user['email'],
-                'exp': datetime.now() + timedelta(hours=2)
+                'exp': datetime.now(tz=timezone.utc) + timedelta(hours=5)
             },
             key=get_key(self.dotenv_path, 'SECRET_KEY')
         )
