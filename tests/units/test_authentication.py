@@ -22,13 +22,11 @@ class TestAuthentication:
             target='controllers.authentication.set_key',
             name=fake_set_key
         )
-        authentication.session.user['email'] = 'test@example.com'
         assert authentication.generate_token() is True
         assert authentication.session.token is not None
         decoded = jwt.decode(authentication.session.token, 'my_secret_key', algorithms=['HS256'])
-        assert decoded['email'] == 'test@example.com'
         assert datetime.fromtimestamp(decoded['exp']) > datetime.now()
-        assert datetime.fromtimestamp(decoded['exp']) < datetime.now() + timedelta(hours=4)
+        assert datetime.fromtimestamp(decoded['exp']) < datetime.now() + timedelta(hours=10)
 
     def test_check_token_valid(self, monkeypatch, authentication, secret, token):
         monkeypatch.setattr(

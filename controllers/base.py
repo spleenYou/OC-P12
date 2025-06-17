@@ -80,7 +80,7 @@ class Controller:
                     self.session.status = 'NO_' + command[1]
             else:
                 self.session.status = 'UNKNOWN'
-            if command != self.session.status or command[:4] == 'VIEW':
+            if (command != self.session.status or command[:4] == 'VIEW') and self.session.status[-2:] != 'OK':
                 self.prompt.wait()
             self.session.reset_session()
 

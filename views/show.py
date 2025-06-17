@@ -26,7 +26,7 @@ class Show:
             'SELECT_USER': 'Sélection d\'un utilisateur',
             'SELECT_SUPPORT_USER': 'Selection d\'un utilisateur support',
             'ADD_CLIENT': 'Ajout d\'un client',
-            'ADD_CLIENT_OK': 'Client ajoutè',
+            'ADD_CLIENT_OK': 'Client ajouté',
             'ADD_CLIENT_FAILED': 'Impossible d\'ajouter le client',
             'UPDATE_CLIENT': 'Mise à jour d\'un client',
             'UPDATE_CLIENT_OK': 'Client mis à jour',
@@ -331,8 +331,8 @@ class Show:
                 content.add_row('Client', self.session.client['company_name'] + ' - ' + self.session.client['name'])
                 content.add_row('Commercial', self.session.new_user['name'] + ' - ' + self.session.new_user['email'])
                 content.add_row('Support',
-                                support_user['name'] if support_user else ''
-                                + '-' +
+                                (support_user['name'] if support_user else '') +
+                                ' - ' +
                                 support_user['email'] if support_user else '')
                 content.add_row('Statut du contrat', 'Terminé' if self.session.contract['status'] else 'En cours')
                 content.add_row('Reste à payer', f"{self.session.contract['rest_amount']}")

@@ -91,27 +91,6 @@ class TestController:
         assert 'Erreur de connexion' in captured.out
         assert 'Vos identifiants sont inconnus' in captured.out
 
-    # Todo
-    # def test_login_and_try_email_not_correct(self, monkeypatch, controller, management_user, capsys):
-    #     controller.session.new_user = management_user
-    #     controller.db.add_user()
-    #     controller.session.user = controller.db.get_user_information(1)
-    #     inputs = iter(
-    #         [
-    #             'bad_email',
-    #             '',
-    #             management_user['email'],
-    #             management_user['password'] + 'e',
-    #             ''
-    #         ]
-    #     )
-    #     monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
-    #     monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-    #     controller.start(None)
-    #     captured = capsys.readouterr()
-    #     assert 'Erreur de saisie' in captured.out
-    #     assert 'Votre saisie ne correspond pas à un email.' in captured.out
-
     def test_main_menu(self, controller, monkeypatch, management_user, capsys):
         self.add_user(controller, management_user)
         self.connect_user(controller, 1)
@@ -304,7 +283,7 @@ class TestController:
         controller.add_client()
         controller.show.display()
         captured = capsys.readouterr()
-        assert 'Client ajoutè' in captured.out
+        assert 'Client ajouté' in captured.out
 
     def test_update_client(self, controller, monkeypatch, capsys, commercial_user, client_information):
         self.add_user(controller, commercial_user)
