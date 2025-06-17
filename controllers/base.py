@@ -55,7 +55,7 @@ class Controller:
             self.session.status = 'LOGIN_OK'
         else:
             self.session.status = 'LOGIN_FAILED'
-            self.prompt.wait()
+        self.prompt.wait()
         return None
 
     def main_menu(self):
