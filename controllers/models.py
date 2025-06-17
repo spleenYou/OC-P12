@@ -69,7 +69,7 @@ class Event(Base):
     date_creation = Column(DateTime, default=func.now())
     date_start = Column(Date)
     date_stop = Column(Date)
-    support_contact_id = Column(Integer, ForeignKey('epic_users.id'), nullable=False)
+    support_contact_id = Column(Integer, ForeignKey('epic_users.id'), nullable=True)
     location = Column(String(255))
     attendees = Column(Integer)
     notes = Column(Text)

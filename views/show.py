@@ -55,7 +55,7 @@ class Show:
             'ADD_EVENT': 'Ajout d\'un évènement',
             'ADD_EVENT_OK': 'Evènement ajouté',
             'ADD_EVENT_FAILED': 'Evènement non ajouté',
-            'UPDATE_EVENT': 'Mise à jour d\'un évènement',
+            'UPDATE_EVENT': 'Mise à jour de l\'évènement',
             'UPDATE_EVENT_OK': 'Evènement mis à jour',
             'UPDATE_EVENT_failed': 'Evènement non mis à jour',
             'DELETE_EVENT': 'Suppression d\'un évènement',
@@ -63,6 +63,7 @@ class Show:
             'DELETE_EVENT_FAILED': 'Evènement non supprimé',
             'UPDATE_SUPPORT_ON_EVENT': 'Mise à jour du support',
             'VIEW_EVENT': 'Informations sur l\'évènement',
+            'NO_EVENT': 'Aucun évènement enregistré',
             'CONNECTION': 'Connexion',
             'ERROR': 'Erreur',
             'ADD_USER_FAILED': 'Erreur',
@@ -78,6 +79,8 @@ class Show:
             'SELECT_CLIENT_FAILED': 'Erreur de saisie',
             'BAD_TOTAL_AMOUNT': 'Erreur de saisie',
             'BAD_REST_AMOUNT': 'Erreur de saisie',
+            'BAD_DATE_START': 'Erreur de saisie',
+            'BAD_DATE_STOP': 'Erreur de saisie',
             'SELECT_CONTRACT_FAILED': 'Erreur de saisie',
             'BAD_SELECT_CLIENT': 'Erreur de saisie',
             'BAD_CONTRACT_STATUS': 'Erreur de saisie',
@@ -87,13 +90,11 @@ class Show:
             'MAIN_MENU': 'Menu principal',
             'PASSWORD_FIRST_TIME': 'Définition du mot de passe',
             'PASSWORD_SECOND_TIME': 'Définition du mot de passe',
-            'PASSWORD_MATCH_FAILED': 'Erreur de saisie',
+            'PASSWORD_MATCH_FAILED': 'Erreur de saisie'
         }
         self.SIMPLE_CONTENTS = {
             'FIRST_LAUNCH': ('Un utilisateur de l\'équipe Management va être créé\n'
                              'afin de pouvoir continuer'),
-            'NO_SUPPORT_USER': ('Pas d\'utilisateur support enregistré\n\n'
-                                'Un utilisateur support est obligatoire pour créer un event'),
             'NO_CLIENT_WITHOUT_EVENT': 'Pas de client avec contrat sans évènement',
             'BAD_EMAIL': 'Votre saisie ne correspond pas à un email.',
             'BAD_EMPLOYEE_NUMBER': 'Votre saisie ne correspond pas à un numéro d\'employé.',

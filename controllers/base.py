@@ -374,7 +374,7 @@ class Controller:
         self.session.client = self.db.get_client_information(client_id)
         self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
         self.session.contract['total_amount'] = self.ask_total_amount()
-        self.session.contract['rest_amount'] = self.ask_total_amount()
+        self.session.contract['rest_amount'] = self.ask_rest_amount()
         if self.prompt.validation():
             if self.db.add_contract():
                 self.session.status = 'ADD_CONTRACT_OK'
@@ -443,8 +443,7 @@ class Controller:
 
     @check_token_and_perm
     def add_event(self):
-        nb_client = len(self.db.get_client_list())
-        if self.db.number_of_support_user() > 0 and nb_client > 0:
+        if len(self.db.get_client_list()) > 0:
             client_id = self.select_client()
             self.session.client = self.db.get_client_information(client_id)
             self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
@@ -455,17 +454,15 @@ class Controller:
             self.session.event['date_start'] = self.ask_date_start()
             self.session.event['date_stop'] = self.ask_date_stop()
             self.session.event['notes'] = self.ask_notes()
-            self.session.event['support_contact_id'] = self.select_support_user()
+            if self.db.number_of_support_user() > 0:
+                self.session.event['support_contact_id'] = self.select_support_user()
             if self.prompt.validation():
                 if self.db.add_event():
                     self.session.status = 'ADD_EVENT_OK'
                 else:
                     self.session.status = 'ADD_EVENT_FAILED'
         else:
-            if nb_client == 0:
-                self.session.status = 'NO_CLIENT_WITHOUT_EVENT'
-            else:
-                self.session.status = 'NO_SUPPORT_USER'
+            self.session.status = 'NO_CLIENT_WITHOUT_EVENT'
 
     @check_token_and_perm
     def update_event(self):
@@ -582,6 +579,9 @@ class Controller:
                 self.session.status = status
                 return self.session.event['support_contact_id']
             try:
+                if user_id == '':
+                    self.session.status = status
+                    return None
                 user_id = int(user_id)
                 if user_id < self.db.number_of_user():
                     user_id = self.db.find_support_user_id(user_id)
