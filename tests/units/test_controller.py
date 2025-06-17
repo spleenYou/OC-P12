@@ -258,7 +258,7 @@ class TestController:
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Commercial 2' in captured.out
-        assert 'Utilisateur modifié' in captured.out
+        assert 'Utilisateur mis à jour' in captured.out
 
     def test_delete_user(self, controller, monkeypatch, management_user, capsys, commercial_user):
         self.add_user(controller, management_user)

@@ -25,6 +25,8 @@ class Mysql:
         return Session()
 
     def number_of_user(self):
+        if self.session.status == 'SELECT_USER_FOR_DELETE':
+            return self.db_session.query(EpicUser).filter(EpicUser.id == self.session.user['id']).count()
         return self.db_session.query(EpicUser).count()
 
     def number_of_support_user(self):
@@ -105,6 +107,12 @@ class Mysql:
         return self.db_session.query(EpicUser.id).filter(EpicUser.email == email).first()[0]
 
     def find_user_id(self, number):
+        if self.session.status == 'SELECT_USER_FOR_DELETE':
+            return self.db_session \
+                    .query(EpicUser.id) \
+                    .filter(EpicUser.id != self.session.user['id']) \
+                    .order_by(EpicUser.id) \
+                    .all()[number][0]
         return self.db_session.query(EpicUser.id).order_by(EpicUser.id).all()[number][0]
 
     def find_support_user_id(self, number):
@@ -157,6 +165,11 @@ class Mysql:
         return False
 
     def get_user_list(self):
+        if self.session.status == 'SELECT_USER_FOR_DELETE':
+            return self.db_session \
+                    .query(EpicUser) \
+                    .filter(EpicUser.id != self.session.user['id']) \
+                    .order_by(EpicUser.id).all()
         return self.db_session.query(EpicUser).order_by(EpicUser.id).all()
 
     def get_support_user_list(self):

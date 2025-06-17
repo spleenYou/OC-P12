@@ -171,7 +171,10 @@ class Controller:
         number = None
         status = self.session.status
         while number is None:
-            self.session.status = 'SELECT_USER'
+            if status == 'DELETE_USER':
+                self.session.status = 'SELECT_USER_FOR_DELETE'
+            else:
+                self.session.status = 'SELECT_USER'
             number = self.prompt.thing('user')
             try:
                 number = int(number)

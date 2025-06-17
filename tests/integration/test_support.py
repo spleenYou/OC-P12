@@ -199,7 +199,6 @@ class TestSupport:
             controller,
             support_user,
             client_information,
-            contract_information,
             monkeypatch,
             capsys):
         self.connect_user(controller, support_user, monkeypatch)
@@ -255,15 +254,12 @@ class TestSupport:
         inputs = iter(
             [
                 'DELETE CONTRACT',
-                '0',
-                '0',
                 '',
                 'exit',
                 ''
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.main_menu()
         captured = capsys.readouterr()
         assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out

@@ -18,12 +18,13 @@ class Show:
             'ADD_USER': 'Ajout d\'un utilisateur',
             'ADD_USER_OK': 'Utilisateur créé',
             'UPDATE_USER': 'Mise à jour d\'un utilisateur',
-            'UPDATE_USER_OK': 'Utilisateur modifié',
-            'UPDATE_USER_FAILED': 'Utilisateur non modifié',
+            'UPDATE_USER_OK': 'Utilisateur mis à jour',
+            'UPDATE_USER_FAILED': 'Utilisateur non mis à jour',
             'VIEW_USER': 'Informations sur l\'utilisateur',
             'DELETE_USER': 'Suppression d\'un utilisateur',
             'DELETE_USER_OK': 'Utilisateur supprimé',
             'SELECT_USER': 'Sélection d\'un utilisateur',
+            'SELECT_USER_FOR_DELETE': 'Sélection d\'un utilisateur',
             'SELECT_SUPPORT_USER': 'Selection d\'un utilisateur support',
             'ADD_CLIENT': 'Ajout d\'un client',
             'ADD_CLIENT_OK': 'Client ajouté',
@@ -214,7 +215,7 @@ class Show:
             self.show_content(Text(self.SIMPLE_CONTENTS[self.session.status], justify=align), align, 'cyan')
             return None
         match self.session.status:
-            case 'SELECT_USER':
+            case 'SELECT_USER' | 'SELECT_USER_FOR_DELETE':
                 users = self.db.get_user_list()
                 content = Table(show_lines=True)
                 content.add_column('N°', justify='left')
