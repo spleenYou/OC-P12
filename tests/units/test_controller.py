@@ -53,30 +53,27 @@ class TestController:
         assert 'Premier lancement de l\'application' in captured.out
         assert 'Utilisateur non enregistré' in captured.out
 
-    # Todo
-    # def test_start_without_user_and_with_registration_and_login(self, monkeypatch, controller, management_user, capsys):
-    #     inputs = iter(
-    #         [
-    #             '',
-    #             management_user['name'],
-    #             management_user['email'],
-    #             management_user['password'],
-    #             management_user['employee_number'],
-    #             '',
-    #             management_user['email'],
-    #             management_user['password'],
-    #             ''
-    #         ]
-    #     )
-    #     monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
-    #     monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-    #     monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-    #     controller.start(None)
-    #     captured = capsys.readouterr()
-    #     assert 'Premier lancement de l\'application' in captured.out
-    #     assert 'Utilisateur créé' in captured.out
-    #     assert 'Connexion' in captured.out
-    #     assert 'Connexion réussie' in captured.out
+    def test_login_first_time(self, monkeypatch, controller, management_user, capsys):
+        self.add_user(controller, management_user)
+        inputs = iter(
+            [
+                management_user['email'],
+                management_user['password'],
+                management_user['password'],
+                management_user['password'],
+                'exit',
+                ''
+            ]
+        )
+        monkeypatch.setattr('builtins.input', lambda *args: next(inputs))
+        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
+        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
+        controller.start(None)
+        captured = capsys.readouterr()
+        assert 'Définition du mot de passe' in captured.out
+        assert 'Veuillez définir votre mot de passe' in captured.out
+        assert 'Veuillez entrer une deuxième fois votre mot de passe' in captured.out
+        assert 'Connexion réussie' in captured.out
 
     def test_start_with_user_and_login_failed(self, monkeypatch, controller, management_user, capsys):
         controller.session.new_user = management_user
