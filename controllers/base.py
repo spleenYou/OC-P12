@@ -6,12 +6,12 @@ from functools import wraps
 
 class Controller:
     def __init__(self, prompt, show, db, auth, session):
-        self.session = session
-        self.auth = auth(session)
-        self.db = db(session, self.auth)
-        self.show = show(self.db, session)
-        self.prompt = prompt(self.show, self.db, session)
-        self.allows_to = Permission(self.db, session)
+        self.session = session()
+        self.auth = auth(self.session)
+        self.db = db(self.session, self.auth)
+        self.show = show(self.db, self.session)
+        self.prompt = prompt(self.show, self.db, self.session)
+        self.allows_to = Permission(self.db, self.session)
         self.email_regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
         self.phone_regex = re.compile(r'^\+?[0-9](?:\d{1,3} ?){1,5}\d{1,4}$')
 
@@ -34,14 +34,14 @@ class Controller:
         if self.db.number_of_user() == 0:
             self.prompt.wait()
             self.auth.generate_secret_key()
-            self.session.new_user['department_id'] = 3
-            self.session.user['department_id'] = 3
-            self.session.new_user['email'] = email
+            self.session.new_user.department_id = 3
+            self.session.user.department_id = 3
+            self.session.new_user.email = email
             self.session.status = 'ADD_USER'
             if not self.add_user():
                 return None
         self.session.status = 'CONNECTION'
-        self.session.user["email"] = self.ask_email(email)
+        self.session.user.email = self.ask_email(email)
         password_in_db = self.db.get_user_password()
         if password_in_db is None:
             self.session.status = 'PASSWORD_FIRST_TIME'
@@ -50,14 +50,14 @@ class Controller:
             password_in_db = self.db.get_user_password()
         password = self.prompt.thing('password')
         if self.auth.check_password(password, password_in_db):
-            user_id = self.db.get_user_id(self.session.user["email"])
-            self.session.user = self.db.get_user_information(user_id)
+            self.session.user = self.db.get_user_by_mail(self.session.user.email)
             self.auth.generate_token()
             self.session.status = 'LOGIN_OK'
+            self.prompt.wait()
+            self.main_menu()
         else:
             self.session.status = 'LOGIN_FAILED'
-        self.prompt.wait()
-        return None
+            self.prompt.wait()
 
     def main_menu(self):
         command = ['']
@@ -71,7 +71,7 @@ class Controller:
                     command[1] in ['USER', 'CLIENT', 'CONTRACT', 'EVENT']):
                 if (command[0] == 'ADD' or
                    (command[0] != 'ADD' and eval('self.db.number_of_' + command[1].lower())() > 0)):
-                    if command[0] == 'UPDATE' and command[1] == 'EVENT' and self.session.user['department_id'] == 3:
+                    if command[0] == 'UPDATE' and command[1] == 'EVENT' and self.session.user.department_id == 3:
                         command = command[0] + '_SUPPORT_ON_' + command[1]
                     else:
                         command = command[0] + '_' + command[1]
@@ -90,7 +90,7 @@ class Controller:
     def ask_name(self):
         name = self.prompt.thing('name')
         if name == '':
-            name = self.session.new_user['name']
+            name = self.session.new_user.name
         return name
 
     def ask_email(self, email=None):
@@ -101,9 +101,9 @@ class Controller:
             if email == '':
                 match status:
                     case 'UPDATE_USER':
-                        email = self.session.new_user['email']
+                        email = self.session.new_user.email
                     case 'UPDATE_CLIENT':
-                        email = self.session.client['email']
+                        email = self.session.client.email
             elif not re.fullmatch(self.email_regex, email or ''):
                 email = None
                 self.session.status = 'BAD_EMAIL'
@@ -117,7 +117,7 @@ class Controller:
             self.session.status = status
             employee_number = self.prompt.thing('employee_number')
             if status == 'UPDATE_USER' and employee_number == '':
-                return self.session.new_user['employee_number']
+                return self.session.new_user.employee_number
             try:
                 employee_number = int(employee_number)
             except Exception:
@@ -131,18 +131,18 @@ class Controller:
         password = None
         while password is None:
             self.session.status = status
-            if status == 'PASSWORD_FIRST_TIME' and self.session.user['password'] is not None:
+            if status == 'PASSWORD_FIRST_TIME' and self.session.user.password is not None:
                 self.session.status = 'PASSWORD_SECOND_TIME'
             password = self.prompt.thing('password')
             if status == 'PASSWORD_FIRST_TIME' and password != '':
-                if self.session.user['password'] is None:
-                    self.session.user['password'] = password
-                elif password == self.session.user['password']:
+                if self.session.user.password is None:
+                    self.session.user.password = password
+                elif password == self.session.user.password:
                     self.session.status = 'CONNECTION'
                     return None
                 else:
                     self.session.status = 'PASSWORD_MATCH_FAILED'
-                    self.session.user['password'] = None
+                    self.session.user.password = None
                     self.prompt.wait()
             else:
                 self.session.status = 'PASSWORD_EMPTY'
@@ -153,12 +153,12 @@ class Controller:
         status = self.session.status
         department_id = None
         if status != 'UPDATE_USER':
-            department_id = self.session.new_user['department_id']
+            department_id = self.session.new_user.department_id
         while department_id is None:
             self.session.status = status
             department_id = self.prompt.thing('department')
             if status == 'UPDATE_USER' and department_id == '':
-                return self.session.new_user['department_id']
+                return self.session.new_user.department_id
             try:
                 department_id = int(department_id)
             except Exception:
@@ -179,9 +179,9 @@ class Controller:
             try:
                 number = int(number)
                 if number < self.db.number_of_user():
-                    user_id = self.db.find_user_id(number)
+                    user = self.db.get_user_by_number(number)
                     self.session.status = status
-                    return user_id
+                    return user
                 else:
                     self.session.status = 'SELECT_USER_FAILED'
             except Exception:
@@ -192,13 +192,13 @@ class Controller:
     def ask_client_name(self):
         name = self.prompt.thing('client_name')
         if name == '':
-            name = self.session.client['name']
+            name = self.session.client.name
         return name
 
     def ask_company_name(self):
         company_name = self.prompt.thing('company_name')
         if company_name == '':
-            company_name = self.session.client['company_name']
+            company_name = self.session.client.company_name
         return company_name
 
     def ask_phone(self):
@@ -208,7 +208,7 @@ class Controller:
             self.session.status = status
             phone = self.prompt.thing('phone')
             if status == 'UPDATE_CLIENT' and phone == '':
-                phone = self.session.client['phone']
+                phone = self.session.client.phone
             if re.match(self.phone_regex, phone):
                 return phone
             phone = None
@@ -222,7 +222,7 @@ class Controller:
             self.session.status = status
             total_amount = self.prompt.thing('total_amount')
             if status == 'UPDATE_CONTRACT' and total_amount == '':
-                total_amount = self.session.contract['total_amount']
+                total_amount = self.session.contract.total_amount
             try:
                 total_amount = float(total_amount)
                 return round(total_amount, 2)
@@ -238,7 +238,7 @@ class Controller:
             self.session.status = status
             rest_amount = self.prompt.thing('rest_amount')
             if status == 'UPDATE_CONTRACT' and rest_amount == '':
-                rest_amount = self.session.contract['rest_amount']
+                rest_amount = self.session.contract.rest_amount
             try:
                 rest_amount = float(rest_amount)
                 return round(rest_amount, 2)
@@ -254,7 +254,7 @@ class Controller:
             self.session.status = status
             contract_status = self.prompt.thing('contract_status').lower()
             if status == 'UPDATE_CONTRACT' and contract_status == '':
-                return self.session.contract['status']
+                return self.session.contract.status
             if contract_status == 'y':
                 return True
             elif contract_status == 'n':
@@ -266,12 +266,12 @@ class Controller:
 
     @check_token_and_perm
     def add_user(self):
-        self.session.new_user['name'] = self.ask_name()
-        if self.session.new_user['email'] is None:
-            self.session.new_user['email'] = self.ask_email()
-        self.session.new_user['employee_number'] = self.ask_employee_number()
-        if self.session.new_user['department_id'] is None:
-            self.session.new_user['department_id'] = self.ask_department()
+        self.session.new_user.name = self.ask_name()
+        if self.session.new_user.email is None:
+            self.session.new_user.email = self.ask_email()
+        self.session.new_user.employee_number = self.ask_employee_number()
+        if self.session.new_user.department_id is None:
+            self.session.new_user.department_id = self.ask_department()
         if self.prompt.validation():
             if self.db.add_user():
                 self.session.status = 'ADD_USER_OK'
@@ -281,35 +281,34 @@ class Controller:
 
     @check_token_and_perm
     def update_user(self):
-        user_id = self.select_user()
-        self.session.new_user = self.db.get_user_information(user_id)
-        self.session.new_user['name'] = self.ask_name()
-        self.session.new_user['email'] = self.ask_email()
-        self.session.new_user['employee_number'] = self.ask_employee_number()
-        self.session.new_user['department_id'] = self.ask_department()
+        self.session.new_user = self.select_user()
+        original_user = self.session.new_user.copy()
+        self.session.new_user.name = self.ask_name()
+        self.session.new_user.email = self.ask_email()
+        self.session.new_user.employee_number = self.ask_employee_number()
+        self.session.new_user.department_id = self.ask_department()
         if self.prompt.validation():
             self.session.status = 'UPDATE_USER_OK'
-            self.db.update_user()
+        else:
+            self.session.new_user = original_user
 
     def view_user(self):
-        user_id = self.select_user()
-        self.session.new_user = self.db.get_user_information(user_id)
+        self.session.new_user = self.select_user()
 
     @check_token_and_perm
     def delete_user(self):
-        user_id = self.select_user()
-        self.session.new_user = self.db.get_user_information(user_id)
+        self.session.new_user = self.select_user()
         if self.prompt.validation():
             self.session.status = 'DELETE_USER_OK'
-            self.db.delete_user(user_id)
+            self.db.delete_user()
 
     @check_token_and_perm
     def add_client(self):
         self.session.new_user = self.session.user.copy()
-        self.session.client['company_name'] = self.ask_company_name()
-        self.session.client['name'] = self.ask_client_name()
-        self.session.client['email'] = self.ask_email()
-        self.session.client['phone'] = self.ask_phone()
+        self.session.client.company_name = self.ask_company_name()
+        self.session.client.name = self.ask_client_name()
+        self.session.client.email = self.ask_email()
+        self.session.client.phone = self.ask_phone()
         if self.prompt.validation():
             if self.db.add_client():
                 self.session.status = 'ADD_CLIENT_OK'
@@ -318,33 +317,30 @@ class Controller:
 
     @check_token_and_perm
     def update_client(self):
-        client_id = self.select_client()
-        self.session.client = self.db.get_client_information(client_id)
-        self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
-        self.session.client['company_name'] = self.ask_company_name()
-        self.session.client['name'] = self.ask_client_name()
-        self.session.client['email'] = self.ask_email()
-        self.session.client['phone'] = self.ask_phone()
+        self.session.client = self.select_client()
+        original_client = self.session.client.copy()
+        self.session.new_user = self.session.client.commercial_contact
+        self.session.client.company_name = self.ask_company_name()
+        self.session.client.name = self.ask_client_name()
+        self.session.client.email = self.ask_email()
+        self.session.client.phone = self.ask_phone()
         if self.prompt.validation():
-            if self.db.update_client():
-                self.session.status = 'UPDATE_CLIENT_OK'
-            else:
-                self.session.status = 'UPDATE_CLIENT_FAILED'
+            self.session.status = 'UPDATE_CLIENT_OK'
+        else:
+            self.session.client = original_client
+            self.session.status = 'UPDATE_CLIENT_FAILED'
 
     def view_client(self):
-        client_id = self.select_client()
-        self.session.client = self.db.get_client_information(client_id)
-        self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
+        self.session.client = self.select_client()
+        self.session.new_user = self.session.client.commercial_contact
 
     @check_token_and_perm
     def delete_client(self):
-        client_id = self.select_client()
-        self.session.client = self.db.get_client_information(client_id)
-        self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
+        self.session.client = self.select_client()
+        self.session.new_user = self.session.client.commercial_contact
         if self.prompt.validation():
             self.session.status = 'DELETE_CLIENT_OK'
-            self.db.delete_client(client_id)
-            self.db.delete_client(client_id)
+            self.db.delete_client()
 
     def select_client(self):
         status = self.session.status
@@ -363,7 +359,7 @@ class Controller:
                 number = int(number)
                 if number < self.db.number_of_client():
                     self.session.status = status
-                    return self.db.find_client_id(number)
+                    return self.db.get_client(number)
                 else:
                     self.session.status = 'SELECT_CLIENT_FAILED'
             except Exception:
@@ -373,11 +369,9 @@ class Controller:
 
     @check_token_and_perm
     def add_contract(self):
-        client_id = self.select_client()
-        self.session.client = self.db.get_client_information(client_id)
-        self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
-        self.session.contract['total_amount'] = self.ask_total_amount()
-        self.session.contract['rest_amount'] = self.ask_rest_amount()
+        self.session.client = self.select_client()
+        self.session.contract.total_amount = self.ask_total_amount()
+        self.session.contract.rest_amount = self.ask_rest_amount()
         if self.prompt.validation():
             if self.db.add_contract():
                 self.session.status = 'ADD_CONTRACT_OK'
@@ -386,14 +380,11 @@ class Controller:
 
     @check_token_and_perm
     def update_contract(self):
-        client_id = self.select_client()
-        self.session.client = self.db.get_client_information(client_id)
-        self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
-        contract_id = self.select_contract()
-        self.session.contract = self.db.get_contract_information(contract_id)
-        self.session.contract['total_amount'] = self.ask_total_amount()
-        self.session.contract['rest_amount'] = self.ask_rest_amount()
-        self.session.contract['status'] = self.ask_status()
+        self.session.client = self.select_client()
+        self.session.contract = self.select_contract()
+        self.session.contract.total_amount = self.ask_total_amount()
+        self.session.contract.rest_amount = self.ask_rest_amount()
+        self.session.contract.status = self.ask_status()
         print(type(self.session.status))
         if self.prompt.validation():
             if self.db.update_contract():
@@ -403,11 +394,8 @@ class Controller:
 
     @check_token_and_perm
     def delete_contract(self):
-        client_id = self.select_client()
-        self.session.client = self.db.get_client_information(client_id)
-        self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
-        contract_id = self.select_contract()
-        self.session.contract = self.db.get_contract_information(contract_id)
+        self.session.client = self.select_client()
+        self.session.contract = self.select_contract()
         if self.prompt.validation():
             if self.db.update_contract():
                 self.session.status = 'DELETE_CONTRACT_OK'
@@ -415,11 +403,8 @@ class Controller:
                 self.session.status = 'DELETE_CONTRACT_FAILED'
 
     def view_contract(self):
-        client_id = self.select_client()
-        self.session.client = self.db.get_client_information(client_id)
-        self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
-        contract_id = self.select_contract()
-        self.session.contract = self.db.get_contract_information(contract_id)
+        self.session.client = self.select_client()
+        self.session.contract = self.select_contract()
 
     def select_contract(self):
         status = self.session.status
@@ -436,7 +421,7 @@ class Controller:
                 contract_id = int(contract_id)
                 if contract_id < self.db.number_of_contract():
                     self.session.status = status
-                    return self.db.find_contract_id(contract_id)
+                    return self.db.get_contract(contract_id)
                 else:
                     self.session.status = 'SELECT_CONTRACT_FAILED'
             except Exception:
@@ -447,18 +432,15 @@ class Controller:
     @check_token_and_perm
     def add_event(self):
         if len(self.db.get_client_list()) > 0:
-            client_id = self.select_client()
-            self.session.client = self.db.get_client_information(client_id)
-            self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
-            contract_id = self.select_contract()
-            self.session.contract = self.db.get_contract_information(contract_id)
-            self.session.event['location'] = self.ask_location()
-            self.session.event['attendees'] = self.ask_attendees()
-            self.session.event['date_start'] = self.ask_date_start()
-            self.session.event['date_stop'] = self.ask_date_stop()
-            self.session.event['notes'] = self.ask_notes()
+            self.session.client = self.select_client()
+            self.session.contract = self.select_contract()
+            self.session.event.location = self.ask_location()
+            self.session.event.attendees = self.ask_attendees()
+            self.session.event.date_start = self.ask_date_start()
+            self.session.event.date_stop = self.ask_date_stop()
+            self.session.event.notes = self.ask_notes()
             if self.db.number_of_support_user() > 0:
-                self.session.event['support_contact_id'] = self.select_support_user()
+                self.session.event.support_contact_id = self.select_support_user()
             if self.prompt.validation():
                 if self.db.add_event():
                     self.session.status = 'ADD_EVENT_OK'
@@ -469,51 +451,40 @@ class Controller:
 
     @check_token_and_perm
     def update_event(self):
-        client_id = self.select_client()
-        self.session.client = self.db.get_client_information(client_id)
-        self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
-        contract_id = self.select_contract()
-        self.session.contract = self.db.get_contract_information(contract_id)
-        self.session.event = self.db.get_event_information()
+        self.session.client = self.select_client()
+        self.session.contract = self.select_contract()
+        original_event = self.session.contract.event.copy()
         if self.session.status == 'UPDATE_EVENT':
-            self.session.event['location'] = self.ask_location()
-            self.session.event['attendees'] = self.ask_attendees()
-            self.session.event['date_start'] = self.ask_date_start()
-            self.session.event['date_stop'] = self.ask_date_stop()
-            self.session.event['notes'] = self.ask_notes()
-        self.session.event['support_contact_id'] = self.select_support_user()
+            self.session.contract.event.location = self.ask_location()
+            self.session.contract.event.attendees = self.ask_attendees()
+            self.session.contract.event.date_start = self.ask_date_start()
+            self.session.contract.event.date_stop = self.ask_date_stop()
+            self.session.contract.event.notes = self.ask_notes()
+        self.session.contract.event.support_contact_id = self.select_support_user()
         if self.prompt.validation():
-            if self.db.update_event():
-                self.session.status = 'UPDATE_EVENT_OK'
+            self.session.status = 'UPDATE_EVENT_OK'
         else:
+            self.session.contract.event = original_event
             self.session.status = 'UPDATE_EVENT_FAILED'
 
     @check_token_and_perm
     def delete_event(self):
-        client_id = self.select_client()
-        self.session.client = self.db.get_client_information(client_id)
-        self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
-        contract_id = self.select_contract()
-        self.session.contract = self.db.get_contract_information(contract_id)
-        self.session.event = self.db.get_event_information()
+        self.session.client = self.select_client()
+        self.session.contract = self.select_contract()
         if self.prompt.validation():
-            if self.db.update_event():
+            if self.db.delete_event():
                 self.session.status = 'DELETE_EVENT_OK'
         else:
             self.session.status = 'DELETE_EVENT_FAILED'
 
     def view_event(self):
-        client_id = self.select_client()
-        self.session.client = self.db.get_client_information(client_id)
-        self.session.new_user = self.db.get_user_information(self.session.client['commercial_contact_id'])
-        contract_id = self.select_contract()
-        self.session.contract = self.db.get_contract_information(contract_id)
-        self.session.event = self.db.get_event_information()
+        self.session.client = self.select_client()
+        self.session.contract = self.select_contract()
 
     def ask_location(self):
         location = self.prompt.thing('location')
         if location == '':
-            location = self.session.event['location']
+            location = self.session.event.location
         return location
 
     def ask_attendees(self):
@@ -523,7 +494,7 @@ class Controller:
             self.session.status = status
             attendees = self.prompt.thing('attendees')
             if status == 'UPDATE_EVENT' and attendees == '':
-                return self.session.event['attendees']
+                return self.session.event.attendees
             try:
                 attendees = int(attendees)
                 return attendees
@@ -539,7 +510,7 @@ class Controller:
             self.session.status = status
             date_start = self.prompt.thing('date_start')
             if status == 'UPDATE_EVENT' and date_start == '':
-                return self.session.event['date_start']
+                return self.session.event.date_start
             try:
                 day, month, year = date_start.split('/')
                 date_start = date(year=int(year), month=int(month), day=int(day))
@@ -556,7 +527,7 @@ class Controller:
             self.session.status = status
             date_stop = self.prompt.thing('date_stop')
             if status == 'UPDATE_EVENT' and date_stop == '':
-                return self.session.event['date_stop']
+                return self.session.event.date_stop
             try:
                 day, month, year = date_stop.split('/')
                 date_stop = date(year=int(year), month=int(month), day=int(day))
@@ -569,7 +540,7 @@ class Controller:
     def ask_notes(self):
         notes = self.prompt.thing('notes')
         if notes == '':
-            notes = self.session.event['notes']
+            notes = self.session.event.notes
         return notes
 
     def select_support_user(self):
@@ -580,14 +551,14 @@ class Controller:
             user_id = self.prompt.thing('support_user')
             if status in ['UPDATE_EVENT', 'UPDATE_SUPPORT_ON_EVENT'] and user_id == '':
                 self.session.status = status
-                return self.session.event['support_contact_id']
+                return self.session.event.support_contact_id
             try:
                 if user_id == '':
                     self.session.status = status
                     return None
                 user_id = int(user_id)
                 if user_id < self.db.number_of_user():
-                    user_id = self.db.find_support_user_id(user_id)
+                    user_id = self.db.get_support_user_by_id(user_id)
                     self.session.status = status
                     return user_id
                 else:

@@ -15,11 +15,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('login', nargs='?', default=None, help="Email needed as login")
     args = parser.parse_args()
-    session = Session()
-    app = Controller(Ask, Show, Mysql, Authentication, session)
+    app = Controller(Ask, Show, Mysql, Authentication, Session)
     app.start(args.login)
-    if session.status == 'LOGIN_OK':
-        app.main_menu()
     os._exit(os.EX_OK)
 
 

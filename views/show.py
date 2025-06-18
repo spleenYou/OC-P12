@@ -192,11 +192,10 @@ class Show:
         self.show_content(content, 'center', 'cyan')
 
     def session_information(self):
-        if self.session.user['id'] is not None and self.session.status != 'LOGIN_OK':
+        if self.session.user.id is not None and self.session.status != 'LOGIN_OK':
             content = []
-            department_name = self.db.get_department_list()[self.session.user['department_id'] - 1]
-            content = (f"    Utilisateur : {self.session.user['name']}\n"
-                       f"    Departement : {department_name}")
+            content = (f"    Utilisateur : {self.session.user.name}\n"
+                       f"    Departement : {self.session.user.department_name}")
             self.show_content(content, 'left', 'cyan')
 
     def title(self):
@@ -249,11 +248,14 @@ class Show:
                 ]
                 content = "\n".join(lines)
             case 'SELECT_CONTRACT' | 'SELECT_CONTRACT_WITH_EVENT' | 'SELECT_CONTRACT_WITHOUT_EVENT':
-                contracts = self.db.get_contract_list()
+                if self.session.status == 'SELECT_CONTRACT':
+                    contracts = self.session.client.contracts
+                else:
+                    contracts = self.db.get_contract_list()
                 lines = [
                     f'{index} - {contract.date_creation.strftime("%d %b %Y")} \\ '
                     f'{contract.total_amount} \\ '
-                    f'{"Terminé" if self.session.contract["status"] else "En cours"}'
+                    f'{"Terminé" if contract.status else "En cours"}'
                     for index, contract in enumerate(contracts)
                 ]
                 content = "\n".join(lines)
@@ -306,49 +308,52 @@ class Show:
             content.add_column(justify='left')
             content.add_column(justify='left')
             if status[-1] == 'USER':
-                employee_number = self.session.new_user['employee_number'] or ''
                 department_name = ''
-                if self.session.new_user['department_id'] is not None:
-                    department_name = self.db.get_department_list()[self.session.new_user['department_id'] - 1]
-                content.add_row('Nom', self.session.new_user['name'] or '')
-                content.add_row('Email', self.session.new_user['email'] or '')
+                if self.session.new_user.department_id is not None:
+                    department_name = self.db.get_department_list()[self.session.new_user.department_id - 1]
+                employee_number = self.session.new_user.employee_number or ''
+                content.add_row('Nom', self.session.new_user.name or '')
+                content.add_row('Email', self.session.new_user.email or '')
                 content.add_row('Numéro d\'employé', str(employee_number))
                 content.add_row('Département', department_name)
             elif status[-1] == 'CLIENT':
-                content.add_row('Nom de l\'entreprise', self.session.client['company_name'] or '')
-                content.add_row('Nom du contact', self.session.client['name'] or '')
-                content.add_row('Email', self.session.client['email'] or '')
-                content.add_row('Téléphone', self.session.client['phone'] or '')
-                content.add_row('Commercial', self.session.new_user['name'] + ' - ' + self.session.new_user['email'])
+                content.add_row('Nom de l\'entreprise', self.session.client.company_name or '')
+                content.add_row('Nom du contact', self.session.client.name or '')
+                content.add_row('Email', self.session.client.email or '')
+                content.add_row('Téléphone', self.session.client.phone or '')
+                content.add_row('Commercial', (f"{self.session.client.commercial_contact.name} - "
+                                               f"{self.session.client.commercial_contact.email}"))
             elif status[-1] == 'CONTRACT':
-                content.add_row('Client', self.session.client['company_name'] + ' - ' + self.session.client['name'])
-                content.add_row('Commercial', self.session.new_user['name'] + ' - ' + self.session.new_user['email'])
-                content.add_row('Montant total', str(self.session.contract['total_amount'] or '0'))
-                content.add_row('Reste à payer', str(self.session.contract['rest_amount'] or '0'))
-                content.add_row('Statut', 'Terminé' if self.session.contract['status'] else 'En cours')
+                content.add_row('Client', self.session.client.company_name + ' - ' + self.session.client.name)
+                content.add_row('Commercial', (f"{self.session.client.commercial_contact.name} - "
+                                               f"{self.session.client.commercial_contact.name}"))
+                content.add_row('Montant total', str(self.session.contract.total_amount or '0'))
+                content.add_row('Reste à payer', str(self.session.contract.rest_amount or '0'))
+                content.add_row('Statut', 'Terminé' if self.session.contract.status else 'En cours')
             elif status[-1] == 'EVENT':
                 support_user = None
-                if self.session.event['support_contact_id'] is not None:
-                    support_user = self.db.get_user_information(self.session.event['support_contact_id'])
-                date_start = self.session.event['date_start']
+                if self.session.contract.event.support_contact_id is not None:
+                    support_user = self.session.contract.event.support_contact
+                date_start = self.session.contract.event.date_start
                 if date_start is not None:
                     date_start = date_start.strftime("%d %b %Y")
-                date_stop = self.session.event['date_stop']
+                date_stop = self.session.contract.event.date_stop
                 if date_stop is not None:
                     date_stop = date_stop.strftime("%d %b %Y")
-                content.add_row('Client', self.session.client['company_name'] + ' - ' + self.session.client['name'])
-                content.add_row('Commercial', self.session.new_user['name'] + ' - ' + self.session.new_user['email'])
+                content.add_row('Client', self.session.client.company_name + ' - ' + self.session.client.name)
+                content.add_row('Commercial', (f"{self.session.client.commercial_contact.name} - "
+                                               f"{self.session.client.commercial_contact.email}"))
                 content.add_row('Support',
-                                (support_user['name'] if support_user else '') +
+                                (support_user.name if support_user else '') +
                                 ' - ' +
-                                support_user['email'] if support_user else '')
-                content.add_row('Statut du contrat', 'Terminé' if self.session.contract['status'] else 'En cours')
-                content.add_row('Reste à payer', f"{self.session.contract['rest_amount']}")
-                content.add_row('Lieu', self.session.event['location'] or '')
-                content.add_row('Nombre de personnes', str(self.session.event['attendees']) or '')
+                                support_user.email if support_user else '')
+                content.add_row('Statut du contrat', 'Terminé' if self.session.contract.status else 'En cours')
+                content.add_row('Reste à payer', f"{self.session.contract.rest_amount}")
+                content.add_row('Lieu', self.session.contract.event.location or '')
+                content.add_row('Nombre de personnes', str(self.session.contract.event.attendees) or '')
                 content.add_row('Date de début', date_start or '')
                 content.add_row('Date de fin', date_stop or '')
-                content.add_row('Notes', self.session.event['notes'] or '')
+                content.add_row('Notes', self.session.contract.event.notes or '')
         if content:
             if isinstance(content, str):
                 self.show_content(Text(content, justify=align), align, 'cyan')

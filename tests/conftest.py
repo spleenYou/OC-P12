@@ -5,7 +5,7 @@ import re
 from datetime import datetime, timedelta, date
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from controllers.models import Base
+from controllers.models import Base, EpicUser, Client, Contract, Event
 from controllers.db import Mysql
 from controllers.authentication import Authentication
 from controllers.permissions import Permission
@@ -51,64 +51,65 @@ def session():
 
 @pytest.fixture
 def commercial_user():
-    return {
-        'name': "Commercial",
-        'email': "commercial@example.com",
-        'password': "commercial",
-        'employee_number': 1,
-        'department_id': 1
-    }
+    return EpicUser(
+        name="Commercial",
+        email="commercial@example.com",
+        password="commercial",
+        employee_number=1,
+        department_id=1
+    )
 
 
 @pytest.fixture
 def support_user():
-    return {
-        'name': "Support",
-        'email': "support@example.com",
-        'password': "support",
-        'employee_number': 2,
-        'department_id': 2
-    }
+    return EpicUser(
+        name="Support",
+        email="support@example.com",
+        password="support",
+        employee_number=2,
+        department_id=2
+    )
 
 
 @pytest.fixture
 def management_user():
-    return {
-        'name': "Management",
-        'email': "management@example.com",
-        'password': "management",
-        'employee_number': 3,
-        'department_id': 3
-    }
+    return EpicUser(
+        name="Management",
+        email="management@example.com",
+        password="management",
+        employee_number=3,
+        department_id=3
+    )
 
 
 @pytest.fixture
 def client_information():
-    return {
-        'name': 'Nom du contact client',
-        'email': 'client@example.fr',
-        'phone': '0202020202',
-        'company_name': 'Nom de l\'entreprise'
-    }
+    return Client(
+        name='Nom du contact client',
+        email='client@example.fr',
+        phone='0202020202',
+        company_name='Nom de l\'entreprise'
+    )
 
 
 @pytest.fixture
 def contract_information():
-    return {
-        'total_amount': '1000'
-    }
+    return Contract(
+        total_amount=1000,
+        rest_amount=1000
+    )
 
 
 @pytest.fixture
 def event_information(date_now):
-    return {
-        'support_contact_id': '0',
-        'location': 'Lieu de l\'évènement',
-        'attendees': '100',
-        'notes': 'Note de l\'évènement',
-        'date_start': date_now,
-        'date_stop': date_now + timedelta(days=2)
-    }
+    return Event(
+        support_contact_id='0',
+        location='Lieu de l\'évènement',
+        attendees='100',
+        notes='Note de l\'évènement',
+        date_start=date_now,
+        date_stop=date_now + timedelta(days=2)
+    )
 
 
 @pytest.fixture
@@ -151,7 +152,6 @@ def permissions(session, authentication):
 
 def make_token(secret, exp):
     payload = {
-        'email': 'test@example.com',
         'exp': exp
     }
     return jwt.encode(payload=payload, key=secret, algorithm='HS256')

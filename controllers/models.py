@@ -58,14 +58,14 @@ class Contract(Base):
     date_creation = Column(DateTime, default=func.now())
     status = Column(Boolean, default=False)
     client = relationship('Client', back_populates='contracts')
-    event = relationship('Event', back_populates='contract', cascade='all, delete-orphan')
+    event = relationship('Event', back_populates='contract', uselist=False, cascade='all, delete-orphan')
 
 
 class Event(Base):
     __tablename__ = 'events'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    contract_id = Column(Integer, ForeignKey('contracts.id', ondelete='CASCADE'), nullable=False)
+    contract_id = Column(Integer, ForeignKey('contracts.id', ondelete='CASCADE'), nullable=False, unique=True)
     date_creation = Column(DateTime, default=func.now())
     date_start = Column(Date)
     date_stop = Column(Date)
