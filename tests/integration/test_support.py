@@ -1,70 +1,34 @@
 class TestSupport:
     def connect_user(self, controller, support_user, monkeypatch):
-        inputs = iter(
-            [
-                support_user['password'],
-                ''
-            ]
-        )
-        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         controller.session.new_user = support_user
         controller.db.add_user()
-        controller.session.reset_session()
-        controller.session.user['email'] = support_user['email']
-        controller.session.user['password'] = support_user['password']
-        controller.db.update_password_user()
-        controller.start(support_user['email'])
+        controller.session.user = controller.db.get_user_by_mail(support_user.email)
+        controller.auth.generate_token()
 
     def add_client(self, controller, client):
         controller.session.client = client
         controller.db.add_client()
-        controller.session.client = {
-            'id': None,
-            'name': None,
-            'email': None,
-            'phone': None,
-            'company_name': None,
-            'commercial_contact_id': None
-        }
+        controller.session.reset_session()
 
     def add_user(self, controller, user):
         controller.session.new_user = user
         controller.db.add_user()
-        controller.session.new_user = {
-            'id': None,
-            'name': None,
-            'email': None,
-            'password': None,
-            'employee_number': None,
-            'department_id': None
-        }
+        controller.session.reset_session()
 
-    def add_contract(self, controller, contract, client_id):
-        controller.session.client = controller.db.get_client_information(client_id)
+    def add_contract(self, controller, contract, client_nb):
+        controller.session.client = controller.db.get_client(client_nb)
         controller.session.contract = contract
         controller.db.add_contract()
-        controller.session.contract = {
-            'id': None,
-            'client_id': None,
-            'total_amount': None,
-            'rest_amount': None,
-            'status': False
-        }
+        controller.session.reset_session()
 
-    def add_event(self, controller, event, contract_id, support_user_id):
-        event['support_contact_id'] = support_user_id
-        controller.session.contract = controller.db.get_contract_information(contract_id)
+    def add_event(self, controller, event, contract_nb, support_user_id, client_nb):
+        event.support_contact_id = support_user_id
+        controller.session.status = 'SELECT_CONTRACT_WITHOUT_EVENT'
+        controller.session.client = controller.db.get_client(client_nb)
+        controller.session.contract = controller.db.get_contract(contract_nb)
         controller.session.event = event
         controller.db.add_event()
-        controller.session.event = {
-            'id': None,
-            'support_contact_id': None,
-            'location': None,
-            'attendees': None,
-            'notes': None,
-            'date_start': None,
-            'date_stop': None
-        }
+        controller.session.reset_session()
 
     def test_add_user(self, controller, support_user, monkeypatch, capsys):
         self.connect_user(controller, support_user, monkeypatch)
@@ -192,7 +156,7 @@ class TestSupport:
         controller.main_menu()
         captured = capsys.readouterr()
         assert 'Informations sur le client' in captured.out
-        assert client_information['name'] in captured.out
+        assert client_information.name in captured.out
 
     def test_add_contract(
             self,
@@ -226,7 +190,7 @@ class TestSupport:
             capsys):
         self.connect_user(controller, support_user, monkeypatch)
         self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 1)
+        self.add_contract(controller, contract_information, 0)
         inputs = iter(
             [
                 'UPDATE CONTRACT',
@@ -250,7 +214,7 @@ class TestSupport:
             capsys):
         self.connect_user(controller, support_user, monkeypatch)
         self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 1)
+        self.add_contract(controller, contract_information, 0)
         inputs = iter(
             [
                 'DELETE CONTRACT',
@@ -274,7 +238,7 @@ class TestSupport:
             capsys):
         self.connect_user(controller, support_user, monkeypatch)
         self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 1)
+        self.add_contract(controller, contract_information, 0)
         inputs = iter(
             [
                 'VIEW CONTRACT',
@@ -302,7 +266,7 @@ class TestSupport:
         self.connect_user(controller, commercial_user, monkeypatch)
         self.connect_user(controller, support_user, monkeypatch)
         self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 1)
+        self.add_contract(controller, contract_information, 0)
         inputs = iter(
             [
                 'ADD EVENT',
@@ -329,8 +293,8 @@ class TestSupport:
         self.connect_user(controller, commercial_user, monkeypatch)
         self.connect_user(controller, support_user, monkeypatch)
         self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 1)
-        self.add_event(controller, event_information, 1, 1)
+        self.add_contract(controller, contract_information, 0)
+        self.add_event(controller, event_information, 0, 2, 0)
         inputs = iter(
             [
                 'UPDATE EVENT',
@@ -351,7 +315,7 @@ class TestSupport:
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.main_menu()
         captured = capsys.readouterr()
-        assert 'Mise à jour de l\'évènement' in captured.out
+        assert 'Mise à jour d\'un évènement' in captured.out
         assert 'Pas loin' in captured.out
         assert 'Evènement mis à jour' in captured.out
 
@@ -368,8 +332,8 @@ class TestSupport:
         self.connect_user(controller, commercial_user, monkeypatch)
         self.connect_user(controller, support_user, monkeypatch)
         self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 1)
-        self.add_event(controller, event_information, 1, 1)
+        self.add_contract(controller, contract_information, 0)
+        self.add_event(controller, event_information, 0, 2, 0)
         inputs = iter(
             [
                 'DELETE EVENT',
@@ -400,8 +364,8 @@ class TestSupport:
         self.connect_user(controller, commercial_user, monkeypatch)
         self.connect_user(controller, support_user, monkeypatch)
         self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 1)
-        self.add_event(controller, event_information, 1, 1)
+        self.add_contract(controller, contract_information, 0)
+        self.add_event(controller, event_information, 0, 2, 0)
         inputs = iter(
             [
                 'VIEW EVENT',
