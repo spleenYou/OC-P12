@@ -33,6 +33,7 @@ class TestController:
 
     def connect_user(self, controller, user_nb):
         controller.session.user = controller.db.get_user_by_number(user_nb)
+        controller.permissions = controller.session.user.department.permissions
         controller.auth.generate_token()
 
     def test_init_controller(self):

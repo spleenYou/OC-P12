@@ -13,6 +13,7 @@ class Controller:
         self.prompt = prompt(self.show, self.db, self.session)
         self.email_regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
         self.phone_regex = re.compile(r'^\+?[0-9](?:\d{1,3} ?){1,5}\d{1,4}$')
+        self.permissions = None
 
     def check_token_and_perm(function):
         @wraps(function)
@@ -21,9 +22,10 @@ class Controller:
                 if not self.auth.check_token():
                     self.session.status = 'BAD_TOKEN'
                     return False
-            if not getattr(self.permissions, self.session.status.lower()):
-                self.session.status = 'FORBIDDEN'
-                return False
+            if self.permissions is not None:
+                if not getattr(self.permissions, self.session.status.lower()):
+                    self.session.status = 'FORBIDDEN'
+                    return False
             result = function(self, *args, **kwargs)
             self.prompt.wait()
             return result

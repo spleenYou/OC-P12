@@ -82,6 +82,9 @@ class TestCommercial:
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.main_menu()
         captured = capsys.readouterr()
+        for c in captured:
+            print(c)
+            print('-'*20)
         assert 'Ajout d\'un client' in captured.out
         assert 'Client ajouté' in captured.out
 

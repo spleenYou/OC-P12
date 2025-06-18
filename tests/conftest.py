@@ -8,7 +8,6 @@ from sqlalchemy.orm import sessionmaker
 from controllers.models import Base, EpicUser, Client, Contract, Event
 from controllers.db import Mysql
 from controllers.authentication import Authentication
-from controllers.permissions import Permission
 from controllers.session import Session
 from controllers.base import Controller
 from views.show import Show
@@ -124,9 +123,9 @@ def controller(session, db_session):
             self.db = mysql
             self.show = show(self.db, session)
             self.prompt = prompt(self.show, self.db, session)
-            self.allows_to = Permission(self.db, session)
             self.email_regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
             self.phone_regex = re.compile(r'^\+?[0-9](?:\d{1,3} ?){1,5}\d{1,4}$')
+            self.permissions = None
 
     return MyController(Ask, Show, Mysql, Authentication, session)
 
@@ -143,12 +142,6 @@ def authentication(monkeypatch, tmp_path, session):
     a = Authentication(session)
     a.dotenv_path = str(dovenv_path)
     return a
-
-
-@pytest.fixture
-def permissions(session, authentication):
-    db = Mysql(session, authentication)
-    return Permission(db, session)
 
 
 def make_token(secret, exp):
