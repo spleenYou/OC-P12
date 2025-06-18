@@ -1,7 +1,6 @@
 import re
 from copy import copy
 from datetime import date
-from controllers.permissions import Permission
 from functools import wraps
 
 
@@ -12,7 +11,6 @@ class Controller:
         self.db = db(self.session, self.auth)
         self.show = show(self.db, self.session)
         self.prompt = prompt(self.show, self.db, self.session)
-        self.allows_to = Permission(self.db, self.session)
         self.email_regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
         self.phone_regex = re.compile(r'^\+?[0-9](?:\d{1,3} ?){1,5}\d{1,4}$')
 
@@ -23,7 +21,7 @@ class Controller:
                 if not self.auth.check_token():
                     self.session.status = 'BAD_TOKEN'
                     return False
-            if not eval('self.allows_to.' + self.session.status.lower())():
+            if not getattr(self.permissions, self.session.status.lower()):
                 self.session.status = 'FORBIDDEN'
                 return False
             result = function(self, *args, **kwargs)
@@ -52,6 +50,7 @@ class Controller:
         password = self.prompt.thing('password')
         if self.auth.check_password(password, password_in_db):
             self.session.user = self.db.get_user_by_mail(self.session.user.email)
+            self.permissions = self.session.user.department.permissions
             self.auth.generate_token()
             self.session.status = 'LOGIN_OK'
             self.prompt.wait()
