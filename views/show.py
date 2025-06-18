@@ -4,6 +4,10 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.align import Align
 from rich.text import Text
+import config.titles as titles
+import config.simple_contents as simple_contents
+import config.logo as logo
+import config.config as config
 
 
 class Show:
@@ -11,129 +15,6 @@ class Show:
         self.session = session
         self.db = db
         self.rich_console = Console(highlight=False)
-        self.common_width = 120
-        self.TITLES = {
-            'FIRST_LAUNCH': 'Premier lancement de l\'application',
-            'FORBIDDEN': '[bold red]Vous n\'êtes pas autorisé à faire cette action[/bold red]',
-            'ADD_USER': 'Ajout d\'un utilisateur',
-            'ADD_USER_OK': 'Utilisateur créé',
-            'UPDATE_USER': 'Mise à jour d\'un utilisateur',
-            'UPDATE_USER_OK': 'Utilisateur mis à jour',
-            'UPDATE_USER_FAILED': 'Utilisateur non mis à jour',
-            'VIEW_USER': 'Informations sur l\'utilisateur',
-            'DELETE_USER': 'Suppression d\'un utilisateur',
-            'DELETE_USER_OK': 'Utilisateur supprimé',
-            'SELECT_USER': 'Sélection d\'un utilisateur',
-            'SELECT_USER_FOR_DELETE': 'Sélection d\'un utilisateur',
-            'SELECT_SUPPORT_USER': 'Selection d\'un utilisateur support',
-            'ADD_CLIENT': 'Ajout d\'un client',
-            'ADD_CLIENT_OK': 'Client ajouté',
-            'ADD_CLIENT_FAILED': 'Impossible d\'ajouter le client',
-            'UPDATE_CLIENT': 'Mise à jour d\'un client',
-            'UPDATE_CLIENT_OK': 'Client mis à jour',
-            'UPDATE_CLIENT_FAILED': 'Client non mis à jour',
-            'DELETE_CLIENT': 'Suppression d\'un client',
-            'DELETE_CLIENT_OK': 'Client supprimé',
-            'SELECT_CLIENT': 'Selection d\'un client',
-            'SELECT_CLIENT_WITH_EVENT': 'Selection d\'un client',
-            'SELECT_CLIENT_WITHOUT_EVENT': 'Selection d\'un client',
-            'SELECT_CLIENT_WITH_CONTRACT': 'Selection d\'un client',
-            'VIEW_CLIENT': 'Informations sur le client',
-            'NO_CLIENT': 'Aucun client n\'est enregistré',
-            'ADD_CONTRACT': 'Ajout d\'un contrat',
-            'ADD_CONTRACT_OK': 'Contrat ajouté',
-            'ADD_CONTRACT_FAILED': '*impossible d\'ajouter le contrat',
-            'UPDATE_CONTRACT': 'Mise à jour d\'un contrat',
-            'UPDATE_CONTRACT_OK': 'Contrat mis à jour',
-            'DELETE_CONTRACT': 'Suppression d\'un contrat',
-            'DELETE_CONTRACT_OK': 'Contrat supprimé',
-            'DELETE_CONTRACT_FAILED': 'Contrat non supprimé',
-            'SELECT_CONTRACT': 'Selection d\'un contrat',
-            'SELECT_CONTRACT_WITH_EVENT': 'Selection d\'un contrat',
-            'SELECT_CONTRACT_WITHOUT_EVENT': 'Selection d\'un contrat',
-            'VIEW_CONTRACT': 'Informations sur le contrat',
-            'NO_CONTRACT': 'Aucun contrat n\'est enregistré',
-            'ADD_EVENT': 'Ajout d\'un évènement',
-            'ADD_EVENT_OK': 'Evènement ajouté',
-            'ADD_EVENT_FAILED': 'Evènement non ajouté',
-            'UPDATE_EVENT': 'Mise à jour d\'un évènement',
-            'UPDATE_EVENT_OK': 'Evènement mis à jour',
-            'UPDATE_EVENT_failed': 'Evènement non mis à jour',
-            'DELETE_EVENT': 'Suppression d\'un évènement',
-            'DELETE_EVENT_OK': 'Evènement supprimé',
-            'DELETE_EVENT_FAILED': 'Evènement non supprimé',
-            'UPDATE_SUPPORT_ON_EVENT': 'Mise à jour du support',
-            'VIEW_EVENT': 'Informations sur l\'évènement',
-            'NO_EVENT': 'Aucun évènement n\'est enregistré',
-            'CONNECTION': 'Connexion',
-            'ERROR': 'Erreur',
-            'ADD_USER_FAILED': 'Erreur',
-            'LOGIN_FAILED': 'Erreur de connexion',
-            'LOGIN_OK': '[green]Connexion réussie[/green]',
-            'UNKNOWN': 'Erreur de saisie',
-            'BAD_SELECT_CONTRACT': 'Erreur de saisie',
-            'BAD_EMAIL': 'Erreur de saisie',
-            'BAD_EMPLOYEE_NUMBER': 'Erreur de saisie',
-            'SELECT_USER_FAILED': 'Erreur de saisie',
-            'BAD_SELECT_USE': 'Erreur de saisie',
-            'BAD_PHONE': 'Erreur de saisie',
-            'SELECT_CLIENT_FAILED': 'Erreur de saisie',
-            'BAD_DEPARTMENT': 'Erreur de saisie',
-            'BAD_TOTAL_AMOUNT': 'Erreur de saisie',
-            'BAD_REST_AMOUNT': 'Erreur de saisie',
-            'BAD_DATE_START': 'Erreur de saisie',
-            'BAD_DATE_STOP': 'Erreur de saisie',
-            'PASSWORD_EMPTY': 'Erreur de saisie',
-            'SELECT_CONTRACT_FAILED': 'Erreur de saisie',
-            'BAD_SELECT_CLIENT': 'Erreur de saisie',
-            'BAD_CONTRACT_STATUS': 'Erreur de saisie',
-            'PERMISSION': 'Tableau des permissions',
-            'HELP': 'Aide',
-            'EXIT': 'Au revoir',
-            'MAIN_MENU': 'Menu principal',
-            'PASSWORD_FIRST_TIME': 'Définition du mot de passe',
-            'PASSWORD_SECOND_TIME': 'Définition du mot de passe',
-            'PASSWORD_MATCH_FAILED': 'Erreur de saisie',
-            'BAD_TOKEN': 'Déconnexion automatique'
-        }
-        self.SIMPLE_CONTENTS = {
-            'FIRST_LAUNCH': ('Un utilisateur de l\'équipe Management va être créé\n'
-                             'afin de pouvoir continuer'),
-            'NO_CLIENT_WITHOUT_EVENT': 'Pas de client avec contrat sans évènement',
-            'BAD_EMAIL': 'Votre saisie ne correspond pas à une adresse mail.',
-            'BAD_EMPLOYEE_NUMBER': 'Votre saisie ne correspond pas à un numéro d\'employé.',
-            'BAD_DEPARTMENT': 'Votre saisie ne correspond pas à un département.',
-            'SELECT_USER_FAILED': 'Ce numéro ne correspond pas à un utilisateur.',
-            'BAD_SELECT_USER': 'Merci d\'entrer un nombre',
-            'BAD_SELECT_CLIENT': 'Merci d\'entrer un nombre',
-            'BAD_TOTAL_AMOUNT': 'Merci d\'entrer un nombre',
-            'BAD_REST_AMOUNT': 'Merci d\'entrer un nombre',
-            'BAD_SELECT_CONTRACT': 'Merci d\'entrer un nombre',
-            'SELECT_CLIENT_FAILED': 'Ce numéro ne correspond pas à un client.',
-            'SELECT_CONTRACT_FAILED': 'Ce numéro ne correspond pas à un contrat.',
-            'BAD_PHONE': 'Numéro de téléphone incorrect',
-            'UNKNOWN': 'Cette commande est inconnue, veuillez recommencer.',
-            'MAIN_MENU': ('Merci d\'entrer la commande correspondant à ce que vous souhaitez faire\n\n'
-                          'Entrer "HELP" pour avoir la description des commandes\n'
-                          'Entrer "EXIT" pour quitter l\'application'),
-            'HELP': ('Liste des actions possibles :\n '
-                     'ADD | UPDATE | VIEW | DELETE\n\n '
-                     'Liste des catégories possibles :\n '
-                     'USER | CLIENT | CONTRACT | EVENT\n\n '
-                     'Syntaxe : ACTION CATEGORIE\n\n'
-                     'L\'accès à certaines actions est restreint en fonction des permissions'
-                     ' attribuées à votre département.\n\n'
-                     'Pour les connaître, taper PERMISSION'),
-            'LOGIN_FAILED': ('Vos identifiants sont inconnus\n'
-                             'L\'application va s\'arrêter'),
-            'PASSWORD_FIRST_TIME': 'Bienvenue pour votre première connexion.\n\nVeuillez définir votre mot de passe',
-            'PASSWORD_SECOND_TIME': ('Bienvenue pour votre première connexion.\n\n'
-                                     'Veuillez entrer une deuxième fois votre mot de passe'),
-            'PASSWORD_MATCH_FAILED': 'Les mots de passe ne sont pas identiques',
-            'BAD_CONTRACT_STATUS': 'Cette réponse n\'est pas possible.\n\nMerci d\'indiquer y or n comme demandé',
-            'PASSWORD_EMPTY': 'Votre mot de passe ne peut pas être vide.',
-            'BAD_TOKEN': 'Vous avez été déconnecté, merci de vous reconnecter.'
-        }
 
     def display(self, content=None, align='center'):
         """Manages the display on the console
@@ -157,8 +38,8 @@ class Show:
             align (str): Position of contents. Three possiblities left, center or right
         """
         panel = Panel(
-            Align(content, align=align, style='dark_orange3'),
-            width=self.common_width,
+            Align(content, align=align, style=config.text_color),
+            width=config.common_width,
             padding=1,
             border_style=border_style
         )
@@ -175,39 +56,39 @@ class Show:
     def head_menu(self):
         "Shows the name of the program decorated"
 
-        content = (":::::::::: :::::::::  :::::::::::  ::::::::        :::::::::: :::     ::: ::::::::::"
-                   " ::::    ::: :::::::::::\n"
-                   ":+:        :+:    :+:     :+:     :+:    :+:       :+:        :+:     :+: :+:       "
-                   " :+:+:   :+:     :+:    \n"
-                   "+:+        +:+    +:+     +:+     +:+              +:+        +:+     +:+ +:+       "
-                   " :+:+:+  +:+     +:+    \n"
-                   "+#++:++#   +#++:++#+      +#+     +#+              +#++:++#   +#+     +:+ +#++:++#  "
-                   " +#+ +:+ +#+     +#+    \n"
-                   "+#+        +#+            +#+     +#+              +#+         +#+   +#+  +#+       "
-                   " +#+  +#+#+#     +#+    \n"
-                   "#+#        #+#            #+#     #+#    #+#       #+#          #+#+#+#   #+#       "
-                   " #+#   #+#+#     #+#    \n"
-                   "########## ###        ###########  ########        ##########     ###     ##########"
-                   " ###    ####     ###    ")
-        self.show_content(content, 'center', 'cyan')
+        self.show_content(logo.logo, 'center', config.border_style)
 
     def session_information(self):
         if self.session.user.id is not None and self.session.status != 'LOGIN_OK':
-            content = []
-            content = (f"    Utilisateur : {self.session.user.name}\n"
-                       f"    Departement : {self.session.user.department_name}")
-            self.show_content(content, 'left', 'cyan')
+            content = Table(title='Utilisateur connecté', show_header=False, show_lines=True)
+            content.add_column(justify='center')
+            content.add_column(justify='center')
+            content.add_column(justify='center')
+            content.add_column(justify='center')
+            content.add_row(
+                'Nom',
+                'Departement',
+                'Adresse mail',
+                'Numéro d\'employé'
+            )
+            content.add_row(
+                self.session.user.name,
+                self.session.user.department_name,
+                self.session.user.email,
+                str(self.session.user.employee_number)
+            )
+            self.show_content(content, 'center', config.border_style)
 
     def title(self):
-        border_style = 'cyan'
+        border_style = config.border_style
         status = self.session.status.split('_')
         if status[0] in ['BAD', 'UNKNOWN'] or status[-1] == 'FAILED':
             border_style = 'red'
         elif status[-1] == 'OK':
             border_style = 'green'
-        text_color = 'dark_orange3' if border_style == 'cyan' else border_style
+        text_color = config.text_color if border_style == config.border_style else border_style
         self.show_content(
-            f'[bold {text_color}]' + self.TITLES[self.session.status] + f'[/bold {text_color}]',
+            f'[bold {text_color}]' + getattr(titles, self.session.status) + f'[/bold {text_color}]',
             'center',
             border_style
         )
@@ -215,8 +96,12 @@ class Show:
     def content(self):
         content = None
         align = 'center'
-        if self.session.status in self.SIMPLE_CONTENTS:
-            self.show_content(Text(self.SIMPLE_CONTENTS[self.session.status], justify=align), align, 'cyan')
+        if hasattr(simple_contents, self.session.status):
+            self.show_content(
+                Text(getattr(simple_contents, self.session.status), justify=align),
+                align,
+                config.border_style
+            )
             return None
         match self.session.status:
             case 'SELECT_USER' | 'SELECT_USER_FOR_DELETE':
@@ -235,8 +120,6 @@ class Show:
                         user.email,
                         user.department_name
                     )
-                self.show_content(content, align, 'cyan')
-                content = ''
             case ('SELECT_CLIENT' |
                   'SELECT_CLIENT_WITH_EVENT' |
                   'SELECT_CLIENT_WITHOUT_EVENT' |
@@ -374,6 +257,6 @@ class Show:
                 content.add_row('Notes', notes)
         if content:
             if isinstance(content, str):
-                self.show_content(Text(content, justify=align), align, 'cyan')
+                self.show_content(Text(content, justify=align), align, config.border_style)
             else:
-                self.show_content(content, align, 'cyan')
+                self.show_content(content, align, config.border_style)

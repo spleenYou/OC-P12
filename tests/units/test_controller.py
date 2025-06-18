@@ -157,7 +157,7 @@ class TestController:
         controller.main_menu()
         captured = capsys.readouterr()
         assert 'Erreur de saisie' in captured.out
-        assert 'Cette commande est inconnue, veuillez recommencer' in captured.out
+        assert 'Cette commande est inconnue' in captured.out
 
     def test_forbidden_command(self, controller, monkeypatch, management_user, capsys):
         self.add_user(controller, management_user)
@@ -234,6 +234,8 @@ class TestController:
         controller.add_user()
         controller.show.display()
         captured = capsys.readouterr()
+        for c in captured:
+            print(c)
         assert 'Déconnexion automatique' in captured.out
         assert 'Vous avez été déconnecté, merci de vous reconnecter.' in captured.out
 

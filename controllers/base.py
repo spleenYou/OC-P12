@@ -319,7 +319,7 @@ class Controller:
     @check_token_and_perm
     def update_client(self):
         self.session.client = self.select_client()
-        original_client = copy(self.session.client)
+        savepoint = self.db.db_session.begin_nested()
         self.session.new_user = self.session.client.commercial_contact
         self.session.client.company_name = self.ask_company_name()
         self.session.client.name = self.ask_client_name()
@@ -327,8 +327,10 @@ class Controller:
         self.session.client.phone = self.ask_phone()
         if self.prompt.validation():
             self.session.status = 'UPDATE_CLIENT_OK'
+            savepoint.commit()
+            self.db.db_session.commit()
         else:
-            self.session.client = original_client
+            savepoint.rollback()
             self.session.status = 'UPDATE_CLIENT_FAILED'
 
     def view_client(self):

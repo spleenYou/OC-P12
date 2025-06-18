@@ -1,6 +1,7 @@
 from rich.prompt import Prompt, Confirm
 from rich.console import Console
-import sys
+import config.prompts as prompts
+import config.config as config
 
 
 class NewPrompt(Prompt):
@@ -12,50 +13,39 @@ class Ask:
         self.display = show.display
         self.session = session
         self.db = db
-        self.console = Console(file=sys.stdout, force_terminal=False)
-        departments = ' | '.join(f'{i + 1} {d}' for i, d in enumerate(self.db.get_department_list()))
-        self.PROMPTS = {
-            'email': 'Veuillez entrer votre e-mail :',
-            'name': 'Veuillez entrer le nom  :',
-            'employee_number': 'Veuillez entrer votre numéro d\'employé :',
-            'department': f'Veuillez entrer votre le numéro de votre équipe ({departments}) :',
-            'client_name': 'Veuillez entrer le nom du contact client :',
-            'company_name': 'Veuillez entrer le nom de l\'entreprise :',
-            'phone': 'Veuillez entrer le numéro de téléphone du client :',
-            'total_amount': 'Veuillez indiquer le montant total du contrat :',
-            'rest_amount': 'Veuillez indiquer le reste à payer p: our ce contrat :',
-            'location': 'Veuillez indiquer un lieu :',
-            'notes': 'Veuillez écrire une note (optionnel) :',
-            'attendees': 'Veuillez entrer le nombre de personnes présentes :',
-            'date_start': 'Veuillez rentrer une date de début (jj/mm/aaaa) :',
-            'date_stop': 'Veuillez rentrer une date de fin (jj/mm/aaaa) :',
-            'contract_status': 'Veuillez entrer statut du contrat (En cours n / Terminé y) :',
-            'user': 'Veuillez entrer le numéro d\'un utilisateur :',
-            'support_user': 'Veuillez entrer le numéro d\'un utilisateur :',
-            'client': 'Veuillez entrer le numéro d\'un client :',
-            'contract': 'Veuillez entrer le numéro d\'un contrat :',
-            'command': '> '
-        }
+        self.console = Console()
 
     def thing(self, thing):
+
         self.display()
-        prompt = ''
-        if thing in self.PROMPTS:
-            prompt = self.PROMPTS[thing]
-        else:
-            prompt = 'Veuillez entrer votre mot de passe :'
-            if self.session.status == 'PASSWORD_SECOND_TIME':
-                prompt = 'Veuillez entrer votre mot de passe (vérification) :'
-        text = '\n[dark_orange3]' + prompt + '[/dark_orange3]'
+        prompt = getattr(prompts, thing)
+        is_password = False
+        if thing == 'department':
+            departments = ' | '.join(f'{i + 1} {d}' for i, d in enumerate(self.db.get_department_list()))
+            prompt = prompt.replace('departements', departments)
         if thing == 'password':
-            return NewPrompt.ask(text, password=True, show_default=False)
-        return NewPrompt.ask(text, show_default=False)
+            is_password = True
+            if self.session.status == 'PASSWORD_SECOND_TIME':
+                prompt = prompt[:-1] + '(vérification) :'
+        return NewPrompt.ask(
+            '\n[dark_orange3]' + prompt + '[/dark_orange3]',
+            password=is_password,
+            show_default=False
+        )
 
     def validation(self):
+        """Shows a validation question
+
+        Returns:
+            bool: True by default
+        """
         self.display()
-        return Confirm.ask('[bold yellow]Souhaitez-vous continuer ?[/bold yellow]', default=True)
+        return Confirm.ask(
+            f'\n[{config.validation_text_color}]{prompts.validation}[/{config.validation_text_color}]',
+            default=True
+        )
 
     def wait(self):
-        "SHow a waiting line if a pause is needed"
+        "SHows a waiting line if a pause is needed"
         self.display()
-        NewPrompt.ask('\n[dark_orange3] Appuyer sur une touche pour continuer... [/dark_orange3]')
+        NewPrompt.ask(f'\n[{config.text_color}]{prompts.wait}[/{config.text_color}]')
