@@ -1,37 +1,9 @@
+import func
+
+
 class TestManagement:
-    def connect_user(self, controller, support_user, monkeypatch):
-        controller.session.new_user = support_user
-        controller.db.add_user()
-        controller.session.user = controller.db.get_user_by_mail(support_user.email)
-        controller.auth.generate_token()
-
-    def add_client(self, controller, client):
-        controller.session.client = client
-        controller.db.add_client()
-        controller.session.reset_session()
-
-    def add_user(self, controller, user):
-        controller.session.new_user = user
-        controller.db.add_user()
-        controller.session.reset_session()
-
-    def add_contract(self, controller, contract, client_nb):
-        controller.session.client = controller.db.get_client(client_nb)
-        controller.session.contract = contract
-        controller.db.add_contract()
-        controller.session.reset_session()
-
-    def add_event(self, controller, event, contract_nb, support_user_id, client_nb):
-        event.support_contact_id = support_user_id
-        controller.session.status = 'SELECT_CONTRACT_WITHOUT_EVENT'
-        controller.session.client = controller.db.get_client(client_nb)
-        controller.session.contract = controller.db.get_contract(contract_nb)
-        controller.session.event = event
-        controller.db.add_event()
-        controller.session.reset_session()
-
     def test_add_user(self, controller, management_user, commercial_user, monkeypatch, capsys):
-        self.connect_user(controller, management_user, monkeypatch)
+        func.connect_user(controller, management_user, monkeypatch)
         inputs = iter(
             [
                 'ADD USER',
@@ -52,7 +24,7 @@ class TestManagement:
         assert 'Utilisateur créé' in captured.out
 
     def test_update_user(self, controller, management_user, monkeypatch, capsys):
-        self.connect_user(controller, management_user, monkeypatch)
+        func.connect_user(controller, management_user, monkeypatch)
         inputs = iter(
             [
                 'UPDATE USER',
@@ -74,8 +46,8 @@ class TestManagement:
         assert 'Utilisateur mis à jour' in captured.out
 
     def test_delete_user(self, controller, management_user, commercial_user, monkeypatch, capsys):
-        self.connect_user(controller, management_user, monkeypatch)
-        self.add_user(controller, commercial_user)
+        func.connect_user(controller, management_user, monkeypatch)
+        func.add_user(controller, commercial_user)
         inputs = iter(
             [
                 'DELETE USER',
@@ -93,7 +65,7 @@ class TestManagement:
         assert 'Utilisateur supprimé' in captured.out
 
     def test_view_user(self, controller, management_user, monkeypatch, capsys):
-        self.connect_user(controller, management_user, monkeypatch)
+        func.connect_user(controller, management_user, monkeypatch)
         inputs = iter(
             [
                 'VIEW USER',
@@ -110,7 +82,7 @@ class TestManagement:
         assert 'Informations sur l\'utilisateur' in captured.out
 
     def test_add_client(self, controller, management_user, monkeypatch, capsys):
-        self.connect_user(controller, management_user, monkeypatch)
+        func.connect_user(controller, management_user, monkeypatch)
         inputs = iter(
             [
                 'ADD CLIENT',
@@ -125,8 +97,8 @@ class TestManagement:
         assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
     def test_update_client(self, controller, management_user, client_information, monkeypatch, capsys):
-        self.connect_user(controller, management_user, monkeypatch)
-        self.add_client(controller, client_information)
+        func.connect_user(controller, management_user, monkeypatch)
+        func.add_client(controller, client_information)
         inputs = iter(
             [
                 'UPDATE CLIENT',
@@ -141,8 +113,8 @@ class TestManagement:
         assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
     def test_delete_client(self, controller, management_user, client_information, monkeypatch, capsys):
-        self.connect_user(controller, management_user, monkeypatch)
-        self.add_client(controller, client_information)
+        func.connect_user(controller, management_user, monkeypatch)
+        func.add_client(controller, client_information)
         inputs = iter(
             [
                 'DELETE CLIENT',
@@ -157,8 +129,8 @@ class TestManagement:
         assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
     def test_view_client(self, controller, management_user, client_information, monkeypatch, capsys):
-        self.connect_user(controller, management_user, monkeypatch)
-        self.add_client(controller, client_information)
+        func.connect_user(controller, management_user, monkeypatch)
+        func.add_client(controller, client_information)
         inputs = iter(
             [
                 'VIEW CLIENT',
@@ -183,8 +155,8 @@ class TestManagement:
             contract_information,
             monkeypatch,
             capsys):
-        self.connect_user(controller, management_user, monkeypatch)
-        self.add_client(controller, client_information)
+        func.connect_user(controller, management_user, monkeypatch)
+        func.add_client(controller, client_information)
         inputs = iter(
             [
                 'ADD CONTRACT',
@@ -212,10 +184,10 @@ class TestManagement:
             contract_information,
             monkeypatch,
             capsys):
-        self.add_user(controller, commercial_user)
-        self.connect_user(controller, management_user, monkeypatch)
-        self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 0)
+        func.add_user(controller, commercial_user)
+        func.connect_user(controller, management_user, monkeypatch)
+        func.add_client(controller, client_information)
+        func.add_contract(controller, contract_information, 0)
         inputs = iter(
             [
                 'UPDATE CONTRACT',
@@ -245,10 +217,10 @@ class TestManagement:
             contract_information,
             monkeypatch,
             capsys):
-        self.add_user(controller, commercial_user)
-        self.connect_user(controller, management_user, monkeypatch)
-        self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 0)
+        func.add_user(controller, commercial_user)
+        func.connect_user(controller, management_user, monkeypatch)
+        func.add_client(controller, client_information)
+        func.add_contract(controller, contract_information, 0)
         inputs = iter(
             [
                 'DELETE CONTRACT',
@@ -274,9 +246,9 @@ class TestManagement:
             contract_information,
             monkeypatch,
             capsys):
-        self.connect_user(controller, management_user, monkeypatch)
-        self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 0)
+        func.connect_user(controller, management_user, monkeypatch)
+        func.add_client(controller, client_information)
+        func.add_contract(controller, contract_information, 0)
         inputs = iter(
             [
                 'VIEW CONTRACT',
@@ -302,10 +274,10 @@ class TestManagement:
             event_information,
             monkeypatch,
             capsys):
-        self.add_user(controller, commercial_user)
-        self.connect_user(controller, management_user, monkeypatch)
-        self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 0)
+        func.add_user(controller, commercial_user)
+        func.connect_user(controller, management_user, monkeypatch)
+        func.add_client(controller, client_information)
+        func.add_contract(controller, contract_information, 0)
         inputs = iter(
             [
                 'ADD EVENT',
@@ -329,11 +301,11 @@ class TestManagement:
             event_information,
             monkeypatch,
             capsys):
-        self.add_user(controller, commercial_user)
-        self.connect_user(controller, management_user, monkeypatch)
-        self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 0)
-        self.add_event(controller, event_information, 0, 1, 0)
+        func.add_user(controller, commercial_user)
+        func.connect_user(controller, management_user, monkeypatch)
+        func.add_client(controller, client_information)
+        func.add_contract(controller, contract_information, 0)
+        func.add_event(controller, event_information, 0, 1, 0)
         inputs = iter(
             [
                 'UPDATE EVENT',
@@ -361,11 +333,11 @@ class TestManagement:
             event_information,
             monkeypatch,
             capsys):
-        self.add_user(controller, commercial_user)
-        self.connect_user(controller, management_user, monkeypatch)
-        self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 0)
-        self.add_event(controller, event_information, 0, 1, 0)
+        func.add_user(controller, commercial_user)
+        func.connect_user(controller, management_user, monkeypatch)
+        func.add_client(controller, client_information)
+        func.add_contract(controller, contract_information, 0)
+        func.add_event(controller, event_information, 0, 1, 0)
         inputs = iter(
             [
                 'DELETE EVENT',
@@ -389,11 +361,11 @@ class TestManagement:
             event_information,
             monkeypatch,
             capsys):
-        self.add_user(controller, support_user)
-        self.connect_user(controller, management_user, monkeypatch)
-        self.add_client(controller, client_information)
-        self.add_contract(controller, contract_information, 0)
-        self.add_event(controller, event_information, 0, 1, 0)
+        func.add_user(controller, support_user)
+        func.connect_user(controller, management_user, monkeypatch)
+        func.add_client(controller, client_information)
+        func.add_contract(controller, contract_information, 0)
+        func.add_event(controller, event_information, 0, 1, 0)
         inputs = iter(
             [
                 'VIEW EVENT',
