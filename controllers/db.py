@@ -43,12 +43,12 @@ class Mysql:
         elif self.session.status == 'SELECT_CONTRACT_WITHOUT_EVENT':
             return self.db_session.query(Contract) \
                 .filter((Contract.client_id == self.session.client.id)) \
-                .filter(Contract.event is not None) \
+                .filter(~Contract.event.has()) \
                 .count()
         elif self.session.status == 'SELECT_CONTRACT_WITH_EVENT':
             return self.db_session.query(Contract) \
                 .filter((Contract.client_id == self.session.client.id)) \
-                .filter(Contract.event is None) \
+                .filter(Contract.event.has()) \
                 .count()
         return self.db_session.query(Contract).filter(Contract.client_id == self.session.client.id).count()
 
@@ -79,13 +79,13 @@ class Mysql:
                     .filter(EpicUser != self.session.user) \
                     .order_by(EpicUser.id) \
                     .all()[number]
-        return self.db_session.query(EpicUser).order_by(EpicUser.id).all()[number - 1]
+        return self.db_session.query(EpicUser).order_by(EpicUser.id).all()[number]
 
     def get_support_user_by_id(self, number):
-        return self.db_session.query(EpicUser) \
+        return self.db_session.query(EpicUser.id) \
             .filter(EpicUser.department_id == 2) \
             .order_by(EpicUser.id) \
-            .all()[number]
+            .all()[number][0]
 
     def get_client(self, number):
         if self.session.status == 'SELECT_CLIENT_WITH_CONTRACT':
@@ -107,6 +107,7 @@ class Mysql:
             return self.db_session.query(Client).order_by(Client.id).all()[number]
 
     def get_contract(self, number):
+        print(self.session.status)
         if self.session.status == 'SELECT_CONTRACT_WITHOUT_EVENT':
             return self.db_session.query(Contract) \
                     .filter(Contract.client_id == self.session.client.id) \

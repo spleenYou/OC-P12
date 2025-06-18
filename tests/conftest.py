@@ -54,7 +54,6 @@ def commercial_user():
     return EpicUser(
         name="Commercial",
         email="commercial@example.com",
-        password="commercial",
         employee_number=1,
         department_id=1
     )
@@ -65,7 +64,6 @@ def support_user():
     return EpicUser(
         name="Support",
         email="support@example.com",
-        password="support",
         employee_number=2,
         department_id=2
     )
@@ -76,10 +74,14 @@ def management_user():
     return EpicUser(
         name="Management",
         email="management@example.com",
-        password="management",
         employee_number=3,
         department_id=3
     )
+
+
+@pytest.fixture
+def password():
+    return 'password'
 
 
 @pytest.fixture
@@ -103,7 +105,6 @@ def contract_information():
 @pytest.fixture
 def event_information(date_now):
     return Event(
-        support_contact_id='0',
         location='Lieu de l\'évènement',
         attendees='100',
         notes='Note de l\'évènement',

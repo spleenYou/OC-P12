@@ -1,4 +1,5 @@
 import re
+from copy import copy
 from datetime import date
 from controllers.permissions import Permission
 from functools import wraps
@@ -282,7 +283,7 @@ class Controller:
     @check_token_and_perm
     def update_user(self):
         self.session.new_user = self.select_user()
-        original_user = self.session.new_user.copy()
+        original_user = copy(self.session.new_user)
         self.session.new_user.name = self.ask_name()
         self.session.new_user.email = self.ask_email()
         self.session.new_user.employee_number = self.ask_employee_number()
@@ -304,7 +305,7 @@ class Controller:
 
     @check_token_and_perm
     def add_client(self):
-        self.session.new_user = self.session.user.copy()
+        self.session.new_user = copy(self.session.user)
         self.session.client.company_name = self.ask_company_name()
         self.session.client.name = self.ask_client_name()
         self.session.client.email = self.ask_email()
@@ -318,7 +319,7 @@ class Controller:
     @check_token_and_perm
     def update_client(self):
         self.session.client = self.select_client()
-        original_client = self.session.client.copy()
+        original_client = copy(self.session.client)
         self.session.new_user = self.session.client.commercial_contact
         self.session.client.company_name = self.ask_company_name()
         self.session.client.name = self.ask_client_name()
@@ -381,30 +382,27 @@ class Controller:
     @check_token_and_perm
     def update_contract(self):
         self.session.client = self.select_client()
-        self.session.contract = self.select_contract()
+        self.select_contract()
         self.session.contract.total_amount = self.ask_total_amount()
         self.session.contract.rest_amount = self.ask_rest_amount()
         self.session.contract.status = self.ask_status()
         print(type(self.session.status))
         if self.prompt.validation():
-            if self.db.update_contract():
-                self.session.status = 'UPDATE_CONTRACT_OK'
-            else:
-                self.session.status = 'UPDATE_CONTRACT_FAILED'
+            self.session.status = 'UPDATE_CONTRACT_OK'
 
     @check_token_and_perm
     def delete_contract(self):
         self.session.client = self.select_client()
-        self.session.contract = self.select_contract()
+        self.select_contract()
         if self.prompt.validation():
-            if self.db.update_contract():
+            if self.db.delete_contract():
                 self.session.status = 'DELETE_CONTRACT_OK'
             else:
                 self.session.status = 'DELETE_CONTRACT_FAILED'
 
     def view_contract(self):
         self.session.client = self.select_client()
-        self.session.contract = self.select_contract()
+        self.select_contract()
 
     def select_contract(self):
         status = self.session.status
@@ -420,8 +418,9 @@ class Controller:
             try:
                 contract_id = int(contract_id)
                 if contract_id < self.db.number_of_contract():
+                    self.session.contract = self.db.get_contract(contract_id)
                     self.session.status = status
-                    return self.db.get_contract(contract_id)
+                    return None
                 else:
                     self.session.status = 'SELECT_CONTRACT_FAILED'
             except Exception:
@@ -433,7 +432,7 @@ class Controller:
     def add_event(self):
         if len(self.db.get_client_list()) > 0:
             self.session.client = self.select_client()
-            self.session.contract = self.select_contract()
+            self.select_contract()
             self.session.event.location = self.ask_location()
             self.session.event.attendees = self.ask_attendees()
             self.session.event.date_start = self.ask_date_start()
@@ -452,8 +451,8 @@ class Controller:
     @check_token_and_perm
     def update_event(self):
         self.session.client = self.select_client()
-        self.session.contract = self.select_contract()
-        original_event = self.session.contract.event.copy()
+        self.select_contract()
+        original_event = copy(self.session.contract.event)
         if self.session.status == 'UPDATE_EVENT':
             self.session.contract.event.location = self.ask_location()
             self.session.contract.event.attendees = self.ask_attendees()
@@ -470,7 +469,7 @@ class Controller:
     @check_token_and_perm
     def delete_event(self):
         self.session.client = self.select_client()
-        self.session.contract = self.select_contract()
+        self.select_contract()
         if self.prompt.validation():
             if self.db.delete_event():
                 self.session.status = 'DELETE_EVENT_OK'
@@ -479,12 +478,12 @@ class Controller:
 
     def view_event(self):
         self.session.client = self.select_client()
-        self.session.contract = self.select_contract()
+        self.select_contract()
 
     def ask_location(self):
         location = self.prompt.thing('location')
-        if location == '':
-            location = self.session.event.location
+        if location == '' and self.session.status == 'UPDATE_EVENT':
+            return self.session.contract.event.location
         return location
 
     def ask_attendees(self):
@@ -494,7 +493,7 @@ class Controller:
             self.session.status = status
             attendees = self.prompt.thing('attendees')
             if status == 'UPDATE_EVENT' and attendees == '':
-                return self.session.event.attendees
+                return self.session.contract.event.attendees
             try:
                 attendees = int(attendees)
                 return attendees
@@ -510,7 +509,7 @@ class Controller:
             self.session.status = status
             date_start = self.prompt.thing('date_start')
             if status == 'UPDATE_EVENT' and date_start == '':
-                return self.session.event.date_start
+                return self.session.contract.event.date_start
             try:
                 day, month, year = date_start.split('/')
                 date_start = date(year=int(year), month=int(month), day=int(day))
@@ -527,7 +526,7 @@ class Controller:
             self.session.status = status
             date_stop = self.prompt.thing('date_stop')
             if status == 'UPDATE_EVENT' and date_stop == '':
-                return self.session.event.date_stop
+                return self.session.contract.event.date_stop
             try:
                 day, month, year = date_stop.split('/')
                 date_stop = date(year=int(year), month=int(month), day=int(day))
@@ -539,8 +538,8 @@ class Controller:
 
     def ask_notes(self):
         notes = self.prompt.thing('notes')
-        if notes == '':
-            notes = self.session.event.notes
+        if self.session.status == 'UPDATE_EVENT' and notes == '':
+            return self.session.contract.event.notes
         return notes
 
     def select_support_user(self):

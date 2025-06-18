@@ -56,7 +56,7 @@ class Show:
             'ADD_EVENT': 'Ajout d\'un évènement',
             'ADD_EVENT_OK': 'Evènement ajouté',
             'ADD_EVENT_FAILED': 'Evènement non ajouté',
-            'UPDATE_EVENT': 'Mise à jour de l\'évènement',
+            'UPDATE_EVENT': 'Mise à jour d\'un évènement',
             'UPDATE_EVENT_OK': 'Evènement mis à jour',
             'UPDATE_EVENT_failed': 'Evènement non mis à jour',
             'DELETE_EVENT': 'Suppression d\'un évènement',
@@ -317,29 +317,47 @@ class Show:
                 content.add_row('Numéro d\'employé', str(employee_number))
                 content.add_row('Département', department_name)
             elif status[-1] == 'CLIENT':
+                if self.session.client.commercial_contact_id is not None:
+                    commercial_name = self.session.user.name
+                    commercial_email = self.session.user.email
+                else:
+                    commercial_name = self.session.user.name
+                    commercial_email = self.session.user.email
                 content.add_row('Nom de l\'entreprise', self.session.client.company_name or '')
                 content.add_row('Nom du contact', self.session.client.name or '')
                 content.add_row('Email', self.session.client.email or '')
                 content.add_row('Téléphone', self.session.client.phone or '')
-                content.add_row('Commercial', (f"{self.session.client.commercial_contact.name} - "
-                                               f"{self.session.client.commercial_contact.email}"))
+                content.add_row('Commercial', (f"{commercial_name} - {commercial_email}"))
             elif status[-1] == 'CONTRACT':
                 content.add_row('Client', self.session.client.company_name + ' - ' + self.session.client.name)
                 content.add_row('Commercial', (f"{self.session.client.commercial_contact.name} - "
-                                               f"{self.session.client.commercial_contact.name}"))
+                                               f"{self.session.client.commercial_contact.email}"))
                 content.add_row('Montant total', str(self.session.contract.total_amount or '0'))
                 content.add_row('Reste à payer', str(self.session.contract.rest_amount or '0'))
                 content.add_row('Statut', 'Terminé' if self.session.contract.status else 'En cours')
             elif status[-1] == 'EVENT':
                 support_user = None
-                if self.session.contract.event.support_contact_id is not None:
-                    support_user = self.session.contract.event.support_contact
-                date_start = self.session.contract.event.date_start
-                if date_start is not None:
-                    date_start = date_start.strftime("%d %b %Y")
-                date_stop = self.session.contract.event.date_stop
-                if date_stop is not None:
-                    date_stop = date_stop.strftime("%d %b %Y")
+                date_start = ''
+                date_stop = ''
+                location = ''
+                attendees = ''
+                notes = ''
+                if self.session.status == 'ADD_USER':
+                    event = self.session.event
+                else:
+                    event = self.session.contract.event
+                if event is not None:
+                    if event.support_contact_id is not None:
+                        support_user = event.support_contact
+                    date_start = event.date_start
+                    if date_start is not None:
+                        date_start = date_start.strftime("%d %b %Y")
+                    date_stop = event.date_stop
+                    if date_stop is not None:
+                        date_stop = date_stop.strftime("%d %b %Y")
+                    location = event.location
+                    attendees = str(event.attendees)
+                    notes = event.notes
                 content.add_row('Client', self.session.client.company_name + ' - ' + self.session.client.name)
                 content.add_row('Commercial', (f"{self.session.client.commercial_contact.name} - "
                                                f"{self.session.client.commercial_contact.email}"))
@@ -349,11 +367,11 @@ class Show:
                                 support_user.email if support_user else '')
                 content.add_row('Statut du contrat', 'Terminé' if self.session.contract.status else 'En cours')
                 content.add_row('Reste à payer', f"{self.session.contract.rest_amount}")
-                content.add_row('Lieu', self.session.contract.event.location or '')
-                content.add_row('Nombre de personnes', str(self.session.contract.event.attendees) or '')
-                content.add_row('Date de début', date_start or '')
-                content.add_row('Date de fin', date_stop or '')
-                content.add_row('Notes', self.session.contract.event.notes or '')
+                content.add_row('Lieu', location)
+                content.add_row('Nombre de personnes', attendees)
+                content.add_row('Date de début', date_start)
+                content.add_row('Date de fin', date_stop)
+                content.add_row('Notes', notes)
         if content:
             if isinstance(content, str):
                 self.show_content(Text(content, justify=align), align, 'cyan')
