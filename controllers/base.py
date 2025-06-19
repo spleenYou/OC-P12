@@ -20,32 +20,35 @@ class Controller:
         def func_check(self, *args, **kwargs):
             if self.db.number_of_user() > 0:
                 if not self.auth.check_token():
-                    self.session.status = 'BAD_TOKEN'
+                    self.session.status = 'TOKEN'
+                    self.session.state = 'ERROR'
                     return False
             if self.permissions is not None:
-                if not getattr(self.permissions, self.session.status.lower()):
+                if self.session.status[:4] != 'VIEW' and not getattr(self.permissions, self.session.status.lower()):
                     self.session.status = 'FORBIDDEN'
+                    self.session.state = 'ERROR'
                     return False
             result = function(self, *args, **kwargs)
-            self.prompt.wait()
             return result
         return func_check
 
     def start(self, email):
         if self.db.number_of_user() == 0:
-            self.prompt.wait()
+            self.prompt.thing('wait')
             self.auth.generate_secret_key()
             self.session.new_user.department_id = 3
             self.session.user.department_id = 3
             self.session.new_user.email = email
             self.session.status = 'ADD_USER'
             if not self.add_user():
+                self.session.filter = 'STOPPED'
+                self.prompt.thing('wait')
                 return None
         self.session.status = 'CONNECTION'
         self.session.user.email = self.ask_email(email)
         password_in_db = self.db.get_user_password()
         if password_in_db is None:
-            self.session.status = 'PASSWORD_FIRST_TIME'
+            self.session.filter = 'FIRST_TIME'
             self.ask_password()
             self.db.update_password_user()
             password_in_db = self.db.get_user_password()
@@ -54,16 +57,17 @@ class Controller:
             self.session.user = self.db.get_user_by_mail(self.session.user.email)
             self.permissions = self.session.user.department.permissions
             self.auth.generate_token()
-            self.session.status = 'LOGIN_OK'
-            self.prompt.wait()
+            self.session.state = 'GOOD'
+            self.prompt.thing('wait')
             self.main_menu()
         else:
-            self.session.status = 'LOGIN_FAILED'
-            self.prompt.wait()
+            self.session.state = 'FAILED'
+            self.prompt.thing('wait')
 
     def main_menu(self):
         command = ['']
         while command[0] not in ['exit', 'EXIT']:
+            self.session.state = 'NORMAL'
             self.session.status = 'MAIN_MENU'
             command = self.prompt.thing('command')
             command = command.upper().split(' ')
@@ -83,10 +87,9 @@ class Controller:
                     self.session.status = 'NO_' + command[1]
             else:
                 self.session.status = 'UNKNOWN'
-            if (command != self.session.status or command[:4] == 'VIEW') and self.session.status[-2:] != 'OK':
-                self.prompt.wait()
+            self.prompt.thing('wait')
             self.session.reset_session()
-            if self.session.status == 'BAD_TOKEN':
+            if self.session.status == 'TOKEN':
                 self.start(None)
 
     def ask_name(self):
@@ -99,17 +102,18 @@ class Controller:
         status = self.session.status
         while email is None:
             self.session.status = status
+            self.session.state = 'NORMAL'
             email = self.prompt.thing('email')
             if email == '':
-                match status:
-                    case 'UPDATE_USER':
-                        email = self.session.new_user.email
-                    case 'UPDATE_CLIENT':
-                        email = self.session.client.email
-            elif not re.fullmatch(self.email_regex, email or ''):
+                if status == 'UPDATE_USER':
+                    email = self.session.new_user.email
+                elif status == 'UPDATE_CLIENT':
+                    email = self.session.client.email
+            if not re.fullmatch(self.email_regex, email):
+                self.session.status = 'EMAIL'
+                self.session.state = 'FAILED'
                 email = None
-                self.session.status = 'BAD_EMAIL'
-                self.prompt.wait()
+                self.prompt.thing('wait')
         return email
 
     def ask_employee_number(self):
@@ -117,15 +121,17 @@ class Controller:
         employee_number = None
         while employee_number is None:
             self.session.status = status
+            self.session.state = 'NORMAL'
             employee_number = self.prompt.thing('employee_number')
             if status == 'UPDATE_USER' and employee_number == '':
                 return self.session.new_user.employee_number
             try:
                 employee_number = int(employee_number)
             except Exception:
+                self.session.state = 'FAILED'
+                self.session.status = 'EMPLOYEE_NUMBER'
                 employee_number = None
-                self.session.status = 'BAD_EMPLOYEE_NUMBER'
-                self.prompt.wait()
+                self.prompt.thing('wait')
         return employee_number
 
     def ask_password(self):
@@ -133,22 +139,26 @@ class Controller:
         password = None
         while password is None:
             self.session.status = status
-            if status == 'PASSWORD_FIRST_TIME' and self.session.user.password is not None:
-                self.session.status = 'PASSWORD_SECOND_TIME'
+            self.session.state = 'NORMAL'
+            if self.session.filter == 'FIRST_TIME' and self.session.user.password is not None:
+                self.session.filter = 'SECOND_TIME'
             password = self.prompt.thing('password')
-            if status == 'PASSWORD_FIRST_TIME' and password != '':
+            if password != '':
                 if self.session.user.password is None:
                     self.session.user.password = password
                 elif password == self.session.user.password:
                     self.session.status = 'CONNECTION'
+                    self.session.filter = ''
                     return None
                 else:
-                    self.session.status = 'PASSWORD_MATCH_FAILED'
+                    self.session.status = 'PASSWORD'
+                    self.session.state = 'FAILED'
                     self.session.user.password = None
-                    self.prompt.wait()
+                    self.prompt.thing('wait')
             else:
-                self.session.status = 'PASSWORD_EMPTY'
-                self.prompt.wait()
+                self.session.status = 'PASSWORD'
+                self.session.state = 'ERROR'
+                self.prompt.thing('wait')
             password = None
 
     def ask_department(self):
@@ -157,6 +167,7 @@ class Controller:
         if status != 'UPDATE_USER':
             department_id = self.session.new_user.department_id
         while department_id is None:
+            self.session.state = 'NORMAL'
             self.session.status = status
             department_id = self.prompt.thing('department')
             if status == 'UPDATE_USER' and department_id == '':
@@ -164,15 +175,17 @@ class Controller:
             try:
                 department_id = int(department_id)
             except Exception:
+                self.session.state = 'ERROR'
+                self.session.status = 'DEPARTMENT'
                 department_id = None
-                self.session.status = 'BAD_DEPARTMENT'
-                self.prompt.wait()
+                self.prompt.thing('wait')
         return department_id
 
     def select_user(self):
         number = None
         status = self.session.status
         while number is None:
+            self.session.state = 'NORMAL'
             if status == 'DELETE_USER':
                 self.session.status = 'SELECT_USER_FOR_DELETE'
             else:
@@ -187,9 +200,10 @@ class Controller:
                 else:
                     self.session.status = 'SELECT_USER_FAILED'
             except Exception:
-                self.session.status = 'BAD_SELECT_USER'
+                self.session.state = 'ERROR'
+                self.session.status = 'SELECT_USER'
             number = None
-            self.prompt.wait()
+            self.prompt.thing('wait')
 
     def ask_client_name(self):
         name = self.prompt.thing('client_name')
@@ -207,6 +221,7 @@ class Controller:
         phone = None
         status = self.session.status
         while phone is None:
+            self.session.state = 'NORMAL'
             self.session.status = status
             phone = self.prompt.thing('phone')
             if status == 'UPDATE_CLIENT' and phone == '':
@@ -214,13 +229,15 @@ class Controller:
             if re.match(self.phone_regex, phone):
                 return phone
             phone = None
-            self.session.status = 'BAD_PHONE'
-            self.prompt.wait()
+            self.session.state = 'ERROR'
+            self.session.status = 'PHONE'
+            self.prompt.thing('wait')
 
     def ask_total_amount(self):
         total_amount = None
         status = self.session.status
         while total_amount is None:
+            self.session.state = 'NORMAL'
             self.session.status = status
             total_amount = self.prompt.thing('total_amount')
             if status == 'UPDATE_CONTRACT' and total_amount == '':
@@ -230,13 +247,15 @@ class Controller:
                 return round(total_amount, 2)
             except Exception:
                 total_amount = None
-                self.session.status = 'BAD_TOTAL_AMOUNT'
-                self.prompt.wait()
+                self.session.state = 'ERROR'
+                self.session.status = 'TOTAL_AMOUNT'
+                self.prompt.thing('wait')
 
     def ask_rest_amount(self):
         rest_amount = None
         status = self.session.status
         while rest_amount is None:
+            self.session.state = 'NORMAL'
             self.session.status = status
             rest_amount = self.prompt.thing('rest_amount')
             if status == 'UPDATE_CONTRACT' and rest_amount == '':
@@ -246,13 +265,15 @@ class Controller:
                 return round(rest_amount, 2)
             except Exception:
                 rest_amount = None
-                self.session.status = 'BAD_REST_AMOUNT'
-                self.prompt.wait()
+                self.session.state = 'ERROR'
+                self.session.status = 'REST_AMOUNT'
+                self.prompt.thing('wait')
 
     def ask_status(self):
         contract_status = None
         status = self.session.status
         while contract_status is None:
+            self.session.state = 'NORMAL'
             self.session.status = status
             contract_status = self.prompt.thing('contract_status').lower()
             if status == 'UPDATE_CONTRACT' and contract_status == '':
@@ -263,8 +284,9 @@ class Controller:
                 return False
             else:
                 contract_status = None
-                self.session.status = 'BAD_CONTRACT_STATUS'
-                self.prompt.wait()
+                self.session.state = 'ERROR'
+                self.session.status = 'CONTRACT_STATUS'
+                self.prompt.thing('wait')
 
     @check_token_and_perm
     def add_user(self):
@@ -274,11 +296,12 @@ class Controller:
         self.session.new_user.employee_number = self.ask_employee_number()
         if self.session.new_user.department_id is None:
             self.session.new_user.department_id = self.ask_department()
+        self.session.status = 'ADD_USER'
         if self.prompt.validation():
             if self.db.add_user():
-                self.session.status = 'ADD_USER_OK'
+                self.session.state = 'GOOD'
                 return True
-        self.session.status = 'ADD_USER_FAILED'
+        self.session.state = 'FAILED'
         return False
 
     @check_token_and_perm
@@ -290,10 +313,12 @@ class Controller:
         self.session.new_user.employee_number = self.ask_employee_number()
         self.session.new_user.department_id = self.ask_department()
         if self.prompt.validation():
-            self.session.status = 'UPDATE_USER_OK'
+            self.session.state = 'GOOD'
+            self.session.status = 'UPDATE_USER'
         else:
             self.session.new_user = original_user
 
+    @check_token_and_perm
     def view_user(self):
         self.session.new_user = self.select_user()
 
@@ -301,7 +326,8 @@ class Controller:
     def delete_user(self):
         self.session.new_user = self.select_user()
         if self.prompt.validation():
-            self.session.status = 'DELETE_USER_OK'
+            self.session.state = 'GOOD'
+            self.session.status = 'DELETE_USER'
             self.db.delete_user()
 
     @check_token_and_perm
@@ -312,10 +338,11 @@ class Controller:
         self.session.client.email = self.ask_email()
         self.session.client.phone = self.ask_phone()
         if self.prompt.validation():
+            self.session.status = 'ADD_CLIENT'
             if self.db.add_client():
-                self.session.status = 'ADD_CLIENT_OK'
+                self.session.state = 'GOOD'
             else:
-                self.session.status = 'ADD_CLIENT_FAILED'
+                self.session.state = 'FAILED'
 
     @check_token_and_perm
     def update_client(self):
@@ -326,14 +353,16 @@ class Controller:
         self.session.client.name = self.ask_client_name()
         self.session.client.email = self.ask_email()
         self.session.client.phone = self.ask_phone()
+        self.session.status = 'UPDATE_CLIENT'
         if self.prompt.validation():
-            self.session.status = 'UPDATE_CLIENT_OK'
+            self.session.state = 'GOOD'
             savepoint.commit()
             self.db.db_session.commit()
         else:
+            self.session.state = 'FAILED'
             savepoint.rollback()
-            self.session.status = 'UPDATE_CLIENT_FAILED'
 
+    @check_token_and_perm
     def view_client(self):
         self.session.client = self.select_client()
         self.session.new_user = self.session.client.commercial_contact
@@ -343,33 +372,36 @@ class Controller:
         self.session.client = self.select_client()
         self.session.new_user = self.session.client.commercial_contact
         if self.prompt.validation():
-            self.session.status = 'DELETE_CLIENT_OK'
+            self.session.state = 'GOOD'
+            self.session.status = 'DELETE_CLIENT'
             self.db.delete_client()
 
     def select_client(self):
         status = self.session.status
         number = None
         while number is None:
+            self.session.state = 'NORMAL'
             if status in ['UPDATE_CONTRACT', 'DELETE_CONTRACT', 'VIEW_CONTRACT']:
                 self.session.status = 'SELECT_CLIENT_WITH_CONTRACT'
             elif status == 'ADD_EVENT':
                 self.session.status = 'SELECT_CLIENT_WITHOUT_EVENT'
-            elif status in ['UPDATE_EVENT', 'DELETE_EVENT', 'VIEW_EVENT']:
+            elif status in ['UPDATE_EVENT', 'DELETE_EVENT', 'VIEW_EVENT', 'UPDATE_SUPPORT_ON_EVENT']:
                 self.session.status = 'SELECT_CLIENT_WITH_EVENT'
             else:
                 self.session.status = 'SELECT_CLIENT'
             number = self.prompt.thing('client')
+            self.session.status = 'SELECT_CLIENT'
             try:
                 number = int(number)
                 if number < self.db.number_of_client():
                     self.session.status = status
                     return self.db.get_client(number)
                 else:
-                    self.session.status = 'SELECT_CLIENT_FAILED'
+                    self.session.state = 'FAILED'
             except Exception:
-                self.session.status = 'BAD_SELECT_CLIENT'
+                self.session.state = 'ERROR'
             number = None
-            self.prompt.wait()
+            self.prompt.thing('wait')
 
     @check_token_and_perm
     def add_contract(self):
@@ -377,10 +409,11 @@ class Controller:
         self.session.contract.total_amount = self.ask_total_amount()
         self.session.contract.rest_amount = self.ask_rest_amount()
         if self.prompt.validation():
+            self.session.status = 'ADD_CONTRACT'
             if self.db.add_contract():
-                self.session.status = 'ADD_CONTRACT_OK'
+                self.session.state = 'GOOD'
             else:
-                self.session.status = 'ADD_CONTRACT_FAILED'
+                self.session.state = 'FAILED'
 
     @check_token_and_perm
     def update_contract(self):
@@ -389,20 +422,22 @@ class Controller:
         self.session.contract.total_amount = self.ask_total_amount()
         self.session.contract.rest_amount = self.ask_rest_amount()
         self.session.contract.status = self.ask_status()
-        print(type(self.session.status))
         if self.prompt.validation():
-            self.session.status = 'UPDATE_CONTRACT_OK'
+            self.session.state = 'GOOD'
+            self.session.status = 'UPDATE_CONTRACT'
 
     @check_token_and_perm
     def delete_contract(self):
         self.session.client = self.select_client()
         self.select_contract()
         if self.prompt.validation():
+            self.session.status = 'DELETE_CONTRACT'
             if self.db.delete_contract():
-                self.session.status = 'DELETE_CONTRACT_OK'
+                self.session.state = 'GOOD'
             else:
-                self.session.status = 'DELETE_CONTRACT_FAILED'
+                self.session.state = 'FAILED'
 
+    @check_token_and_perm
     def view_contract(self):
         self.session.client = self.select_client()
         self.select_contract()
@@ -411,6 +446,7 @@ class Controller:
         status = self.session.status
         contract_id = None
         while contract_id is None:
+            self.session.state = 'NORMAL'
             if status in ['ADD_EVENT']:
                 self.session.status = 'SELECT_CONTRACT_WITHOUT_EVENT'
             elif status in ['UPDATE_EVENT', 'UPDATE_SUPPORT_ON_EVENT', 'DELETE_EVENT', 'VIEW_EVENT']:
@@ -425,11 +461,13 @@ class Controller:
                     self.session.status = status
                     return None
                 else:
-                    self.session.status = 'SELECT_CONTRACT_FAILED'
+                    self.session.status = 'SELECT_CONTRACT'
+                    self.session.state = 'FAILED'
             except Exception:
-                self.session.status = 'BAD_SELECT_CONTRACT'
+                self.session.status = 'SELECT_CONTRACT'
+                self.session.state = 'ERROR'
             contract_id = None
-            self.prompt.wait()
+            self.prompt.thing('wait')
 
     @check_token_and_perm
     def add_event(self):
@@ -444,10 +482,11 @@ class Controller:
             if self.db.number_of_support_user() > 0:
                 self.session.event.support_contact_id = self.select_support_user()
             if self.prompt.validation():
+                self.session.status = 'ADD_EVENT'
                 if self.db.add_event():
-                    self.session.status = 'ADD_EVENT_OK'
+                    self.session.state = 'GOOD'
                 else:
-                    self.session.status = 'ADD_EVENT_FAILED'
+                    self.session.state = 'FAILED'
         else:
             self.session.status = 'NO_CLIENT_WITHOUT_EVENT'
 
@@ -464,21 +503,23 @@ class Controller:
             self.session.contract.event.notes = self.ask_notes()
         self.session.contract.event.support_contact_id = self.select_support_user()
         if self.prompt.validation():
-            self.session.status = 'UPDATE_EVENT_OK'
+            self.session.status = 'UPDATE_EVENT'
+            self.session.state = 'GOOD'
         else:
             self.session.contract.event = original_event
-            self.session.status = 'UPDATE_EVENT_FAILED'
 
     @check_token_and_perm
     def delete_event(self):
         self.session.client = self.select_client()
         self.select_contract()
         if self.prompt.validation():
+            self.session.status = 'DELETE_EVENT'
             if self.db.delete_event():
-                self.session.status = 'DELETE_EVENT_OK'
-        else:
-            self.session.status = 'DELETE_EVENT_FAILED'
+                self.session.state = 'GOOD'
+            else:
+                self.session.state = 'FAILED'
 
+    @check_token_and_perm
     def view_event(self):
         self.session.client = self.select_client()
         self.select_contract()
@@ -493,6 +534,7 @@ class Controller:
         attendees = None
         status = self.session.status
         while attendees is None:
+            self.session.state = 'NORMAL'
             self.session.status = status
             attendees = self.prompt.thing('attendees')
             if status == 'UPDATE_EVENT' and attendees == '':
@@ -502,13 +544,15 @@ class Controller:
                 return attendees
             except Exception:
                 attendees = None
-                self.session.status = 'BAD_ATTENDEES'
-                self.prompt.wait()
+                self.session.state = 'ERROR'
+                self.session.status = 'ATTENDEES'
+                self.prompt.thing('wait')
 
     def ask_date_start(self):
         date_start = None
         status = self.session.status
         while date_start is None:
+            self.session.state = 'NORMAL'
             self.session.status = status
             date_start = self.prompt.thing('date_start')
             if status == 'UPDATE_EVENT' and date_start == '':
@@ -519,13 +563,15 @@ class Controller:
                 return date_start
             except Exception:
                 date_start = None
-                self.session.status = 'BAD_DATE_START'
-                self.prompt.wait()
+                self.session.state = 'ERROR'
+                self.session.status = 'DATE_START'
+                self.prompt.thing('wait')
 
     def ask_date_stop(self):
         date_stop = None
         status = self.session.status
         while date_stop is None:
+            self.session.state = 'NORMAL'
             self.session.status = status
             date_stop = self.prompt.thing('date_stop')
             if status == 'UPDATE_EVENT' and date_stop == '':
@@ -536,8 +582,9 @@ class Controller:
                 return date_stop
             except Exception:
                 date_stop = None
-                self.session.status = 'BAD_DATE_STOP'
-                self.prompt.wait()
+                self.session.state = 'ERROR'
+                self.session.status = 'DATE_STOP'
+                self.prompt.thing('wait')
 
     def ask_notes(self):
         notes = self.prompt.thing('notes')
@@ -549,6 +596,7 @@ class Controller:
         user_id = None
         status = self.session.status
         while user_id is None:
+            self.session.state = 'NORMAL'
             self.session.status = 'SELECT_SUPPORT_USER'
             user_id = self.prompt.thing('support_user')
             if status in ['UPDATE_EVENT', 'UPDATE_SUPPORT_ON_EVENT'] and user_id == '':
@@ -564,8 +612,8 @@ class Controller:
                     self.session.status = status
                     return user_id
                 else:
-                    self.session.status = 'SELECT_SUPPORT_USER_FAILED'
+                    self.session.state = 'FAILED'
             except Exception:
-                self.session.status = 'BAD_SELECT_SUPPORT_USER'
+                self.session.state = 'ERROR'
             user_id = None
-            self.prompt.wait()
+            self.prompt.thing('wait')

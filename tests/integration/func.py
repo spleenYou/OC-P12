@@ -1,6 +1,7 @@
 def connect_user(controller, user, monkeypatch):
     controller.session.new_user = user
     controller.db.add_user()
+    controller.session.reset_session()
     controller.session.user = controller.db.get_user_by_mail(user.email)
     controller.permissions = controller.session.user.department.permissions
     controller.auth.generate_token()

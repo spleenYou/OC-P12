@@ -22,10 +22,10 @@ class Ask:
         is_password = False
         if thing == 'department':
             departments = ' | '.join(f'{i + 1} {d}' for i, d in enumerate(self.db.get_department_list()))
-            prompt = prompt.replace('departements', departments)
+            prompt = prompt.replace('departments', departments)
         if thing == 'password':
             is_password = True
-            if self.session.status == 'PASSWORD_SECOND_TIME':
+            if self.session.filter == 'SECOND_TIME':
                 prompt = prompt[:-1] + '(vérification) :'
         return NewPrompt.ask(
             '\n[dark_orange3]' + prompt + '[/dark_orange3]',
@@ -44,8 +44,3 @@ class Ask:
             f'\n[{config.validation_text_color}]{prompts.validation}[/{config.validation_text_color}]',
             default=True
         )
-
-    def wait(self):
-        "SHows a waiting line if a pause is needed"
-        self.display()
-        NewPrompt.ask(f'\n[{config.text_color}]{prompts.wait}[/{config.text_color}]')

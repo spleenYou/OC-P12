@@ -54,8 +54,10 @@ class TestController:
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: False)
         controller.start(None)
         captured = capsys.readouterr()
+        for c in captured:
+            print(c)
         assert 'Premier lancement de l\'application' in captured.out
-        assert 'Utilisateur non enregistré' in captured.out
+        assert 'Création de l\'utilisateur annulé.' in captured.out
 
     def test_login_first_time_try_empty_password(self, monkeypatch, controller, management_user, password, capsys):
         self.add_user(controller, management_user)

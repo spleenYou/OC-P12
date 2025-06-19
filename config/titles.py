@@ -1,82 +1,92 @@
-FIRST_LAUNCH = 'Premier lancement de l\'application'
-FORBIDDEN = '[bold red]Vous n\'êtes pas autorisé à faire cette action[/bold red]'
-ADD_USER = 'Ajout d\'un utilisateur'
-ADD_USER_OK = 'Utilisateur créé'
-UPDATE_USER = 'Mise à jour d\'un utilisateur'
-UPDATE_USER_OK = 'Utilisateur mis à jour'
-UPDATE_USER_FAILED = 'Utilisateur non mis à jour'
-VIEW_USER = 'Informations sur l\'utilisateur'
-DELETE_USER = 'Suppression d\'un utilisateur'
-DELETE_USER_OK = 'Utilisateur supprimé'
-SELECT_USER = 'Sélection d\'un utilisateur'
-SELECT_USER_FOR_DELETE = 'Sélection d\'un utilisateur'
-SELECT_SUPPORT_USER = 'Selection d\'un utilisateur support'
-ADD_CLIENT = 'Ajout d\'un client'
-ADD_CLIENT_OK = 'Client ajouté'
-ADD_CLIENT_FAILED = 'Impossible d\'ajouter le client'
-UPDATE_CLIENT = 'Mise à jour d\'un client'
-UPDATE_CLIENT_OK = 'Client mis à jour'
-UPDATE_CLIENT_FAILED = 'Client non mis à jour'
-DELETE_CLIENT = 'Suppression d\'un client'
-DELETE_CLIENT_OK = 'Client supprimé'
-SELECT_CLIENT = 'Selection d\'un client'
-SELECT_CLIENT_WITH_EVENT = 'Selection d\'un client'
-SELECT_CLIENT_WITHOUT_EVENT = 'Selection d\'un client'
-SELECT_CLIENT_WITH_CONTRACT = 'Selection d\'un client'
-VIEW_CLIENT = 'Informations sur le client'
-NO_CLIENT = 'Aucun client n\'est enregistré'
-ADD_CONTRACT = 'Ajout d\'un contrat'
-ADD_CONTRACT_OK = 'Contrat ajouté'
-ADD_CONTRACT_FAILED = '*impossible d\'ajouter le contrat'
-UPDATE_CONTRACT = 'Mise à jour d\'un contrat'
-UPDATE_CONTRACT_OK = 'Contrat mis à jour'
-DELETE_CONTRACT = 'Suppression d\'un contrat'
-DELETE_CONTRACT_OK = 'Contrat supprimé'
-DELETE_CONTRACT_FAILED = 'Contrat non supprimé'
-SELECT_CONTRACT = 'Selection d\'un contrat'
-SELECT_CONTRACT_WITH_EVENT = 'Selection d\'un contrat'
-SELECT_CONTRACT_WITHOUT_EVENT = 'Selection d\'un contrat'
-VIEW_CONTRACT = 'Informations sur le contrat'
-NO_CONTRACT = 'Aucun contrat n\'est enregistré'
-ADD_EVENT = 'Ajout d\'un évènement'
-ADD_EVENT_OK = 'Evènement ajouté'
-ADD_EVENT_FAILED = 'Evènement non ajouté'
-UPDATE_EVENT = 'Mise à jour d\'un évènement'
-UPDATE_EVENT_OK = 'Evènement mis à jour'
-UPDATE_EVENT_failed = 'Evènement non mis à jour'
-DELETE_EVENT = 'Suppression d\'un évènement'
-DELETE_EVENT_OK = 'Evènement supprimé'
-DELETE_EVENT_FAILED = 'Evènement non supprimé'
-UPDATE_SUPPORT_ON_EVENT = 'Mise à jour du support'
-VIEW_EVENT = 'Informations sur l\'évènement'
-NO_EVENT = 'Aucun évènement n\'est enregistré'
-CONNECTION = 'Connexion'
-ERROR = 'Erreur'
-ADD_USER_FAILED = 'Erreur'
-LOGIN_FAILED = 'Erreur de connexion'
-LOGIN_OK = '[green]Connexion réussie[/green]'
-UNKNOWN = 'Erreur de saisie'
-BAD_SELECT_CONTRACT = 'Erreur de saisie'
-BAD_EMAIL = 'Erreur de saisie'
-BAD_EMPLOYEE_NUMBER = 'Erreur de saisie'
-SELECT_USER_FAILED = 'Erreur de saisie'
-BAD_SELECT_USE = 'Erreur de saisie'
-BAD_PHONE = 'Erreur de saisie'
-SELECT_CLIENT_FAILED = 'Erreur de saisie'
-BAD_DEPARTMENT = 'Erreur de saisie'
-BAD_TOTAL_AMOUNT = 'Erreur de saisie'
-BAD_REST_AMOUNT = 'Erreur de saisie'
-BAD_DATE_START = 'Erreur de saisie'
-BAD_DATE_STOP = 'Erreur de saisie'
-PASSWORD_EMPTY = 'Erreur de saisie'
-SELECT_CONTRACT_FAILED = 'Erreur de saisie'
-BAD_SELECT_CLIENT = 'Erreur de saisie'
-BAD_CONTRACT_STATUS = 'Erreur de saisie'
-PERMISSION = 'Tableau des permissions'
-HELP = 'Aide'
-EXIT = 'Au revoir'
-MAIN_MENU = 'Menu principal'
-PASSWORD_FIRST_TIME = 'Définition du mot de passe'
-PASSWORD_SECOND_TIME = 'Définition du mot de passe'
-PASSWORD_MATCH_FAILED = 'Erreur de saisie'
-BAD_TOKEN = 'Déconnexion automatique'
+NORMAL = {
+    'FIRST_LAUNCH': 'Premier lancement de l\'application',
+    'ADD_USER': 'Ajout d\'un utilisateur',
+    'UPDATE_USER': 'Mise à jour d\'un utilisateur',
+    'VIEW_USER': 'Informations sur l\'utilisateur',
+    'DELETE_USER': 'Suppression d\'un utilisateur',
+    'SELECT_USER': 'Sélection d\'un utilisateur',
+    'SELECT_USER_FOR_DELETE': 'Sélection d\'un utilisateur',
+    'SELECT_SUPPORT_USER': 'Selection d\'un utilisateur support',
+    'ADD_CLIENT': 'Ajout d\'un client',
+    'UPDATE_CLIENT': 'Mise à jour d\'un client',
+    'DELETE_CLIENT': 'Suppression d\'un client',
+    'SELECT_CLIENT': 'Selection d\'un client',
+    'SELECT_CLIENT_WITH_EVENT': 'Selection d\'un client',
+    'SELECT_CLIENT_WITHOUT_EVENT': 'Selection d\'un client',
+    'SELECT_CLIENT_WITH_CONTRACT': 'Selection d\'un client',
+    'VIEW_CLIENT': 'Informations sur le client',
+    'NO_CLIENT': 'Aucun client n\'est enregistré',
+    'ADD_CONTRACT': 'Ajout d\'un contrat',
+    'UPDATE_CONTRACT': 'Mise à jour d\'un contrat',
+    'DELETE_CONTRACT': 'Suppression d\'un contrat',
+    'SELECT_CONTRACT': 'Selection d\'un contrat',
+    'SELECT_CONTRACT_WITH_EVENT': 'Selection d\'un contrat',
+    'SELECT_CONTRACT_WITHOUT_EVENT': 'Selection d\'un contrat',
+    'VIEW_CONTRACT': 'Informations sur le contrat',
+    'NO_CONTRACT': 'Aucun contrat n\'est enregistré',
+    'ADD_EVENT': 'Ajout d\'un évènement',
+    'UPDATE_EVENT': 'Mise à jour d\'un évènement',
+    'DELETE_EVENT': 'Suppression d\'un évènement',
+    'UPDATE_SUPPORT_ON_EVENT': 'Mise à jour du support',
+    'VIEW_EVENT': 'Informations sur l\'évènement',
+    'NO_EVENT': 'Aucun évènement n\'est enregistré',
+    'CONNECTION': 'Connexion',
+    'PERMISSION': 'Tableau des permissions',
+    'HELP': 'Aide',
+    'EXIT': 'Au revoir',
+    'MAIN_MENU': 'Menu principal',
+    'PASSWORD_FIRST_TIME': 'Définition du mot de passe',
+    'PASSWORD_SECOND_TIME': 'Définition du mot de passe',
+}
+
+ERROR = {
+    'UNKNOWN': 'Erreur de saisie',
+    'SELECT_CONTRACT': 'Erreur de saisie',
+    'EMPLOYEE_NUMBER': 'Erreur de saisie',
+    'SELECT_USER': 'Erreur de saisie',
+    'PHONE': 'Erreur de saisie',
+    'TOTAL_AMOUNT': 'Erreur de saisie',
+    'REST_AMOUNT': 'Erreur de saisie',
+    'DATE_START': 'Erreur de saisie',
+    'DATE_STOP': 'Erreur de saisie',
+    'PASSWORD': 'Erreur de saisie',
+    'SELECT_CONTRACT': 'Erreur de saisie',
+    'SELECT_CLIENT': 'Erreur de saisie',
+    'CONTRACT_STATUS': 'Erreur de saisie',
+    'DEPARTMENT': 'Erreur de saisie',
+    'TOKEN': 'Déconnexion automatique',
+    'FORBIDDEN': 'Vous n\'êtes pas autorisé à faire cette action',
+}
+
+GOOD = {
+    'ADD_USER': 'Utilisateur créé',
+    'UPDATE_USER': 'Utilisateur mis à jour',
+    'DELETE_USER': 'Utilisateur supprimé',
+    'ADD_CLIENT': 'Client ajouté',
+    'UPDATE_CLIENT': 'Client mis à jour',
+    'DELETE_CLIENT': 'Client supprimé',
+    'ADD_CONTRACT': 'Contrat ajouté',
+    'UPDATE_CONTRACT': 'Contrat mis à jour',
+    'DELETE_CONTRACT': 'Contrat supprimé',
+    'ADD_EVENT': 'Evènement ajouté',
+    'UPDATE_EVENT': 'Evènement mis à jour',
+    'DELETE_EVENT': 'Evènement supprimé',
+    'CONNECTION': '[green]Connexion réussie[/green]'
+}
+
+FAILED = {
+    'UPDATE_USER': 'Utilisateur non mis à jour',
+    'ADD_CLIENT': 'Impossible d\'ajouter le client',
+    'ADD_CONTRACT': '*impossible d\'ajouter le contrat',
+    'DELETE_CONTRACT': 'Contrat non supprimé',
+    'UPDATE_CLIENT': 'Client non mis à jour',
+    'ADD_EVENT': 'Evènement non ajouté',
+    'UPDATE_EVENT': 'Evènement non mis à jour',
+    'DELETE_EVENT': 'Evènement non supprimé',
+    'ADD_USER': 'Impossible d\'enregistrer l\'utilisateur',
+    'CONNECTION': 'Erreur de connexion',
+    'SELECT_USER': 'Erreur de saisie',
+    'SELECT_CLIENT': 'Erreur de saisie',
+    'EMAIL': 'Erreur de saisie',
+    'PASSWORD': 'Erreur de saisie',
+}

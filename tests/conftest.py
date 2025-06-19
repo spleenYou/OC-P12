@@ -53,7 +53,7 @@ def commercial_user():
     return EpicUser(
         name="Commercial",
         email="commercial@example.com",
-        employee_number=1,
+        employee_number='1',
         department_id=1
     )
 
@@ -63,7 +63,7 @@ def support_user():
     return EpicUser(
         name="Support",
         email="support@example.com",
-        employee_number=2,
+        employee_number='2',
         department_id=2
     )
 
@@ -73,7 +73,7 @@ def management_user():
     return EpicUser(
         name="Management",
         email="management@example.com",
-        employee_number=3,
+        employee_number='3',
         department_id=3
     )
 

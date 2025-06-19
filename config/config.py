@@ -1,4 +1,10 @@
 common_width = 120
-border_style = 'cyan'
-text_color = 'dark_orange3'
+normal_border_style = 'cyan'
+error_border_style = 'red'
+failed_border_style = 'red'
+good_border_style = 'green'
+normal_text_color = 'dark_orange3'
+error_text_color = 'red'
+failed_text_color = 'red'
+good_text_color = 'green'
 validation_text_color = 'yellow'

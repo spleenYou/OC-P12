@@ -13,3 +13,5 @@ class Session:
         self.client = Client()
         self.contract = Contract()
         self.event = Event()
+        self.state = 'NORMAL'
+        self.filter = ''
