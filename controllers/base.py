@@ -41,6 +41,7 @@ class Controller:
             self.session.new_user.email = email
             self.session.status = 'ADD_USER'
             if not self.add_user():
+                self.session.state = 'ERROR'
                 self.session.filter = 'STOPPED'
                 self.prompt.thing('wait')
                 return None
@@ -49,9 +50,11 @@ class Controller:
         password_in_db = self.db.get_user_password()
         if password_in_db is None:
             self.session.filter = 'FIRST_TIME'
+            self.session.status = 'PASSWORD'
             self.ask_password()
             self.db.update_password_user()
             password_in_db = self.db.get_user_password()
+        self.session.status = 'CONNECTION'
         password = self.prompt.thing('password')
         if self.auth.check_password(password, password_in_db):
             self.session.user = self.db.get_user_by_mail(self.session.user.email)
@@ -87,6 +90,7 @@ class Controller:
                     self.session.status = 'NO_' + command[1]
             else:
                 self.session.status = 'UNKNOWN'
+                self.session.state = 'ERROR'
             self.prompt.thing('wait')
             self.session.reset_session()
             if self.session.status == 'TOKEN':
@@ -187,7 +191,8 @@ class Controller:
         while number is None:
             self.session.state = 'NORMAL'
             if status == 'DELETE_USER':
-                self.session.status = 'SELECT_USER_FOR_DELETE'
+                self.session.status = 'SELECT_USER'
+                self.session.filter = 'FOR_DELETE'
             else:
                 self.session.status = 'SELECT_USER'
             number = self.prompt.thing('user')
@@ -198,7 +203,8 @@ class Controller:
                     self.session.status = status
                     return user
                 else:
-                    self.session.status = 'SELECT_USER_FAILED'
+                    self.session.status = 'SELECT_USER'
+                    self.session.state = 'FAILED'
             except Exception:
                 self.session.state = 'ERROR'
                 self.session.status = 'SELECT_USER'
@@ -386,11 +392,14 @@ class Controller:
         while number is None:
             self.session.state = 'NORMAL'
             if status in ['UPDATE_CONTRACT', 'DELETE_CONTRACT', 'VIEW_CONTRACT']:
-                self.session.status = 'SELECT_CLIENT_WITH_CONTRACT'
+                self.session.status = 'SELECT_CLIENT'
+                self.session.filter = 'WITH_CONTRACT'
             elif status == 'ADD_EVENT':
-                self.session.status = 'SELECT_CLIENT_WITHOUT_EVENT'
+                self.session.status = 'SELECT_CLIENT'
+                self.session.filter = 'WITHOUT_EVENT'
             elif status in ['UPDATE_EVENT', 'DELETE_EVENT', 'VIEW_EVENT', 'UPDATE_SUPPORT_ON_EVENT']:
-                self.session.status = 'SELECT_CLIENT_WITH_EVENT'
+                self.session.status = 'SELECT_CLIENT'
+                self.session.filter = 'WITH_EVENT'
             else:
                 self.session.status = 'SELECT_CLIENT'
             number = self.prompt.thing('client')
@@ -458,9 +467,11 @@ class Controller:
         while contract_id is None:
             self.session.state = 'NORMAL'
             if status in ['ADD_EVENT']:
-                self.session.status = 'SELECT_CONTRACT_WITHOUT_EVENT'
+                self.session.status = 'SELECT_CONTRACT'
+                self.session.filter = 'WITHOUT_EVENT'
             elif status in ['UPDATE_EVENT', 'UPDATE_SUPPORT_ON_EVENT', 'DELETE_EVENT', 'VIEW_EVENT']:
-                self.session.status = 'SELECT_CONTRACT_WITH_EVENT'
+                self.session.status = 'SELECT_CONTRACT'
+                self.session.filter = 'WITH_EVENT'
             else:
                 self.session.status = 'SELECT_CONTRACT'
             contract_id = self.prompt.thing('contract')
@@ -468,6 +479,7 @@ class Controller:
                 contract_id = int(contract_id)
                 if contract_id < self.db.number_of_contract():
                     self.session.contract = self.db.get_contract(contract_id)
+                    self.session.state = 'NORMAL'
                     self.session.status = status
                     return None
                 else:
@@ -498,7 +510,8 @@ class Controller:
                 else:
                     self.session.state = 'FAILED'
         else:
-            self.session.status = 'NO_CLIENT_WITHOUT_EVENT'
+            self.session.status = 'NO_CLIENT'
+            self.session.state = 'WITHOUT_EVENT'
 
     @check_token_and_perm
     def update_event(self):

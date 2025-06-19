@@ -21,11 +21,11 @@ class Mysql:
         return create_engine(db_url)
 
     def create_session(self):
-        Session = sessionmaker(bind=self.engine, expire_on_commit=True)
+        Session = sessionmaker(bind=self.engine)
         return Session()
 
     def number_of_user(self):
-        if self.session.status == 'SELECT_USER_FOR_DELETE':
+        if self.session.filter == 'FOR_DELETE':
             return self.db_session.query(EpicUser).filter(EpicUser != self.session.user).count()
         return self.db_session.query(EpicUser).count()
 
@@ -33,19 +33,19 @@ class Mysql:
         return self.db_session.query(EpicUser).filter(EpicUser.department_id == 2).count()
 
     def number_of_client(self):
-        if self.session.status == 'SELECT_CLIENT_WITH_CONTRACT':
+        if self.session.filter == 'WITH_CONTRACT':
             return self.db_session.query(Client).filter(Client.contracts.any()).count()
         return self.db_session.query(Client).count()
 
     def number_of_contract(self):
         if self.session.client.id is None:
             return self.db_session.query(Contract).count()
-        elif self.session.status == 'SELECT_CONTRACT_WITHOUT_EVENT':
+        elif self.session.filter == 'WITHOUT_EVENT':
             return self.db_session.query(Contract) \
                 .filter((Contract.client_id == self.session.client.id)) \
                 .filter(~Contract.event.has()) \
                 .count()
-        elif self.session.status == 'SELECT_CONTRACT_WITH_EVENT':
+        elif self.session.filter == 'WITH_EVENT':
             return self.db_session.query(Contract) \
                 .filter((Contract.client_id == self.session.client.id)) \
                 .filter(Contract.event.has()) \
@@ -73,7 +73,7 @@ class Mysql:
         return self.db_session.query(EpicUser).filter(EpicUser.email == email).first()
 
     def get_user_by_number(self, number):
-        if self.session.status == 'SELECT_USER_FOR_DELETE':
+        if self.session.filter == 'FOR_DELETE':
             return self.db_session \
                     .query(EpicUser) \
                     .filter(EpicUser != self.session.user) \
@@ -88,17 +88,17 @@ class Mysql:
             .all()[number][0]
 
     def get_client(self, number):
-        if self.session.status == 'SELECT_CLIENT_WITH_CONTRACT':
+        if self.session.filter == 'WITH_CONTRACT':
             return self.db_session.query(Client) \
                         .filter(Client.contracts.any()) \
                         .order_by(Client.id) \
                         .all()[number]
-        if self.session.status == 'SELECT_CLIENT_WITHOUT_EVENT':
+        if self.session.filter == 'WITHOUT_EVENT':
             return self.db_session.query(Client) \
                         .filter(Client.contracts.any(~Contract.event.has())) \
                         .order_by(Client.id) \
                         .all()[number]
-        if self.session.status == 'SELECT_CLIENT_WITH_EVENT':
+        if self.session.filter == 'WITH_EVENT':
             return self.db_session.query(Client) \
                         .filter(Client.contracts.any(Contract.event.has())) \
                         .order_by(Client.id) \
@@ -108,13 +108,13 @@ class Mysql:
 
     def get_contract(self, number):
         print(self.session.status)
-        if self.session.status == 'SELECT_CONTRACT_WITHOUT_EVENT':
+        if self.session.filter == 'WITHOUT_EVENT':
             return self.db_session.query(Contract) \
                     .filter(Contract.client_id == self.session.client.id) \
                     .filter(~Contract.event.has()) \
                     .order_by(Contract.id) \
                     .all()[number]
-        if self.session.status == 'SELECT_CONTRACT_WITH_EVENT':
+        if self.session.filter == 'WITH_EVENT':
             return self.db_session.query(Contract) \
                     .filter(Contract.client_id == self.session.client.id) \
                     .filter(Contract.event.has()) \
@@ -134,10 +134,10 @@ class Mysql:
         return False
 
     def get_user_list(self):
-        if self.session.status == 'SELECT_USER_FOR_DELETE':
+        if self.session.filter == 'FOR_DELETE':
             return self.db_session \
                     .query(EpicUser) \
-                    .filter(EpicUser != self.session.user) \
+                    .filter(EpicUser.id != self.session.user.id) \
                     .order_by(EpicUser.id).all()
         return self.db_session.query(EpicUser).order_by(EpicUser.id).all()
 
@@ -160,13 +160,13 @@ class Mysql:
         return self.add_in_db(self.session.client)
 
     def get_client_list(self):
-        if self.session.status == 'SELECT_CLIENT_WITH_EVENT':
+        if self.session.filter == 'WITH_EVENT':
             return self.db_session.query(Client).filter(Client.contracts.any(Contract.event.has())).all()
-        elif self.session.status in ['SELECT_CLIENT_WITHOUT_EVENT', 'ADD_EVENT']:
+        elif self.session.filter == 'WITHOUT_EVENT':
             return self.db_session.query(Client) \
                         .filter(~Client.contracts.any(Contract.event.has())) \
                         .all()
-        elif self.session.status == 'SELECT_CLIENT_WITH_CONTRACT':
+        elif self.session.filter == 'WITH_CONTRACT':
             return self.db_session.query(Client) \
                         .filter(Client.contracts.any()) \
                         .all()
@@ -189,18 +189,18 @@ class Mysql:
         return self.add_in_db(self.session.contract)
 
     def get_contract_list(self):
-        if self.session.status == 'SELECT_CONTRACT_WITH_EVENT':
-            return self.db_session.query(Contract) \
-                    .filter((Contract.client_id == self.session.client.id)) \
-                    .filter(Contract.event.has()) \
-                    .all()
-        elif self.session.status == 'SELECT_CONTRACT_WITHOUT_EVENT':
-            return self.db_session.query(Contract) \
-                    .filter(Contract.client_id == self.session.client.id) \
-                    .filter(~Contract.event.has()) \
-                    .all()
-        else:
-            return self.db_session.query(Contract).filter(Contract.client_id == self.session.client.id).all()
+        # if self.session.filter == 'WITH_EVENT':
+        #     return self.db_session.query(Contract) \
+        #             .filter((Contract.client_id == self.session.client.id)) \
+        #             .filter(Contract.event.has()) \
+        #             .all()
+        # elif self.session.filter == 'WITHOUT_EVENT':
+        #     return self.db_session.query(Contract) \
+        #             .filter(Contract.client_id == self.session.client.id) \
+        #             .filter(~Contract.event.has()) \
+        #             .all()
+        # else:
+        return self.db_session.query(Contract).filter(Contract.client_id == self.session.client.id).all()
 
     def delete_contract(self):
         try:

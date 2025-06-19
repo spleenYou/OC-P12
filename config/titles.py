@@ -35,11 +35,11 @@ NORMAL = {
     'HELP': 'Aide',
     'EXIT': 'Au revoir',
     'MAIN_MENU': 'Menu principal',
-    'PASSWORD_FIRST_TIME': 'Définition du mot de passe',
-    'PASSWORD_SECOND_TIME': 'Définition du mot de passe',
+    'PASSWORD': 'Définition du mot de passe',
 }
 
 ERROR = {
+    'ADD_USER': 'Création d\'utilisateur annulé',
     'UNKNOWN': 'Erreur de saisie',
     'SELECT_CONTRACT': 'Erreur de saisie',
     'EMPLOYEE_NUMBER': 'Erreur de saisie',
@@ -87,6 +87,6 @@ FAILED = {
     'CONNECTION': 'Erreur de connexion',
     'SELECT_USER': 'Erreur de saisie',
     'SELECT_CLIENT': 'Erreur de saisie',
-    'EMAIL': 'Erreur de saisie',
     'PASSWORD': 'Erreur de saisie',
+    'EMAIL': 'Erreur de saisie',
 }

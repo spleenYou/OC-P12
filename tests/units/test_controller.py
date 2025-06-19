@@ -57,7 +57,9 @@ class TestController:
         for c in captured:
             print(c)
         assert 'Premier lancement de l\'application' in captured.out
-        assert 'Création de l\'utilisateur annulé.' in captured.out
+        assert 'Création d\'utilisateur annulé' in captured.out
+        assert 'Il faut au moins un utilisateur pour utiliser l\'application' in captured.out
+        assert 'Fermeture de l\'application' in captured.out
 
     def test_login_first_time_try_empty_password(self, monkeypatch, controller, management_user, password, capsys):
         self.add_user(controller, management_user)
@@ -81,7 +83,6 @@ class TestController:
         assert 'Erreur de saisie' in captured.out
         assert 'Votre mot de passe ne peut pas être vide.' in captured.out
         assert 'Veuillez définir votre mot de passe' in captured.out
-        assert 'Veuillez entrer une deuxième fois votre mot de passe' in captured.out
         assert 'Connexion réussie' in captured.out
 
     def test_login_first_time_password_not_match(self, monkeypatch, controller, management_user, password, capsys):
@@ -105,7 +106,6 @@ class TestController:
         captured = capsys.readouterr()
         assert 'Définition du mot de passe' in captured.out
         assert 'Veuillez définir votre mot de passe' in captured.out
-        assert 'Veuillez entrer une deuxième fois votre mot de passe' in captured.out
         assert 'Erreur de saisie' in captured.out
         assert 'Les mots de passe ne sont pas identiques' in captured.out
 

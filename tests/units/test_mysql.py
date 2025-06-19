@@ -320,7 +320,6 @@ class TestMysql:
             support_user,
             client_information,
             contract_information):
-        mysql.session.status = 'SELECT_CONTRACT_WITH_EVENT'
         self.add_user(mysql, commercial_user)
         self.add_user(mysql, support_user)
         mysql.session.user = mysql.get_user_by_number(0)
@@ -328,6 +327,7 @@ class TestMysql:
         mysql.session.client = mysql.get_client(0)
         self.add_contract(mysql, contract_information)
         mysql.session.client = mysql.get_client(0)
+        mysql.session.filter = 'WITH_EVENT'
         assert mysql.number_of_contract() == 0
 
     def test_number_of_contract_without_event(
@@ -337,7 +337,6 @@ class TestMysql:
             support_user,
             client_information,
             contract_information):
-        mysql.session.status = 'SELECT_CONTRACT_WITHOUT_EVENT'
         self.add_user(mysql, commercial_user)
         self.add_user(mysql, support_user)
         mysql.session.user = mysql.get_user_by_number(0)
@@ -345,6 +344,7 @@ class TestMysql:
         mysql.session.client = mysql.get_client(0)
         self.add_contract(mysql, contract_information)
         mysql.session.client = mysql.get_client(0)
+        mysql.session.filter = 'WITHOUT_EVENT'
         assert mysql.number_of_contract() == 1
 
     def test_number_of_event(

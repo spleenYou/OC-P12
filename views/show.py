@@ -80,10 +80,14 @@ class Show:
             self.show_content(content, 'center', config.normal_border_style)
 
     def title(self):
-        border_style = getattr(config, self.session.state.lower() + '_' + 'border_style')
-        text_color = getattr(config, self.session.state.lower() + '_' + 'text_color')
+        if self.session.state in ['NORMAL', 'FAILED', 'GOOD', 'ERROR']:
+            state = self.session.state.lower()
+        else:
+            state = 'normal'
+        border_style = getattr(config, state + '_' + 'border_style')
+        text_color = getattr(config, state + '_' + 'text_color')
         self.show_content(
-            f'[bold {text_color}]' + getattr(titles, self.session.state)[self.session.status] + f'[/bold {text_color}]',
+            f'[bold {text_color}]' + getattr(titles, state.upper())[self.session.status] + f'[/bold {text_color}]',
             'center',
             border_style
         )
@@ -94,34 +98,26 @@ class Show:
         align = 'center'
         text = None
         status = self.session.status
-        if self.session.filter != '':
+        if self.session.filter not in ['', 'FIRST_TIME', 'SECOND_TIME']:
             status = status + '_' + self.session.filter
         if self.session.state == 'NORMAL' and status in contents.NORMAL:
             text = contents.NORMAL[status]
-        if self.session.state == 'BAD' and status in contents.BAD:
-            text = contents.BAD[status]
+        if self.session.state == 'ERROR' and status in contents.ERROR:
+            text = contents.ERROR[status]
         if self.session.state == 'FAILED' and status in contents.FAILED:
             text = contents.FAILED[status]
         if text:
             content = Text(text, justify=align)
         else:
             match self.session.status:
-                case 'SELECT_USER' | 'SELECT_USER_FOR_DELETE':
+                case 'SELECT_USER':
                     content = self.show_select_user()
-                case ('SELECT_CLIENT' |
-                      'SELECT_CLIENT_WITH_EVENT' |
-                      'SELECT_CLIENT_WITHOUT_EVENT' |
-                      'SELECT_CLIENT_WITH_CONTRACT'):
+                case 'SELECT_CLIENT':
                     content = self.show_select_client()
-                case 'SELECT_CONTRACT' | 'SELECT_CONTRACT_WITH_EVENT' | 'SELECT_CONTRACT_WITHOUT_EVENT':
+                case 'SELECT_CONTRACT':
                     content = self.show_select_contract()
                 case 'SELECT_SUPPORT_USER':
                     content = self.show_select_support_user()
-                case 'ADD_USER_FAILED':
-                    content = 'Utilisateur non enregistré'
-                    if self.db.number_of_user() == 0:
-                        content = content + ('\nIl faut au moins un utilisateur pour utiliser l\'application\n'
-                                             'Fermeture de l\'application')
                 case 'PERMISSION':
                     self.show_permissions()
             status = self.session.status.split('_')
@@ -172,10 +168,7 @@ class Show:
         return content
 
     def show_select_contract(self):
-        if self.session.status == 'SELECT_CONTRACT':
-            contracts = self.session.client.contracts
-        else:
-            contracts = self.db.get_contract_list()
+        contracts = self.session.client.contracts
         lines = [
             f'{index} - {contract.date_creation.strftime("%d %b %Y")} \\ '
             f'{contract.total_amount} \\ '
@@ -266,10 +259,7 @@ class Show:
         location = ''
         attendees = ''
         notes = ''
-        if self.session.status == 'ADD_USER':
-            event = self.session.event
-        else:
-            event = self.session.contract.event
+        event = self.session.contract.event
         if event is not None:
             if event.support_contact_id is not None:
                 support_user = event.support_contact

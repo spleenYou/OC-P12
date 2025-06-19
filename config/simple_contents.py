@@ -1,7 +1,6 @@
 NORMAL = {
         'FIRST_LAUNCH': 'Un utilisateur de l\'équipe Management va être créé\nafin de pouvoir continuer.',
         'NO_CLIENT_WITHOUT_EVENT': 'Pas de client avec contrat sans évènement.',
-        'UNKNOWN': 'Cette commande est inconnue.',
         'MAIN_MENU': ('Merci d\'entrer la commande correspondant à ce que vous souhaitez faire.\n\n'
                       'Entrer "HELP" pour avoir la description des commandes.\n'
                       'Entrer "EXIT" pour quitter l\'application.'),
@@ -13,14 +12,13 @@ NORMAL = {
                  'L\'accès à certaines actions est restreint en fonction des permissions.'
                  ' attribuées à votre département.\n\n'
                  'Pour les connaître taper PERMISSION'),
-        'CONNECTION_FIRST_TIME': 'Bienvenue pour votre première connexion.\n\nVeuillez définir votre mot de passe.',
-        'CONNECTION_SECOND_TIME': ('Bienvenue pour votre première connexion.\n\n'
-                                   'Veuillez entrer une deuxième fois votre mot de passe.'),
-        'ADD_USER_STOPPED': 'Création de l\'utilisateur annulé.'
+        'PASSWORD': 'Bienvenue pour votre première connexion.\n\nVeuillez définir votre mot de passe.',
 }
 
-BAD = {
-        'EMAIL': 'Votre saisie ne correspond pas à une adresse mail.',
+ERROR = {
+        'ADD_USER_STOPPED': ('Il faut au moins un utilisateur pour utiliser l\'application\n'
+                             'Fermeture de l\'application'),
+        'UNKNOWN': 'Cette commande est inconnue.',
         'EMPLOYEE_NUMBER': 'Votre saisie ne correspond pas à un numéro d\'employé.',
         'DEPARTMENT': 'Votre saisie ne correspond pas à un département.',
         'SELECT_USER': 'Merci d\'entrer un nombre.',
@@ -31,13 +29,15 @@ BAD = {
         'PHONE': 'Numéro de téléphone incorrect.',
         'CONTRACT_STATUS': 'Cette réponse n\'est pas possible.\n\nMerci d\'indiquer y or n comme demandé.',
         'TOKEN': 'Vous avez été déconnecté, merci de vous reconnecter.',
+        'PASSWORD': 'Votre mot de passe ne peut pas être vide.',
+
 }
 
 FAILED = {
+        'EMAIL': 'Votre saisie ne correspond pas à une adresse mail.',
         'SELECT_USER': 'Ce numéro ne correspond pas à un utilisateur.',
         'SELECT_CLIENT': 'Ce numéro ne correspond pas à un client.',
         'SELECT_CONTRACT': 'Ce numéro ne correspond pas à un contrat.',
-        'LOGIN': 'Vos identifiants sont inconnus\nL\'application va s\'arrêter.',
-        'PASSWORD_MATCH': 'Les mots de passe ne sont pas identiques.',
-        'PASSWORD_EMPTY': 'Votre mot de passe ne peut pas être vide.',
+        'CONNECTION': 'Vos identifiants sont inconnus\nL\'application va s\'arrêter.',
+        'PASSWORD': 'Les mots de passe ne sont pas identiques.',
 }
