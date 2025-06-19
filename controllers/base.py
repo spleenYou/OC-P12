@@ -301,13 +301,14 @@ class Controller:
             if self.db.add_user():
                 self.session.state = 'GOOD'
                 return True
-        self.session.state = 'FAILED'
-        return False
+            else:
+                self.session.state = 'FAILED'
+                return False
 
     @check_token_and_perm
     def update_user(self):
         self.session.new_user = self.select_user()
-        original_user = copy(self.session.new_user)
+        savepoint = self.db.db_session.begin_nested()
         self.session.new_user.name = self.ask_name()
         self.session.new_user.email = self.ask_email()
         self.session.new_user.employee_number = self.ask_employee_number()
@@ -315,8 +316,11 @@ class Controller:
         if self.prompt.validation():
             self.session.state = 'GOOD'
             self.session.status = 'UPDATE_USER'
+            savepoint.commit()
+            self.db.db_session.commit()
         else:
-            self.session.new_user = original_user
+            self.session.state = 'FAILED'
+            savepoint.rollback()
 
     @check_token_and_perm
     def view_user(self):
@@ -419,12 +423,18 @@ class Controller:
     def update_contract(self):
         self.session.client = self.select_client()
         self.select_contract()
+        savepoint = self.db.db_session.begin_nested()
         self.session.contract.total_amount = self.ask_total_amount()
         self.session.contract.rest_amount = self.ask_rest_amount()
         self.session.contract.status = self.ask_status()
+        self.session.status = 'UPDATE_CONTRACT'
         if self.prompt.validation():
             self.session.state = 'GOOD'
-            self.session.status = 'UPDATE_CONTRACT'
+            savepoint.commit()
+            self.db.db_session.commit()
+        else:
+            self.session.state = 'FAILED'
+            savepoint.rollback()
 
     @check_token_and_perm
     def delete_contract(self):
@@ -494,7 +504,7 @@ class Controller:
     def update_event(self):
         self.session.client = self.select_client()
         self.select_contract()
-        original_event = copy(self.session.contract.event)
+        savepoint = self.db.db_session.begin_nested()
         if self.session.status == 'UPDATE_EVENT':
             self.session.contract.event.location = self.ask_location()
             self.session.contract.event.attendees = self.ask_attendees()
@@ -502,11 +512,14 @@ class Controller:
             self.session.contract.event.date_stop = self.ask_date_stop()
             self.session.contract.event.notes = self.ask_notes()
         self.session.contract.event.support_contact_id = self.select_support_user()
+        self.session.status = 'UPDATE_EVENT'
         if self.prompt.validation():
-            self.session.status = 'UPDATE_EVENT'
             self.session.state = 'GOOD'
+            savepoint.commit()
+            self.db.db_session.commit()
         else:
-            self.session.contract.event = original_event
+            self.session.state = 'FAILED'
+            savepoint.rollback()
 
     @check_token_and_perm
     def delete_event(self):

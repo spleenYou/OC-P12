@@ -21,7 +21,7 @@ class Mysql:
         return create_engine(db_url)
 
     def create_session(self):
-        Session = sessionmaker(bind=self.engine)
+        Session = sessionmaker(bind=self.engine, expire_on_commit=True)
         return Session()
 
     def number_of_user(self):
