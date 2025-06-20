@@ -74,8 +74,11 @@ class Controller:
             self.session.status = 'MAIN_MENU'
             command = self.prompt.thing('command')
             command = command.upper().split(' ')
-            if command[0] in ['HELP', 'EXIT', 'PERMISSION']:
-                self.session.status = command[0]
+            if command[0] in ['HELP', 'EXIT', 'PERMISSION', 'RESET']:
+                if command[1] == 'PASSWORD':
+                    self.reset_password()
+                else:
+                    self.session.status = command[0]
             elif (command[0] in ['ADD', 'UPDATE', 'VIEW', 'DELETE'] and
                     command[1] in ['USER', 'CLIENT', 'CONTRACT', 'EVENT']):
                 if (command[0] == 'ADD' or
@@ -641,3 +644,8 @@ class Controller:
                 self.session.state = 'ERROR'
             user_id = None
             self.prompt.thing('wait')
+
+    def reset_password(self):
+        if self.prompt.validation():
+            self.session.user.password = None
+            self.start(self.session.user.email)

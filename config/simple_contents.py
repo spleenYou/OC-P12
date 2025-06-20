@@ -11,7 +11,8 @@ NORMAL = {
                  'Syntaxe : ACTION CATEGORIE\n\n'
                  'L\'accès à certaines actions est restreint en fonction des permissions.'
                  ' attribuées à votre département.\n\n'
-                 'Pour les connaître taper PERMISSION'),
+                 'Pour les connaître taper PERMISSION\n\n'
+                 'RESET PASSWORD pour redéfinir votre mot de passe'),
         'PASSWORD': 'Bienvenue pour votre première connexion.\n\nVeuillez définir votre mot de passe.',
 }
 
