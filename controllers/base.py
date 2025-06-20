@@ -91,6 +91,7 @@ class Controller:
             self.prompt.thing('wait')
             self.session.reset_session()
             if self.session.status == 'TOKEN':
+                self.prompt.thing('wait')
                 self.start(None)
 
     def ask_name(self):

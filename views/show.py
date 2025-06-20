@@ -1,5 +1,5 @@
 import os
-from rich.console import Console
+from rich.console import Console, Group
 from rich.panel import Panel
 from rich.table import Table
 from rich.align import Align
@@ -80,10 +80,7 @@ class Show:
             self.show_content(content, 'center', config.normal_border_style)
 
     def title(self):
-        if self.session.state in ['NORMAL', 'FAILED', 'GOOD', 'ERROR']:
-            state = self.session.state.lower()
-        else:
-            state = 'normal'
+        state = self.session.state.lower()
         border_style = getattr(config, state + '_' + 'border_style')
         text_color = getattr(config, state + '_' + 'text_color')
         self.show_content(
@@ -121,7 +118,7 @@ class Show:
                 case 'SELECT_SUPPORT_USER':
                     content = self.show_select_support_user()
                 case 'PERMISSION':
-                    self.show_permissions()
+                    content = self.show_permissions()
             status = self.session.status.split('_')
             if (status[0] in ['ADD', 'UPDATE', 'VIEW', 'DELETE'] and
                     status[-1] in ['USER', 'CLIENT', 'CONTRACT', 'EVENT']):
@@ -171,13 +168,17 @@ class Show:
 
     def show_select_contract(self):
         contracts = self.session.client.contracts
-        lines = [
-            f'{index} - {contract.date_creation.strftime("%d %b %Y")} \\ '
-            f'{contract.total_amount} \\ '
-            f'{"Terminé" if contract.status else "En cours"}'
-            for index, contract in enumerate(contracts)
-        ]
-        content = "\n".join(lines)
+        content = Table()
+        content.add_column('N°', justify='center')
+        content.add_column('Date de création', justify='center')
+        content.add_column('Montant total', justify='center')
+        content.add_column('Status', justify='center')
+        for index, contract in enumerate(contracts):
+            content.add_row(
+                str(index),
+                contract.date_creation.strftime("%d %b %Y"),
+                str(contract.total_amount),
+                "Terminé" if contract.status else "En cours")
         return content
 
     def show_select_support_user(self):
@@ -217,7 +218,11 @@ class Show:
                 management_perm = '*'
             perm = perm.replace('_', ' ')
             content.add_row(perm, commercial_perm, support_perm, management_perm)
-        content = '* : Le management peut seulement mettre à jour le contact support d\'un évènement'
+        note = Text(
+            '* : L\'équipe management peut seulement mettre à jour\nle contact support d\'un évènement',
+            justify='center'
+        )
+        content = Group(content, '', note)
         return content
 
     def show_user(self, content):
