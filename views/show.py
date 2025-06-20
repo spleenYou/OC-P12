@@ -141,7 +141,7 @@ class Show:
 
     def show_select_user(self):
         users = self.db.get_user_list()
-        content = Table(show_lines=True)
+        content = Table()
         content.add_column('N°', justify='left')
         content.add_column('Numéro employé', justify='left')
         content.add_column('Nom', justify='left')
@@ -159,11 +159,16 @@ class Show:
 
     def show_select_client(self):
         clients = self.db.get_client_list()
-        lines = [
-            f'{index} - {client.company_name} \\ {client.name}'
-            for index, client in enumerate(clients)
-        ]
-        content = "\n".join(lines)
+        content = Table()
+        content.add_column('N°', justify='center')
+        content.add_column('Nom de l\'entreprise', justify='center')
+        content.add_column('Contact', justify='center')
+        for index, client in enumerate(clients):
+            content.add_row(
+                str(index),
+                client.company_name,
+                client.name
+                )
         return content
 
     def show_select_contract(self):
@@ -234,6 +239,7 @@ class Show:
         content.add_row('Email', self.session.new_user.email or '')
         content.add_row('Numéro d\'employé', str(employee_number))
         content.add_row('Département', department_name)
+        content.add_row('Date de création', self.session.new_user.date_creation.strftime("%d %b %Y"))
         return content
 
     def show_client(self, content):
@@ -248,6 +254,8 @@ class Show:
         content.add_row('Email', self.session.client.email or '')
         content.add_row('Téléphone', self.session.client.phone or '')
         content.add_row('Commercial', (f"{commercial_name} - {commercial_email}"))
+        content.add_row('Date de création', self.session.client.date_creation.strftime("%d %b %Y"))
+        content.add_row('Dernière mise à jour', self.session.client.date_last_update.strftime("%d %b %Y"))
         return content
 
     def show_contract(self, content):
@@ -257,6 +265,7 @@ class Show:
         content.add_row('Montant total', str(self.session.contract.total_amount or '0'))
         content.add_row('Reste à payer', str(self.session.contract.rest_amount or '0'))
         content.add_row('Statut', 'Terminé' if self.session.contract.status else 'En cours')
+        content.add_row('Date de création', self.session.contract.date_creation.strftime("%d %b %Y"))
         return content
 
     def show_event(self, content):
@@ -267,18 +276,17 @@ class Show:
         attendees = ''
         notes = ''
         event = self.session.contract.event
-        if event is not None:
-            if event.support_contact_id is not None:
-                support_user = event.support_contact
-            date_start = event.date_start
-            if date_start is not None:
-                date_start = date_start.strftime("%d %b %Y")
-            date_stop = event.date_stop
-            if date_stop is not None:
-                date_stop = date_stop.strftime("%d %b %Y")
-            location = event.location
-            attendees = str(event.attendees)
-            notes = event.notes
+        if event.support_contact_id is not None:
+            support_user = event.support_contact
+        date_start = event.date_start
+        if date_start is not None:
+            date_start = date_start.strftime("%d %b %Y")
+        date_stop = event.date_stop
+        if date_stop is not None:
+            date_stop = date_stop.strftime("%d %b %Y")
+        location = event.location
+        attendees = str(event.attendees)
+        notes = event.notes
         content.add_row('Client', self.session.client.company_name + ' - ' + self.session.client.name)
         content.add_row('Commercial', (f"{self.session.client.commercial_contact.name} - "
                                        f"{self.session.client.commercial_contact.email}"))
@@ -293,4 +301,5 @@ class Show:
         content.add_row('Date de début', date_start)
         content.add_row('Date de fin', date_stop)
         content.add_row('Notes', notes)
+        content.add_row('Date de création', event.date_creation.strftime("%d %b %Y"))
         return content
