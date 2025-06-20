@@ -93,6 +93,8 @@ class Show:
         )
 
     def content(self):
+        if self.session.state == 'GOOD':
+            return None
         content = None
         border_style = config.normal_border_style
         align = 'center'
@@ -215,7 +217,7 @@ class Show:
                 management_perm = '*'
             perm = perm.replace('_', ' ')
             content.add_row(perm, commercial_perm, support_perm, management_perm)
-        content = '* : Le management peut mettre à jour le contact support d\'un évènement'
+        content = '* : Le management peut seulement mettre à jour le contact support d\'un évènement'
         return content
 
     def show_user(self, content):
