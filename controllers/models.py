@@ -94,7 +94,6 @@ class Permission(Base):
     add_user = Column(Boolean, default=False)
     update_user = Column(Boolean, default=False)
     delete_user = Column(Boolean, default=False)
-    update_support_on_event = Column(Boolean, default=False)
     department = relationship('Department', back_populates='permissions')
 
 
@@ -110,9 +109,9 @@ event.listen(
     'after_create',
     DDL("""INSERT INTO permissions
     (id, department_id, add_client, update_client, delete_client, add_contract, update_contract, delete_contract,
-    add_event, update_event, delete_event, add_user, update_user, delete_user, update_support_on_event)
+    add_event, update_event, delete_event, add_user, update_user, delete_user)
     VALUES
-    (1, 1, True, True, True, False, True, True, True, False, True, False, False, False, False),
-    (2, 2, False, False, False, False, False, False, False, True, True, False, False, False, False),
-    (3, 3, False, False, False, True, True, True, False, False, False, True, True, True, True)""")
+    (1, 1, True, True, True, False, True, True, True, False, True, False, False, False),
+    (2, 2, False, False, False, False, False, False, False, True, True, False, False, False),
+    (3, 3, False, False, False, True, True, True, False, True, False, True, True, True)""")
 )

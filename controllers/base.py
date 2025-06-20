@@ -80,12 +80,9 @@ class Controller:
                     command[1] in ['USER', 'CLIENT', 'CONTRACT', 'EVENT']):
                 if (command[0] == 'ADD' or
                    (command[0] != 'ADD' and eval('self.db.number_of_' + command[1].lower())() > 0)):
-                    if command[0] == 'UPDATE' and command[1] == 'EVENT' and self.session.user.department_id == 3:
-                        command = command[0] + '_SUPPORT_ON_' + command[1]
-                    else:
-                        command = command[0] + '_' + command[1]
+                    command = command[0] + '_' + command[1]
                     self.session.status = command
-                    eval('self.' + command.replace('_SUPPORT_ON', '').lower())()
+                    eval('self.' + command.lower())()
                 else:
                     self.session.status = 'NO_' + command[1]
             else:
@@ -397,7 +394,7 @@ class Controller:
             elif status == 'ADD_EVENT':
                 self.session.status = 'SELECT_CLIENT'
                 self.session.filter = 'WITHOUT_EVENT'
-            elif status in ['UPDATE_EVENT', 'DELETE_EVENT', 'VIEW_EVENT', 'UPDATE_SUPPORT_ON_EVENT']:
+            elif status in ['UPDATE_EVENT', 'DELETE_EVENT', 'VIEW_EVENT']:
                 self.session.status = 'SELECT_CLIENT'
                 self.session.filter = 'WITH_EVENT'
             else:
@@ -469,7 +466,7 @@ class Controller:
             if status in ['ADD_EVENT']:
                 self.session.status = 'SELECT_CONTRACT'
                 self.session.filter = 'WITHOUT_EVENT'
-            elif status in ['UPDATE_EVENT', 'UPDATE_SUPPORT_ON_EVENT', 'DELETE_EVENT', 'VIEW_EVENT']:
+            elif status in ['UPDATE_EVENT', 'DELETE_EVENT', 'VIEW_EVENT']:
                 self.session.status = 'SELECT_CONTRACT'
                 self.session.filter = 'WITH_EVENT'
             else:
@@ -518,7 +515,7 @@ class Controller:
         self.session.client = self.select_client()
         self.select_contract()
         savepoint = self.db.db_session.begin_nested()
-        if self.session.status == 'UPDATE_EVENT':
+        if self.session.user.department_id != 3:
             self.session.contract.event.location = self.ask_location()
             self.session.contract.event.attendees = self.ask_attendees()
             self.session.contract.event.date_start = self.ask_date_start()
@@ -625,7 +622,7 @@ class Controller:
             self.session.state = 'NORMAL'
             self.session.status = 'SELECT_SUPPORT_USER'
             user_id = self.prompt.thing('support_user')
-            if status in ['UPDATE_EVENT', 'UPDATE_SUPPORT_ON_EVENT'] and user_id == '':
+            if status == 'UPDATE_EVENT' and user_id == '':
                 self.session.status = status
                 return self.session.event.support_contact_id
             try:

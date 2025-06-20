@@ -615,40 +615,6 @@ class TestController:
         assert 'Mise à jour d\'un évènement' in captured.out
         assert 'Evènement mis à jour' in captured.out
 
-    def test_update_support_on_event_by_management(
-            self,
-            controller,
-            monkeypatch,
-            capsys,
-            management_user,
-            client_information,
-            contract_information,
-            support_user,
-            event_information):
-        self.add_user(controller, management_user)
-        self.add_user(controller, support_user)
-        self.connect_user(controller, 0)
-        self.add_client(controller, client_information, 0)
-        self.add_contract(controller, contract_information, 0)
-        self.connect_user(controller, 1)
-        self.add_event(controller, event_information, 0, 0)
-        self.connect_user(controller, 0)
-        controller.session.status = 'UPDATE_SUPPORT_ON_EVENT'
-        inputs = iter(
-            [
-                '0',
-                '0',
-                '',
-                ''
-            ]
-        )
-        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.update_event()
-        controller.show.display()
-        captured = capsys.readouterr()
-        assert 'Evènement mis à jour' in captured.out
-
     def test_delete_event(
             self,
             controller,

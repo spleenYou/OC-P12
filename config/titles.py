@@ -27,7 +27,6 @@ NORMAL = {
     'ADD_EVENT': 'Ajout d\'un évènement',
     'UPDATE_EVENT': 'Mise à jour d\'un évènement',
     'DELETE_EVENT': 'Suppression d\'un évènement',
-    'UPDATE_SUPPORT_ON_EVENT': 'Mise à jour du support',
     'VIEW_EVENT': 'Informations sur l\'évènement',
     'NO_EVENT': 'Aucun évènement n\'est enregistré',
     'CONNECTION': 'Connexion',
