@@ -107,7 +107,6 @@ class Mysql:
             return self.db_session.query(Client).order_by(Client.id).all()[number]
 
     def get_contract(self, number):
-        print(self.session.status)
         if self.session.filter == 'WITHOUT_EVENT':
             return self.db_session.query(Contract) \
                     .filter(Contract.client_id == self.session.client.id) \
@@ -189,18 +188,18 @@ class Mysql:
         return self.add_in_db(self.session.contract)
 
     def get_contract_list(self):
-        # if self.session.filter == 'WITH_EVENT':
-        #     return self.db_session.query(Contract) \
-        #             .filter((Contract.client_id == self.session.client.id)) \
-        #             .filter(Contract.event.has()) \
-        #             .all()
-        # elif self.session.filter == 'WITHOUT_EVENT':
-        #     return self.db_session.query(Contract) \
-        #             .filter(Contract.client_id == self.session.client.id) \
-        #             .filter(~Contract.event.has()) \
-        #             .all()
-        # else:
-        return self.db_session.query(Contract).filter(Contract.client_id == self.session.client.id).all()
+        if self.session.filter == 'WITH_EVENT':
+            return self.db_session.query(Contract) \
+                    .filter((Contract.client_id == self.session.client.id)) \
+                    .filter(Contract.event.has()) \
+                    .all()
+        elif self.session.filter == 'WITHOUT_EVENT':
+            return self.db_session.query(Contract) \
+                    .filter(Contract.client_id == self.session.client.id) \
+                    .filter(~Contract.event.has()) \
+                    .all()
+        else:
+            return self.db_session.query(Contract).filter(Contract.client_id == self.session.client.id).all()
 
     def delete_contract(self):
         try:

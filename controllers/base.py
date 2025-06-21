@@ -75,7 +75,7 @@ class Controller:
             command = self.prompt.thing('command')
             command = command.upper().split(' ')
             if command[0] in ['HELP', 'EXIT', 'PERMISSION', 'RESET']:
-                if command[1] == 'PASSWORD':
+                if len(command) > 1 and command[1] == 'PASSWORD':
                     self.reset_password()
                 else:
                     self.session.status = command[0]
@@ -83,7 +83,10 @@ class Controller:
                     command[1] in ['USER', 'CLIENT', 'CONTRACT', 'EVENT']):
                 if (command[0] == 'ADD' or
                    (command[0] != 'ADD' and eval('self.db.number_of_' + command[1].lower())() > 0)):
-                    command = command[0] + '_' + command[1]
+                    if command[0] == 'VIEW':
+                        filter = [c for c in command[2:]]
+                        self.session.filter = '_'.join(filter)
+                    command = '_'.join([command[0], command[1]])
                     self.session.status = command
                     eval('self.' + command.lower())()
                 else:
@@ -104,15 +107,15 @@ class Controller:
         return name
 
     def ask_email(self, email=None):
-        status = self.session.status
+        previous_status = self.session.status
         while email is None:
-            self.session.status = status
+            self.session.status = previous_status
             self.session.state = 'NORMAL'
             email = self.prompt.thing('email')
             if email == '':
-                if status == 'UPDATE_USER':
+                if previous_status == 'UPDATE_USER':
                     email = self.session.new_user.email
-                elif status == 'UPDATE_CLIENT':
+                elif previous_status == 'UPDATE_CLIENT':
                     email = self.session.client.email
             if not re.fullmatch(self.email_regex, email):
                 self.session.status = 'EMAIL'
@@ -122,13 +125,13 @@ class Controller:
         return email
 
     def ask_employee_number(self):
-        status = self.session.status
+        previous_status = self.session.status
         employee_number = None
         while employee_number is None:
-            self.session.status = status
+            self.session.status = previous_status
             self.session.state = 'NORMAL'
             employee_number = self.prompt.thing('employee_number')
-            if status == 'UPDATE_USER' and employee_number == '':
+            if previous_status == 'UPDATE_USER' and employee_number == '':
                 return self.session.new_user.employee_number
             try:
                 employee_number = int(employee_number)
@@ -140,10 +143,10 @@ class Controller:
         return employee_number
 
     def ask_password(self):
-        status = self.session.status
+        previous_status = self.session.status
         password = None
         while password is None:
-            self.session.status = status
+            self.session.status = previous_status
             self.session.state = 'NORMAL'
             if self.session.filter == 'FIRST_TIME' and self.session.user.password is not None:
                 self.session.filter = 'SECOND_TIME'
@@ -167,15 +170,15 @@ class Controller:
             password = None
 
     def ask_department(self):
-        status = self.session.status
+        previous_status = self.session.status
         department_id = None
-        if status != 'UPDATE_USER':
+        if previous_status != 'UPDATE_USER':
             department_id = self.session.new_user.department_id
         while department_id is None:
             self.session.state = 'NORMAL'
-            self.session.status = status
+            self.session.status = previous_status
             department_id = self.prompt.thing('department')
-            if status == 'UPDATE_USER' and department_id == '':
+            if previous_status == 'UPDATE_USER' and department_id == '':
                 return self.session.new_user.department_id
             try:
                 department_id = int(department_id)
@@ -188,27 +191,25 @@ class Controller:
 
     def select_user(self):
         number = None
-        status = self.session.status
+        previous_filter = self.session.filter
+        previous_status = self.session.status
+        self.session.status = 'SELECT_USER'
         while number is None:
             self.session.state = 'NORMAL'
-            if status == 'DELETE_USER':
-                self.session.status = 'SELECT_USER'
+            if previous_status == 'DELETE_USER':
                 self.session.filter = 'FOR_DELETE'
-            else:
-                self.session.status = 'SELECT_USER'
             number = self.prompt.thing('user')
             try:
                 number = int(number)
                 if number < self.db.number_of_user():
-                    user = self.db.get_user_by_number(number)
-                    self.session.status = status
-                    return user
+                    self.session.new_user = self.db.get_user_by_number(number)
+                    self.session.filter = previous_filter
+                    self.session.status = previous_status
+                    return None
                 else:
-                    self.session.status = 'SELECT_USER'
                     self.session.state = 'FAILED'
             except Exception:
                 self.session.state = 'ERROR'
-                self.session.status = 'SELECT_USER'
             number = None
             self.prompt.thing('wait')
 
@@ -226,12 +227,12 @@ class Controller:
 
     def ask_phone(self):
         phone = None
-        status = self.session.status
+        previous_status = self.session.status
         while phone is None:
             self.session.state = 'NORMAL'
-            self.session.status = status
+            self.session.status = previous_status
             phone = self.prompt.thing('phone')
-            if status == 'UPDATE_CLIENT' and phone == '':
+            if previous_status == 'UPDATE_CLIENT' and phone == '':
                 phone = self.session.client.phone
             if re.match(self.phone_regex, phone):
                 return phone
@@ -242,12 +243,12 @@ class Controller:
 
     def ask_total_amount(self):
         total_amount = None
-        status = self.session.status
+        previous_status = self.session.status
         while total_amount is None:
             self.session.state = 'NORMAL'
-            self.session.status = status
+            self.session.status = previous_status
             total_amount = self.prompt.thing('total_amount')
-            if status == 'UPDATE_CONTRACT' and total_amount == '':
+            if previous_status == 'UPDATE_CONTRACT' and total_amount == '':
                 total_amount = self.session.contract.total_amount
             try:
                 total_amount = float(total_amount)
@@ -260,12 +261,12 @@ class Controller:
 
     def ask_rest_amount(self):
         rest_amount = None
-        status = self.session.status
+        previous_status = self.session.status
         while rest_amount is None:
             self.session.state = 'NORMAL'
-            self.session.status = status
+            self.session.status = previous_status
             rest_amount = self.prompt.thing('rest_amount')
-            if status == 'UPDATE_CONTRACT' and rest_amount == '':
+            if previous_status == 'UPDATE_CONTRACT' and rest_amount == '':
                 rest_amount = self.session.contract.rest_amount
             try:
                 rest_amount = float(rest_amount)
@@ -278,12 +279,12 @@ class Controller:
 
     def ask_status(self):
         contract_status = None
-        status = self.session.status
+        previous_status = self.session.status
         while contract_status is None:
             self.session.state = 'NORMAL'
-            self.session.status = status
+            self.session.status = previous_status
             contract_status = self.prompt.thing('contract_status').lower()
-            if status == 'UPDATE_CONTRACT' and contract_status == '':
+            if previous_status == 'UPDATE_CONTRACT' and contract_status == '':
                 return self.session.contract.status
             if contract_status == 'y':
                 return True
@@ -314,7 +315,7 @@ class Controller:
 
     @check_token_and_perm
     def update_user(self):
-        self.session.new_user = self.select_user()
+        self.select_user()
         savepoint = self.db.db_session.begin_nested()
         self.session.new_user.name = self.ask_name()
         self.session.new_user.email = self.ask_email()
@@ -331,11 +332,11 @@ class Controller:
 
     @check_token_and_perm
     def view_user(self):
-        self.session.new_user = self.select_user()
+        self.select_user()
 
     @check_token_and_perm
     def delete_user(self):
-        self.session.new_user = self.select_user()
+        self.select_user()
         if self.prompt.validation():
             self.session.state = 'GOOD'
             self.session.status = 'DELETE_USER'
@@ -388,27 +389,24 @@ class Controller:
             self.db.delete_client()
 
     def select_client(self):
-        status = self.session.status
         number = None
+        previous_filter = self.session.filter
+        previous_status = self.session.status
+        self.session.status = 'SELECT_CLIENT'
         while number is None:
             self.session.state = 'NORMAL'
-            if status in ['UPDATE_CONTRACT', 'DELETE_CONTRACT', 'VIEW_CONTRACT']:
-                self.session.status = 'SELECT_CLIENT'
+            if previous_status in ['UPDATE_CONTRACT', 'DELETE_CONTRACT', 'VIEW_CONTRACT']:
                 self.session.filter = 'WITH_CONTRACT'
-            elif status == 'ADD_EVENT':
-                self.session.status = 'SELECT_CLIENT'
+            elif previous_status == 'ADD_EVENT':
                 self.session.filter = 'WITHOUT_EVENT'
-            elif status in ['UPDATE_EVENT', 'DELETE_EVENT', 'VIEW_EVENT']:
-                self.session.status = 'SELECT_CLIENT'
+            elif previous_status in ['UPDATE_EVENT', 'DELETE_EVENT', 'VIEW_EVENT']:
                 self.session.filter = 'WITH_EVENT'
-            else:
-                self.session.status = 'SELECT_CLIENT'
             number = self.prompt.thing('client')
-            self.session.status = 'SELECT_CLIENT'
             try:
                 number = int(number)
                 if number < self.db.number_of_client():
-                    self.session.status = status
+                    self.session.filter = previous_filter
+                    self.session.status = previous_status
                     return self.db.get_client(number)
                 else:
                     self.session.state = 'FAILED'
@@ -422,8 +420,8 @@ class Controller:
         self.session.client = self.select_client()
         self.session.contract.total_amount = self.ask_total_amount()
         self.session.contract.rest_amount = self.ask_rest_amount()
+        self.session.status = 'ADD_CONTRACT'
         if self.prompt.validation():
-            self.session.status = 'ADD_CONTRACT'
             if self.db.add_contract():
                 self.session.state = 'GOOD'
             else:
@@ -450,8 +448,8 @@ class Controller:
     def delete_contract(self):
         self.session.client = self.select_client()
         self.select_contract()
+        self.session.status = 'DELETE_CONTRACT'
         if self.prompt.validation():
-            self.session.status = 'DELETE_CONTRACT'
             if self.db.delete_contract():
                 self.session.state = 'GOOD'
             else:
@@ -459,35 +457,33 @@ class Controller:
 
     @check_token_and_perm
     def view_contract(self):
+        filter = self.session.filter
         self.session.client = self.select_client()
+        self.session.filter = filter
         self.select_contract()
 
     def select_contract(self):
-        status = self.session.status
         contract_id = None
+        previous_filter = self.session.filter
+        previous_status = self.session.status
+        self.session.status = 'SELECT_CONTRACT'
         while contract_id is None:
             self.session.state = 'NORMAL'
-            if status in ['ADD_EVENT']:
-                self.session.status = 'SELECT_CONTRACT'
+            if previous_status in ['ADD_EVENT']:
                 self.session.filter = 'WITHOUT_EVENT'
-            elif status in ['UPDATE_EVENT', 'DELETE_EVENT', 'VIEW_EVENT']:
-                self.session.status = 'SELECT_CONTRACT'
+            elif previous_status in ['UPDATE_EVENT', 'DELETE_EVENT', 'VIEW_EVENT']:
                 self.session.filter = 'WITH_EVENT'
-            else:
-                self.session.status = 'SELECT_CONTRACT'
             contract_id = self.prompt.thing('contract')
             try:
                 contract_id = int(contract_id)
                 if contract_id < self.db.number_of_contract():
                     self.session.contract = self.db.get_contract(contract_id)
-                    self.session.state = 'NORMAL'
-                    self.session.status = status
+                    self.session.status = previous_status
+                    self.session.filter = previous_filter
                     return None
                 else:
-                    self.session.status = 'SELECT_CONTRACT'
                     self.session.state = 'FAILED'
             except Exception:
-                self.session.status = 'SELECT_CONTRACT'
                 self.session.state = 'ERROR'
             contract_id = None
             self.prompt.thing('wait')
@@ -504,8 +500,8 @@ class Controller:
             self.session.event.notes = self.ask_notes()
             if self.db.number_of_support_user() > 0:
                 self.session.event.support_contact_id = self.select_support_user()
+            self.session.status = 'ADD_EVENT'
             if self.prompt.validation():
-                self.session.status = 'ADD_EVENT'
                 if self.db.add_event():
                     self.session.state = 'GOOD'
                 else:
@@ -539,8 +535,8 @@ class Controller:
     def delete_event(self):
         self.session.client = self.select_client()
         self.select_contract()
+        self.session.status = 'DELETE_EVENT'
         if self.prompt.validation():
-            self.session.status = 'DELETE_EVENT'
             if self.db.delete_event():
                 self.session.state = 'GOOD'
             else:
@@ -559,12 +555,12 @@ class Controller:
 
     def ask_attendees(self):
         attendees = None
-        status = self.session.status
+        previous_status = self.session.status
         while attendees is None:
             self.session.state = 'NORMAL'
-            self.session.status = status
+            self.session.status = previous_status
             attendees = self.prompt.thing('attendees')
-            if status == 'UPDATE_EVENT' and attendees == '':
+            if previous_status == 'UPDATE_EVENT' and attendees == '':
                 return self.session.contract.event.attendees
             try:
                 attendees = int(attendees)
@@ -577,12 +573,12 @@ class Controller:
 
     def ask_date_start(self):
         date_start = None
-        status = self.session.status
+        previous_status = self.session.status
         while date_start is None:
             self.session.state = 'NORMAL'
-            self.session.status = status
+            self.session.status = previous_status
             date_start = self.prompt.thing('date_start')
-            if status == 'UPDATE_EVENT' and date_start == '':
+            if previous_status == 'UPDATE_EVENT' and date_start == '':
                 return self.session.contract.event.date_start
             try:
                 day, month, year = date_start.split('/')
@@ -596,12 +592,12 @@ class Controller:
 
     def ask_date_stop(self):
         date_stop = None
-        status = self.session.status
+        previous_status = self.session.status
         while date_stop is None:
             self.session.state = 'NORMAL'
-            self.session.status = status
+            self.session.status = previous_status
             date_stop = self.prompt.thing('date_stop')
-            if status == 'UPDATE_EVENT' and date_stop == '':
+            if previous_status == 'UPDATE_EVENT' and date_stop == '':
                 return self.session.contract.event.date_stop
             try:
                 day, month, year = date_stop.split('/')
@@ -621,22 +617,22 @@ class Controller:
 
     def select_support_user(self):
         user_id = None
-        status = self.session.status
+        previous_status = self.session.status
         while user_id is None:
             self.session.state = 'NORMAL'
             self.session.status = 'SELECT_SUPPORT_USER'
             user_id = self.prompt.thing('support_user')
-            if status == 'UPDATE_EVENT' and user_id == '':
-                self.session.status = status
+            if previous_status == 'UPDATE_EVENT' and user_id == '':
+                self.session.status = previous_status
                 return self.session.event.support_contact_id
             try:
                 if user_id == '':
-                    self.session.status = status
+                    self.session.status = previous_status
                     return None
                 user_id = int(user_id)
                 if user_id < self.db.number_of_user():
                     user_id = self.db.get_support_user_by_id(user_id)
-                    self.session.status = status
+                    self.session.status = previous_status
                     return user_id
                 else:
                     self.session.state = 'FAILED'
