@@ -281,10 +281,9 @@ class Show:
         return content
 
     def show_event(self, content):
-        support_user = None
+        support_user = 'Non défini'
         date_start = ''
         date_stop = ''
-        location = ''
         attendees = ''
         notes = ''
         date_creation = ''
@@ -295,27 +294,23 @@ class Show:
         if event.date_creation is not None:
             date_creation = event.date_creation.strftime("%d %b %Y")
         if event.support_contact_id is not None:
-            support_user = event.support_contact
+            support_user = f'{event.support_contact.name} - {event.support_contact.email}'
         date_start = event.date_start
         if date_start is not None:
             date_start = date_start.strftime("%d %b %Y")
         date_stop = event.date_stop
         if date_stop is not None:
             date_stop = date_stop.strftime("%d %b %Y")
-        location = event.location
         if event.attendees is not None:
             attendees = str(event.attendees)
         notes = event.notes
         content.add_row('Client', self.session.client.company_name + ' - ' + self.session.client.name)
         content.add_row('Commercial', (f"{self.session.client.commercial_contact.name} - "
                                        f"{self.session.client.commercial_contact.email}"))
-        content.add_row('Support',
-                        (support_user.name if support_user else '') +
-                        ' - ' +
-                        support_user.email if support_user else '')
+        content.add_row('Support', support_user)
         content.add_row('Statut du contrat', 'Terminé' if self.session.contract.status else 'En cours')
         content.add_row('Reste à payer', str(self.session.contract.rest_amount))
-        content.add_row('Lieu', location)
+        content.add_row('Lieu', event.location)
         content.add_row('Nombre de personnes', attendees)
         content.add_row('Date de début', date_start)
         content.add_row('Date de fin', date_stop)
