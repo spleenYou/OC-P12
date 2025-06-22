@@ -263,6 +263,7 @@ class Show:
         content.add_row('Email', self.session.client.email or '')
         content.add_row('Téléphone', self.session.client.phone or '')
         content.add_row('Commercial', (f"{commercial_name} - {commercial_email}"))
+        content.add_row('nb de contrats', str(len(self.session.client.contracts)))
         content.add_row('Date de création', date_creation)
         content.add_row('Dernière mise à jour', date_last_update)
         return content
