@@ -25,32 +25,37 @@ class Mysql:
         return Session()
 
     def number_of_user(self):
-        if self.session.filter == 'FOR_DELETE':
-            return self.db_session.query(EpicUser).filter(EpicUser != self.session.user).count()
-        return self.db_session.query(EpicUser).count()
+        query = self.db_session.query(EpicUser)
+        filters = {
+            'FOR_DELETE': lambda q: q.filter(EpicUser != self.session.user),
+        }
+        if self.session.filter in filters:
+            query = filters[self.session.filter](query)
+        return query.count()
 
     def number_of_support_user(self):
         return self.db_session.query(EpicUser).filter(EpicUser.department_id == 2).count()
 
     def number_of_client(self):
-        if self.session.filter == 'WITH_CONTRACT':
-            return self.db_session.query(Client).filter(Client.contracts.any()).count()
-        return self.db_session.query(Client).count()
+        query = self.db_session.query(Client)
+        filters = {
+            'WITH_CONTRACT': lambda q: q.filter(Client.contracts.any()),
+        }
+        if self.session.filter in filters:
+            query = filters[self.session.filter](query)
+        return query.count()
 
     def number_of_contract(self):
         if self.session.client.id is None:
             return self.db_session.query(Contract).count()
-        elif self.session.filter == 'WITHOUT_EVENT':
-            return self.db_session.query(Contract) \
-                .filter((Contract.client_id == self.session.client.id)) \
-                .filter(~Contract.event.has()) \
-                .count()
-        elif self.session.filter == 'WITH_EVENT':
-            return self.db_session.query(Contract) \
-                .filter((Contract.client_id == self.session.client.id)) \
-                .filter(Contract.event.has()) \
-                .count()
-        return self.db_session.query(Contract).filter(Contract.client_id == self.session.client.id).count()
+        query = self.db_session.query(Contract).filter(Contract.client_id == self.session.client.id)
+        filters = {
+            'WITH_EVENT': lambda q: q.filter(Contract.event.has()),
+            'WITHOUT_EVENT': lambda q: q.filter(~Contract.event.has()),
+        }
+        if self.session.filter in filters:
+            query = filters[self.session.filter](query)
+        return query.count()
 
     def number_of_event(self):
         return self.db_session.query(Event).count()
@@ -70,16 +75,15 @@ class Mysql:
 
     def get_user_by_mail(self, email):
         return self.db_session.query(EpicUser).filter(EpicUser.email == email).first()
-        return self.db_session.query(EpicUser).filter(EpicUser.email == email).first()
 
     def get_user_by_number(self, number):
-        if self.session.filter == 'FOR_DELETE':
-            return self.db_session \
-                    .query(EpicUser) \
-                    .filter(EpicUser != self.session.user) \
-                    .order_by(EpicUser.id) \
-                    .all()[number]
-        return self.db_session.query(EpicUser).order_by(EpicUser.id).all()[number]
+        query = self.db_session.query(EpicUser).order_by(EpicUser.id)
+        filters = {
+            'FOR_DELETE': lambda q: q.filter(EpicUser != self.session.user),
+        }
+        if self.session.filter in filters:
+            query = filters[self.session.filter](query)
+        return query.all()[number]
 
     def get_support_user_by_id(self, number):
         return self.db_session.query(EpicUser.id) \
@@ -88,41 +92,27 @@ class Mysql:
             .all()[number][0]
 
     def get_client(self, number):
-        if self.session.filter == 'WITH_CONTRACT':
-            return self.db_session.query(Client) \
-                        .filter(Client.contracts.any()) \
-                        .order_by(Client.id) \
-                        .all()[number]
-        if self.session.filter == 'WITHOUT_EVENT':
-            return self.db_session.query(Client) \
-                        .filter(Client.contracts.any(~Contract.event.has())) \
-                        .order_by(Client.id) \
-                        .all()[number]
-        if self.session.filter == 'WITH_EVENT':
-            return self.db_session.query(Client) \
-                        .filter(Client.contracts.any(Contract.event.has())) \
-                        .order_by(Client.id) \
-                        .all()[number]
-        else:
-            return self.db_session.query(Client).order_by(Client.id).all()[number]
+        query = self.db_session.query(Client).order_by(Client.id)
+        filters = {
+            'WITH_EVENT': lambda q: q.filter(Client.contracts.any(Contract.event.has())),
+            'WITHOUT_EVENT': lambda q: q.filter(Client.contracts.any(~Contract.event.has())),
+            'WITH_CONTRACT': lambda q: q.filter(Client.contracts.any()),
+        }
+        if self.session.filter in filters:
+            query = filters[self.session.filter](query)
+        return query.all()[number]
 
     def get_contract(self, number):
-        if self.session.filter == 'WITHOUT_EVENT':
-            return self.db_session.query(Contract) \
+        query = self.db_session.query(Contract) \
                     .filter(Contract.client_id == self.session.client.id) \
-                    .filter(~Contract.event.has()) \
-                    .order_by(Contract.id) \
-                    .all()[number]
-        if self.session.filter == 'WITH_EVENT':
-            return self.db_session.query(Contract) \
-                    .filter(Contract.client_id == self.session.client.id) \
-                    .filter(Contract.event.has()) \
-                    .order_by(Contract.id) \
-                    .all()[number]
-        return self.db_session.query(Contract) \
-            .filter(Contract.client_id == self.session.client.id) \
-            .order_by(Contract.id) \
-            .all()[number]
+                    .order_by(Contract.id)
+        filters = {
+            'WITH_EVENT': lambda q: q.filter(Contract.event.has()),
+            'WITHOUT_EVENT': lambda q: q.filter(~Contract.event.has()),
+        }
+        if self.session.filter in filters:
+            query = filters[self.session.filter](query)
+        return query.all()[number]
 
     def get_user_password(self):
         password = self.db_session.query(EpicUser) \
@@ -130,15 +120,16 @@ class Mysql:
             .filter(EpicUser.email == self.session.user.email).first()
         if password:
             return password[0]
-        return False
+        return None
 
     def get_user_list(self):
-        if self.session.filter == 'FOR_DELETE':
-            return self.db_session \
-                    .query(EpicUser) \
-                    .filter(EpicUser.id != self.session.user.id) \
-                    .order_by(EpicUser.id).all()
-        return self.db_session.query(EpicUser).order_by(EpicUser.id).all()
+        query = self.db_session.query(EpicUser).order_by(EpicUser.id)
+        filters = {
+            'FOR_DELETE': lambda q: q.filter(EpicUser.id != self.session.user.id),
+        }
+        if self.session.filter in filters:
+            query = filters[self.session.filter](query)
+        return query.all()
 
     def get_support_user_list(self):
         return self.db_session.query(EpicUser).filter(EpicUser.department_id == 2).order_by(EpicUser.id).all()
@@ -159,18 +150,15 @@ class Mysql:
         return self.add_in_db(self.session.client)
 
     def get_client_list(self):
-        if self.session.filter == 'WITH_EVENT':
-            return self.db_session.query(Client).filter(Client.contracts.any(Contract.event.has())).all()
-        elif self.session.filter == 'WITHOUT_EVENT':
-            return self.db_session.query(Client) \
-                        .filter(~Client.contracts.any(Contract.event.has())) \
-                        .all()
-        elif self.session.filter == 'WITH_CONTRACT':
-            return self.db_session.query(Client) \
-                        .filter(Client.contracts.any()) \
-                        .all()
-        else:
-            return self.db_session.query(Client).all()
+        query = self.db_session.query(Client)
+        filters = {
+            'WITH_EVENT': lambda q: q.filter(Client.contracts.any(Contract.event.has())),
+            'WITHOUT_EVENT': lambda q: q.filter(~Client.contracts.any(Contract.event.has())),
+            'WITH_CONTRACT': lambda q: q.filter(Client.contracts.any()),
+        }
+        if self.session.filter in filters:
+            query = filters[self.session.filter](query)
+        return query.all()
 
     def delete_client(self):
         try:
@@ -188,18 +176,14 @@ class Mysql:
         return self.add_in_db(self.session.contract)
 
     def get_contract_list(self):
-        if self.session.filter == 'WITH_EVENT':
-            return self.db_session.query(Contract) \
-                    .filter((Contract.client_id == self.session.client.id)) \
-                    .filter(Contract.event.has()) \
-                    .all()
-        elif self.session.filter == 'WITHOUT_EVENT':
-            return self.db_session.query(Contract) \
-                    .filter(Contract.client_id == self.session.client.id) \
-                    .filter(~Contract.event.has()) \
-                    .all()
-        else:
-            return self.db_session.query(Contract).filter(Contract.client_id == self.session.client.id).all()
+        query = self.db_session.query(Contract).filter(Contract.client_id == self.session.client.id)
+        filters = {
+            'WITH_EVENT': lambda q: q.filter(Contract.event.has()),
+            'WITHOUT_EVENT': lambda q: q.filter(~Contract.event.has()),
+        }
+        if self.session.filter in filters:
+            query = filters[self.session.filter](query)
+        return query.all()
 
     def delete_contract(self):
         try:
@@ -239,3 +223,12 @@ class Mysql:
 
     def get_permissions(self):
         return self.db_session.query(Permission).all()
+
+    def get_event_list(self):
+        query = self.db_session.query(Event)
+        filters = {
+            'WITHOUT_SUPPORT': lambda q: q.filter(~Event.support_contact.has()),
+        }
+        if self.session.filter in filters:
+            query = filters[self.session.filter](query)
+        return query.all()
