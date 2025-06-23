@@ -35,9 +35,10 @@ class Mysql:
         return query.count()
 
     def number_of_contract(self):
-        if self.session.client.id is None or 'ALL' in self.session.filter:
-            query = self.db_session.query(Contract).count()
-        query = self.db_session.query(Contract).filter(Contract.client_id == self.session.client.id)
+        if self.session.client.id is None or self._for_all():
+            query = self.db_session.query(Contract)
+        else:
+            query = self.db_session.query(Contract).filter(Contract.client_id == self.session.client.id)
         query = self._apply_contract_filter(query)
         return query.count()
 
@@ -78,7 +79,7 @@ class Mysql:
         return query.all()[number]
 
     def get_contract(self, number):
-        if 'ALL' in self.session.filter:
+        if self._for_all():
             query = self.db_session.query(Contract).order_by(Contract.id)
         else:
             query = self.db_session.query(Contract) \
@@ -136,7 +137,7 @@ class Mysql:
         return self._add_in_db(self.session.contract)
 
     def get_contract_list(self):
-        if 'ALL' in self.session.filter:
+        if self._for_all():
             query = self.db_session.query(Contract)
         else:
             query = self.db_session.query(Contract).filter(Contract.client_id == self.session.client.id)
@@ -232,3 +233,6 @@ class Mysql:
         if filter in filters:
             query = filters[filter](query)
         return query
+
+    def _for_all(self):
+        return 'ALL' in self.session.filter

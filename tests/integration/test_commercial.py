@@ -197,6 +197,8 @@ class TestCommercial:
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.main_menu()
         captured = capsys.readouterr()
+        for c in captured:
+            print(c)
         assert 'Mise à jour d\'un contrat' in captured.out
         assert 'Contrat mis à jour' in captured.out
 
