@@ -501,7 +501,8 @@ class Controller:
             self.session.event.date_start = self.ask_date_start()
             self.session.event.date_stop = self.ask_date_stop()
             self.session.event.notes = self.ask_notes()
-            if self.db.number_of_support_user() > 0:
+            self.session.filter = 'SUPPORT'
+            if self.db.number_of_user() > 0:
                 self.session.event.support_contact_id = self.select_support_user()
             self.session.status = 'ADD_EVENT'
             if self.prompt.validation():

@@ -159,7 +159,7 @@ class Show:
         return self._make_table(col_list, row_list)
 
     def show_select_support_user(self):
-        support_users = self.db.get_support_user_list()
+        support_users = self.db.get_user_list()
         col_list = ['', '', '']
         row_list = []
         for index, user in enumerate(support_users):
