@@ -176,7 +176,10 @@ class Mysql:
         return self._add_in_db(self.session.contract)
 
     def get_contract_list(self):
-        query = self.db_session.query(Contract).filter(Contract.client_id == self.session.client.id)
+        if 'ALL' in self.session.filter:
+            query = self.db_session.query(Contract)
+        else:
+            query = self.db_session.query(Contract).filter(Contract.client_id == self.session.client.id)
         filters = {
             'WITH_EVENT': lambda q: q.filter(Contract.event.has()),
             'WITHOUT_EVENT': lambda q: q.filter(~Contract.event.has()),

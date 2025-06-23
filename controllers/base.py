@@ -332,7 +332,8 @@ class Controller:
 
     @check_token_and_perm
     def view_user(self):
-        self.select_user()
+        if 'ALL' not in self.session.filter:
+            self.select_user()
 
     @check_token_and_perm
     def delete_user(self):
@@ -376,8 +377,9 @@ class Controller:
 
     @check_token_and_perm
     def view_client(self):
-        self.session.client = self.select_client()
-        self.session.new_user = self.session.client.commercial_contact
+        if 'ALL' not in self.session.filter:
+            self.session.client = self.select_client()
+            self.session.new_user = self.session.client.commercial_contact
 
     @check_token_and_perm
     def delete_client(self):
@@ -457,10 +459,11 @@ class Controller:
 
     @check_token_and_perm
     def view_contract(self):
-        filter = self.session.filter
-        self.session.client = self.select_client()
-        self.session.filter = filter
-        self.select_contract()
+        if 'ALL' not in self.session.filter:
+            filter = self.session.filter
+            self.session.client = self.select_client()
+            self.session.filter = filter
+            self.select_contract()
 
     def select_contract(self):
         contract_id = None
@@ -544,8 +547,9 @@ class Controller:
 
     @check_token_and_perm
     def view_event(self):
-        self.session.client = self.select_client()
-        self.select_contract()
+        if 'ALL' not in self.session.filter:
+            self.session.client = self.select_client()
+            self.select_contract()
 
     def ask_location(self):
         location = self.prompt.thing('location')

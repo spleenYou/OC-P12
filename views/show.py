@@ -1,4 +1,5 @@
 import os
+import datetime
 from rich.console import Console, Group
 from rich.panel import Panel
 from rich.table import Table
@@ -63,16 +64,16 @@ class Show:
             col_list = ['', '', '', '']
             row_list = [
                 [
+                    'Numéro d\'employé',
                     'Nom',
                     'Departement',
                     'Adresse mail',
-                    'Numéro d\'employé'
                 ],
                 [
+                    str(self.session.user.employee_number),
                     self.session.user.name,
                     self.session.user.department_name,
                     self.session.user.email,
-                    str(self.session.user.employee_number)
                 ]
             ]
             self.show_content(
@@ -90,24 +91,26 @@ class Show:
         state = self.session.state.lower()
         border_style = getattr(config, state + '_' + 'border_style')
         text_color = getattr(config, state + '_' + 'text_color')
+        status = self.session.status
+        if 'ALL' in self.session.filter:
+            status = status + 'S'
         self.show_content(
-            f'[bold {text_color}]' + getattr(titles, state.upper())[self.session.status] + f'[/bold {text_color}]',
+            f'[bold {text_color}]' + getattr(titles, state.upper())[status] + f'[/bold {text_color}]',
             border_style
         )
 
     def content(self):
-        if self.session.state == 'GOOD':
-            return None
-        status = self._adapt_status_with_filter()
-        simple_content = self._simple_content_view(status, self.session.state)
-        if simple_content:
-            self.show_content(Text(simple_content, justify='center'))
-            return None
-        complex_content = self._complex_content_view()
-        if complex_content:
-            self.show_content(complex_content)
-        elif self.session.status.startswith(('ADD', 'UPDATE', 'DELETE', 'VIEW')):
-            self.show_content(self._content_model_view())
+        if self.session.state != 'GOOD':
+            status = self._adapt_status_with_filter()
+            simple_content = self._simple_content_view(status, self.session.state)
+            if simple_content:
+                self.show_content(Text(simple_content, justify='center'))
+            else:
+                complex_content = self._complex_content_view()
+                if complex_content:
+                    self.show_content(complex_content)
+                elif self.session.status.startswith(('ADD', 'UPDATE', 'DELETE', 'VIEW')):
+                    self.show_content(self._content_model_view())
         return None
 
     def show_select_user(self):
@@ -163,138 +166,157 @@ class Show:
             row_list.append([str(index), user.name, user.email])
         return self._make_table(col_list, row_list, show_header=False)
 
-    def _make_table(self, col_list, row_list, justify='left', show_header=True, title=None, show_lines=False):
-        table = Table(title=title, show_header=show_header, show_lines=show_lines)
-        for col in col_list:
-            table.add_column(col, justify=justify)
-        for row in row_list:
-            table.add_row(*row)
-        return table
-
     def show_permissions(self):
-        permissions_table = [
-            'add_user', 'update_user', 'delete_user',
-            'add_client', 'update_client', 'delete_client',
-            'add_contract', 'update_contract', 'delete_contract',
-            'add_event', 'update_event', 'delete_event',
-        ]
         permissions = self.db.get_permissions()
         department_name = self.db.get_department_list()
-        content = Table(show_lines=True)
-        content.add_column("    Command", justify='left')
+        nb_dept = len(department_name)
+        col_list = ['Command']
+        row_list = []
         for perm in permissions:
-            content.add_column(department_name[int(perm.department_id) - 1], justify='center')
-        for perm in permissions_table:
-            commercial_perm = ''
-            support_perm = ''
-            management_perm = ''
-            if eval('permissions[0].' + perm):
-                commercial_perm = 'X'
-            if eval('permissions[1].' + perm):
-                support_perm = 'X'
-            if eval('permissions[2].' + perm):
-                management_perm = 'X'
+            col_list.append(department_name[int(perm.department_id) - 1])
+        for perm in config.permission_table:
+            perms = ['X' if getattr(permissions[i], perm) else '' for i in range(nb_dept)]
             if perm == 'update_event':
-                management_perm = '*'
+                perms[2] = '*'
             perm = perm.replace('_', ' ')
-            content.add_row(perm, commercial_perm, support_perm, management_perm)
+            row_list.append([perm] + perms)
+        table = self._make_table(col_list, row_list, justify='center', show_lines=True)
         note = Text(
             '* : L\'équipe management peut seulement mettre à jour\nle contact support d\'un évènement',
             justify='center'
         )
-        content = Group(content, '', note)
-        return content
+        return Group(table, '', note)
 
-    def show_user(self, content):
-        date_creation = ''
-        if self.session.new_user.date_creation is not None:
-            date_creation = self.session.new_user.date_creation.strftime("%d %b %Y")
-        department_name = ''
-        if self.session.new_user.department_id is not None:
-            department_name = self.db.get_department_list()[self.session.new_user.department_id - 1]
-        employee_number = self.session.new_user.employee_number or ''
-        content.add_row('Nom', self.session.new_user.name or '')
-        content.add_row('Email', self.session.new_user.email or '')
-        content.add_row('Numéro d\'employé', str(employee_number))
-        content.add_row('Département', department_name)
-        content.add_row('Date de création', date_creation)
-        return content
+    def show_user(self):
+        department_list = self.db.get_department_list()
+        datas = [
+            ('Nom', self.session.new_user.name or ''),
+            ('Email', self.session.new_user.email or ''),
+            ('Numéro d\'employé', (str(self.session.new_user.employee_number)
+                                   if self.session.new_user.employee_number else '')),
+            ('Département', (department_list[self.session.new_user.department_id - 1]
+                             if self.session.new_user.department_id else '')),
+            ('Date de création', self._format_date(self.session.new_user.date_creation or datetime.datetime.now())),
+        ]
+        return [[label, value] for label, value in datas]
 
-    def show_client(self, content):
-        if self.session.client.commercial_contact_id is not None:
-            commercial_name = self.session.user.name
-            commercial_email = self.session.user.email
-        else:
-            commercial_name = self.session.user.name
-            commercial_email = self.session.user.email
-        date_creation = ''
-        if self.session.client.date_creation is not None:
-            date_creation = self.session.client.date_creation.strftime("%d %b %Y")
-        date_last_update = ''
-        if self.session.client.date_last_update is not None:
-            date_last_update = self.session.client.date_last_update.strftime("%d %b %Y")
-        content.add_row('Nom de l\'entreprise', self.session.client.company_name or '')
-        content.add_row('Nom du contact', self.session.client.name or '')
-        content.add_row('Email', self.session.client.email or '')
-        content.add_row('Téléphone', self.session.client.phone or '')
-        content.add_row('Commercial', (f"{commercial_name} - {commercial_email}"))
-        content.add_row('nb de contrats', str(len(self.session.client.contracts)))
-        content.add_row('Date de création', date_creation)
-        content.add_row('Dernière mise à jour', date_last_update)
-        return content
+    def show_client(self):
+        datas = [
+            ('Nom de l\'entreprise', self.session.client.company_name or ''),
+            ('Nom du contact', self.session.client.name or ''),
+            ('Email', self.session.client.email or ''),
+            ('Téléphone', self.session.client.phone or ''),
+            ('Commercial', self._get_commercial_info()),
+            ('nb de contrats', str(len(self.session.client.contracts))),
+            ('Date de création', self._format_date(self.session.client.date_creation or datetime.datetime.now())),
+            ('Dernière mise à jour', self._format_date(self.session.client.date_last_update)),
+        ]
+        return [[label, value] for label, value in datas]
 
-    def show_contract(self, content):
-        date_creation = ''
-        if self.session.contract.date_creation is not None:
-            date_creation = self.session.contract.date_creation.strftime("%d %b %Y")
-        content.add_row('Client', self.session.client.company_name + ' - ' + self.session.client.name)
-        content.add_row('Commercial', (f"{self.session.client.commercial_contact.name} - "
-                                       f"{self.session.client.commercial_contact.email}"))
-        content.add_row('Montant total', str(self.session.contract.total_amount or '0'))
-        content.add_row('Reste à payer', str(self.session.contract.rest_amount or '0'))
-        content.add_row('Statut', 'Terminé' if self.session.contract.status else 'En cours')
-        content.add_row('Date de création', date_creation)
-        return content
+    def show_contract(self):
+        datas = [
+            ('Client', self.session.client.company_name + ' - ' + self.session.client.name),
+            ('Commercial', (f"{self.session.client.commercial_contact.name} - "
+                            f"{self.session.client.commercial_contact.email}")),
+            ('Montant total', str(self.session.contract.total_amount or '0')),
+            ('Reste à payer', str(self.session.contract.rest_amount or '0')),
+            ('Statut', self._get_contract_status(self.session.contract)),
+            ('Date de création', self._format_date(self.session.contract.date_creation or datetime.datetime.now()))
+        ]
+        return [[label, value] for label, value in datas]
 
-    def show_event(self, content):
-        support_user = 'Non défini'
-        date_start = ''
-        date_stop = ''
-        attendees = ''
-        notes = ''
-        date_creation = ''
-        if self.session.status == 'ADD_EVENT':
-            event = self.session.event
-        else:
-            event = self.session.contract.event
-        if event.date_creation is not None:
-            date_creation = event.date_creation.strftime("%d %b %Y")
-        if event.support_contact_id is not None:
-            if event.support_contact is None:
-                event.support_contact = self.db.get_user_by_id(event.support_contact_id)
-            support_user = f'{event.support_contact.name} - {event.support_contact.email}'
-        date_start = event.date_start
-        if date_start is not None:
-            date_start = date_start.strftime("%d %b %Y")
-        date_stop = event.date_stop
-        if date_stop is not None:
-            date_stop = date_stop.strftime("%d %b %Y")
-        if event.attendees is not None:
-            attendees = str(event.attendees)
-        notes = event.notes
-        content.add_row('Client', self.session.client.company_name + ' - ' + self.session.client.name)
-        content.add_row('Commercial', (f"{self.session.client.commercial_contact.name} - "
-                                       f"{self.session.client.commercial_contact.email}"))
-        content.add_row('Support', support_user)
-        content.add_row('Statut du contrat', 'Terminé' if self.session.contract.status else 'En cours')
-        content.add_row('Reste à payer', str(self.session.contract.rest_amount))
-        content.add_row('Lieu', event.location)
-        content.add_row('Nombre de personnes', attendees)
-        content.add_row('Date de début', date_start)
-        content.add_row('Date de fin', date_stop)
-        content.add_row('Notes', notes)
-        content.add_row('Date de création', date_creation)
-        return content
+    def show_event(self):
+        event = self._select_event()
+        datas = [
+            ('Client', self.session.client.company_name + ' - ' + self.session.client.name),
+            ('Commercial', (f"{self.session.client.commercial_contact.name} - "
+                            f"{self.session.client.commercial_contact.email}")),
+            ('Support', self._get_support_user_info(event)),
+            ('Statut du contrat', 'Terminé' if self.session.contract.status else 'En cours'),
+            ('Reste à payer', str(self.session.contract.rest_amount)),
+            ('Lieu', event.location),
+            ('Nombre de personnes', str(event.attendees) if event.attendees else ''),
+            ('Date de début', self._format_date(event.date_start)),
+            ('Date de fin', self._format_date(event.date_stop)),
+            ('Notes', event.notes or ''),
+            ('Date de création', self._format_date(event.date_creation or datetime.datetime.now())),
+        ]
+        return [[label, value] for label, value in datas]
+
+    def show_users(self):
+        user_list = self.db.get_user_list()
+        datas = []
+        for user in user_list:
+            datas.append(
+                [
+                    user.employee_number,
+                    user.name,
+                    user.department_name,
+                    user.email,
+                    self._format_date(user.date_creation),
+                ]
+            )
+        return datas
+
+    def show_clients(self):
+        client_list = self.db.get_client_list()
+        datas = []
+        for client in client_list:
+            datas.append(
+                [
+                    client.company_name,
+                    client.name,
+                    client.email,
+                    client.phone,
+                    self._format_date(client.date_last_update),
+                    self._format_date(client.date_creation),
+                ]
+            )
+        return datas
+
+    def show_contracts(self):
+        contract_list = self.db.get_contract_list()
+        datas = []
+        for contract in contract_list:
+            datas.append(
+                [
+                    contract.client.company_name,
+                    str(contract.total_amount),
+                    str(contract.rest_amount),
+                    self._get_contract_status(contract),
+                    self._format_date(contract.date_creation),
+                ]
+            )
+        return datas
+
+    def show_events(self):
+        event_list = self.db.get_event_list()
+        datas = []
+        for event in event_list:
+            datas.append(
+                [
+                    event.contract.client.company_name,
+                    str(event.contract.total_amount),
+                    event.location,
+                    str(event.attendees),
+                    self._format_date(event.date_start),
+                    self._format_date(event.date_stop),
+                    self._format_date(event.date_creation),
+                ]
+            )
+        return datas
+
+    def _get_commercial_info(self):
+        if self.session.client.commercial_contact_id is None:
+            return f'{self.session.user.name} - {self.session.user.email}'
+        return f'{self.session.client.commercial_contact.name} - {self.session.client.commercial_contact.email}'
+
+    def _get_support_user_info(self, event):
+        if event.support_contact_id is None:
+            return 'Non défini'
+        if event.support_contact is None:
+            event.support_contact = self.db.get_user_by_id(event.support_contact_id)
+        return f'{event.support_contact.name} - {event.support_contact.email}'
 
     def _simple_content_view(self, status, state):
         state_dict = getattr(contents, state, {})
@@ -316,21 +338,48 @@ class Show:
                 return None
 
     def _content_model_view(self):
-        status = self.session.status.split('_')
-        content = Table(show_header=False, show_lines=True)
-        content.add_column(justify='left')
-        content.add_column(justify='left')
-        show_methods = {
+        model_status = self.session.status.split('_')[-1]
+        show_methods_one = {
             'USER': self.show_user,
             'CLIENT': self.show_client,
             'CONTRACT': self.show_contract,
-            'EVENT': self.show_event
-
+            'EVENT': self.show_event,
+            'USERS': self.show_users,
+            'CLIENTS': self.show_clients,
+            'CONTRACTS': self.show_contracts,
+            'EVENTS': self.show_events
         }
-        method = show_methods.get(status[-1])
-        return method(content)
+        col_list = ['', '']
+        show_header = False
+        if 'ALL' in self.session.filter:
+            show_header = True
+            model_status = model_status + 'S'
+            col_list = getattr(config, 'col_' + model_status.lower())
+        row_list = show_methods_one.get(model_status)()
+        return self._make_table(col_list, row_list, show_header=show_header, show_lines=True, justify='center')
 
     def _adapt_status_with_filter(self):
-        if self.session.filter not in ['', 'FIRST_TIME', 'SECOND_TIME']:
+        if self.session.filter not in ['', 'FIRST_TIME', 'SECOND_TIME'] and 'ALL' not in self.session.filter:
             return self.session.status + '_' + self.session.filter
         return self.session.status
+
+    def _make_table(self, col_list, row_list, justify='left', show_header=True, title=None, show_lines=False):
+        table = Table(title=title, show_header=show_header, show_lines=show_lines)
+        for col in col_list:
+            table.add_column(col, justify=justify)
+        for row in row_list:
+            table.add_row(*row)
+        return table
+
+    def _select_event(self):
+        if self.session.status == 'ADD_EVENT':
+            return self.session.event
+        return self.session.contract.event
+
+    def _get_contract_status(self, contract):
+        if contract.status:
+            return 'Terminé'
+        return 'En cours'
+
+    def _format_date(self, date):
+        return date.strftime('%d %b %Y') if date else ''
