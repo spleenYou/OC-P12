@@ -616,29 +616,30 @@ class Controller:
         return notes
 
     def select_support_user(self):
-        user_id = None
+        number = None
         previous_status = self.session.status
-        while user_id is None:
+        while number is None:
             self.session.state = 'NORMAL'
             self.session.status = 'SELECT_SUPPORT_USER'
-            user_id = self.prompt.thing('support_user')
-            if previous_status == 'UPDATE_EVENT' and user_id == '':
+            number = self.prompt.thing('support_user')
+            if previous_status == 'UPDATE_EVENT' and number == '':
                 self.session.status = previous_status
                 return self.session.event.support_contact_id
             try:
-                if user_id == '':
+                if number == '':
                     self.session.status = previous_status
                     return None
-                user_id = int(user_id)
-                if user_id < self.db.number_of_user():
-                    user_id = self.db.get_support_user_by_id(user_id)
+                number = int(number)
+                if number < self.db.number_of_user():
+                    self.session.filter = 'SUPPORT'
+                    user = self.db.get_user_by_number(number)
                     self.session.status = previous_status
-                    return user_id
+                    return user.id
                 else:
                     self.session.state = 'FAILED'
             except Exception:
                 self.session.state = 'ERROR'
-            user_id = None
+            number = None
             self.prompt.thing('wait')
 
     def reset_password(self):

@@ -30,7 +30,7 @@ class Show:
         self.title()
         self.content()
 
-    def show_content(self, content, align, border_style):
+    def show_content(self, content, border_style=config.normal_border_style):
         """Shows the content decorated
 
         Args:
@@ -38,7 +38,7 @@ class Show:
             align (str): Position of contents. Three possiblities left, center or right
         """
         panel = Panel(
-            Align(content, align=align, style=config.normal_text_color),
+            Align(content, align='center', style=config.normal_text_color),
             width=config.common_width,
             padding=1,
             border_style=border_style
@@ -56,145 +56,120 @@ class Show:
     def head_menu(self):
         "Shows the name of the program decorated"
 
-        self.show_content(logo.logo, 'center', config.normal_border_style)
+        self.show_content(logo.logo)
 
     def session_information(self):
         if self.session.user.id is not None and self.session.status != 'LOGIN_OK':
-            content = Table(title='Utilisateur connecté', show_header=False, show_lines=True)
-            content.add_column(justify='center')
-            content.add_column(justify='center')
-            content.add_column(justify='center')
-            content.add_column(justify='center')
-            content.add_row(
-                'Nom',
-                'Departement',
-                'Adresse mail',
-                'Numéro d\'employé'
+            col_list = ['', '', '', '']
+            row_list = [
+                [
+                    'Nom',
+                    'Departement',
+                    'Adresse mail',
+                    'Numéro d\'employé'
+                ],
+                [
+                    self.session.user.name,
+                    self.session.user.department_name,
+                    self.session.user.email,
+                    str(self.session.user.employee_number)
+                ]
+            ]
+            self.show_content(
+                self._make_table(
+                    col_list=col_list,
+                    row_list=row_list,
+                    justify='center',
+                    show_header=False,
+                    show_lines=True,
+                    title='Utilisateur connecté')
             )
-            content.add_row(
-                self.session.user.name,
-                self.session.user.department_name,
-                self.session.user.email,
-                str(self.session.user.employee_number)
-            )
-            self.show_content(content, 'center', config.normal_border_style)
 
     def title(self):
+
         state = self.session.state.lower()
         border_style = getattr(config, state + '_' + 'border_style')
         text_color = getattr(config, state + '_' + 'text_color')
         self.show_content(
             f'[bold {text_color}]' + getattr(titles, state.upper())[self.session.status] + f'[/bold {text_color}]',
-            'center',
             border_style
         )
 
     def content(self):
         if self.session.state == 'GOOD':
             return None
-        content = None
-        border_style = config.normal_border_style
-        align = 'center'
-        text = None
-        status = self.session.status
-        if self.session.filter not in ['', 'FIRST_TIME', 'SECOND_TIME']:
-            status = status + '_' + self.session.filter
-        if self.session.state == 'NORMAL' and status in contents.NORMAL:
-            text = contents.NORMAL[status]
-        if self.session.state == 'ERROR' and status in contents.ERROR:
-            text = contents.ERROR[status]
-        if self.session.state == 'FAILED' and status in contents.FAILED:
-            text = contents.FAILED[status]
-        if text:
-            content = Text(text, justify=align)
-        else:
-            match self.session.status:
-                case 'SELECT_USER':
-                    content = self.show_select_user()
-                case 'SELECT_CLIENT':
-                    content = self.show_select_client()
-                case 'SELECT_CONTRACT':
-                    content = self.show_select_contract()
-                case 'SELECT_SUPPORT_USER':
-                    content = self.show_select_support_user()
-                case 'PERMISSION':
-                    content = self.show_permissions()
-            status = self.session.status.split('_')
-            if (status[0] in ['ADD', 'UPDATE', 'VIEW', 'DELETE'] and
-                    status[-1] in ['USER', 'CLIENT', 'CONTRACT', 'EVENT']):
-                content = Table(show_header=False, show_lines=True)
-                content.add_column(justify='left')
-                content.add_column(justify='left')
-                if status[-1] == 'USER':
-                    content = self.show_user(content)
-                elif status[-1] == 'CLIENT':
-                    content = self.show_client(content)
-                elif status[-1] == 'CONTRACT':
-                    content = self.show_contract(content)
-                elif status[-1] == 'EVENT':
-                    content = self.show_event(content)
-        if content:
-            if isinstance(content, str):
-                self.show_content(Text(content, justify=align), align, border_style)
-            else:
-                self.show_content(content, align, border_style)
+        status = self._adapt_status_with_filter()
+        simple_content = self._simple_content_view(status, self.session.state)
+        if simple_content:
+            self.show_content(Text(simple_content, justify='center'))
+            return None
+        complex_content = self._complex_content_view()
+        if complex_content:
+            self.show_content(complex_content)
+        elif self.session.status.startswith(('ADD', 'UPDATE', 'DELETE', 'VIEW')):
+            self.show_content(self._content_model_view())
+        return None
 
     def show_select_user(self):
         users = self.db.get_user_list()
-        content = Table()
-        content.add_column('N°', justify='left')
-        content.add_column('Numéro employé', justify='left')
-        content.add_column('Nom', justify='left')
-        content.add_column('Email', justify='left')
-        content.add_column('Département', justify='left')
+        col_list = ['N°', 'N° d\'employé', 'Nom', 'Email', 'Département']
+        row_list = []
         for index, user in enumerate(users):
-            content.add_row(
-                str(index),
-                str(user.employee_number),
-                user.name,
-                user.email,
-                user.department_name
+            row_list.append(
+                [
+                    str(index),
+                    str(user.employee_number),
+                    user.name,
+                    user.email,
+                    user.department_name
+                ]
             )
-        return content
+        return self._make_table(col_list, row_list)
 
     def show_select_client(self):
         clients = self.db.get_client_list()
-        content = Table()
-        content.add_column('N°', justify='center')
-        content.add_column('Nom de l\'entreprise', justify='center')
-        content.add_column('Contact', justify='center')
+        col_list = ['N°', 'Nom de l\'entreprise', 'Contact']
+        row_list = []
         for index, client in enumerate(clients):
-            content.add_row(
-                str(index),
-                client.company_name,
-                client.name
-                )
-        return content
+            row_list.append(
+                [
+                    str(index),
+                    client.company_name,
+                    client.name
+                ]
+            )
+        return self._make_table(col_list, row_list)
 
     def show_select_contract(self):
         contracts = self.db.get_contract_list()
-        content = Table()
-        content.add_column('N°', justify='center')
-        content.add_column('Date de création', justify='center')
-        content.add_column('Montant total', justify='center')
-        content.add_column('Status', justify='center')
+        col_list = ['N°', 'Date de création', 'Montant total', 'Status']
+        row_list = []
         for index, contract in enumerate(contracts):
-            content.add_row(
-                str(index),
-                contract.date_creation.strftime("%d %b %Y"),
-                str(contract.total_amount),
-                "Terminé" if contract.status else "En cours")
-        return content
+            row_list.append(
+                [
+                    str(index),
+                    contract.date_creation.strftime("%d %b %Y"),
+                    str(contract.total_amount),
+                    "Terminé" if contract.status else "En cours"
+                ]
+            )
+        return self._make_table(col_list, row_list)
 
     def show_select_support_user(self):
         support_users = self.db.get_support_user_list()
-        content = Table(show_header=False)
-        content.add_column(justify='left')
-        content.add_column(justify='left')
-        content.add_column(justify='left')
+        col_list = ['', '', '']
+        row_list = []
         for index, user in enumerate(support_users):
-            content.add_row(str(index), user.name, user.email)
-        return content
+            row_list.append([str(index), user.name, user.email])
+        return self._make_table(col_list, row_list, show_header=False)
+
+    def _make_table(self, col_list, row_list, justify='left', show_header=True, title=None, show_lines=False):
+        table = Table(title=title, show_header=show_header, show_lines=show_lines)
+        for col in col_list:
+            table.add_column(col, justify=justify)
+        for row in row_list:
+            table.add_row(*row)
+        return table
 
     def show_permissions(self):
         permissions_table = [
@@ -295,6 +270,8 @@ class Show:
         if event.date_creation is not None:
             date_creation = event.date_creation.strftime("%d %b %Y")
         if event.support_contact_id is not None:
+            if event.support_contact is None:
+                event.support_contact = self.db.get_user_by_id(event.support_contact_id)
             support_user = f'{event.support_contact.name} - {event.support_contact.email}'
         date_start = event.date_start
         if date_start is not None:
@@ -318,3 +295,42 @@ class Show:
         content.add_row('Notes', notes)
         content.add_row('Date de création', date_creation)
         return content
+
+    def _simple_content_view(self, status, state):
+        state_dict = getattr(contents, state, {})
+        return state_dict.get(status)
+
+    def _complex_content_view(self):
+        match self.session.status:
+            case 'SELECT_USER':
+                return self.show_select_user()
+            case 'SELECT_CLIENT':
+                return self.show_select_client()
+            case 'SELECT_CONTRACT':
+                return self.show_select_contract()
+            case 'SELECT_SUPPORT_USER':
+                return self.show_select_support_user()
+            case 'PERMISSION':
+                return self.show_permissions()
+            case _:
+                return None
+
+    def _content_model_view(self):
+        status = self.session.status.split('_')
+        content = Table(show_header=False, show_lines=True)
+        content.add_column(justify='left')
+        content.add_column(justify='left')
+        show_methods = {
+            'USER': self.show_user,
+            'CLIENT': self.show_client,
+            'CONTRACT': self.show_contract,
+            'EVENT': self.show_event
+
+        }
+        method = show_methods.get(status[-1])
+        return method(content)
+
+    def _adapt_status_with_filter(self):
+        if self.session.filter not in ['', 'FIRST_TIME', 'SECOND_TIME']:
+            return self.session.status + '_' + self.session.filter
+        return self.session.status

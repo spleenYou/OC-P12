@@ -47,7 +47,7 @@ class TestMysql:
         ) is not None
 
     def test_get_password_failed(self, mysql):
-        assert mysql.get_user_password() is False
+        assert mysql.get_user_password() is None
 
     def test_add_in_db_ok(self, mysql, management_user, monkeypatch, secret):
         new_user = management_user
@@ -55,7 +55,7 @@ class TestMysql:
             target='controllers.authentication.get_key',
             name=lambda path, key: secret
         )
-        result = mysql.add_in_db(new_user)
+        result = mysql._add_in_db(new_user)
         assert result == 1
 
     def test_get_department_list(self, mysql):

@@ -55,6 +55,10 @@ ERROR = {
     'DEPARTMENT': 'Erreur de saisie',
     'TOKEN': 'Déconnexion automatique',
     'FORBIDDEN': 'Vous n\'êtes pas autorisé à faire cette action',
+    'SELECT_SUPPORT_USER': 'Erreur de saisie',
+    'ADD_EVENT': 'Erreur de saisie',
+    'ADD_CONTRACT': 'Erreur de saisie',
+    'ADD_CLIENT': 'Erreur de saisie',
 }
 
 GOOD = {

@@ -64,7 +64,7 @@ class Mysql:
         return [d[0] for d in self.db_session.query(Department.name).order_by(Department.id).all()]
 
     def add_user(self):
-        return self.add_in_db(self.session.new_user)
+        return self._add_in_db(self.session.new_user)
 
     def update_password_user(self):
         count = self.db_session.query(EpicUser) \
@@ -79,17 +79,17 @@ class Mysql:
     def get_user_by_number(self, number):
         query = self.db_session.query(EpicUser).order_by(EpicUser.id)
         filters = {
+            'SUPPORT': lambda q: q.filter(EpicUser.department_id == 2),
             'FOR_DELETE': lambda q: q.filter(EpicUser != self.session.user),
         }
         if self.session.filter in filters:
             query = filters[self.session.filter](query)
         return query.all()[number]
 
-    def get_support_user_by_id(self, number):
-        return self.db_session.query(EpicUser.id) \
-            .filter(EpicUser.department_id == 2) \
-            .order_by(EpicUser.id) \
-            .all()[number][0]
+    def get_user_by_id(self, id):
+        return self.db_session.query(EpicUser) \
+            .filter(EpicUser.id == id) \
+            .first()
 
     def get_client(self, number):
         query = self.db_session.query(Client).order_by(Client.id)
@@ -147,7 +147,7 @@ class Mysql:
 
     def add_client(self):
         self.session.client.commercial_contact_id = self.session.user.id
-        return self.add_in_db(self.session.client)
+        return self._add_in_db(self.session.client)
 
     def get_client_list(self):
         query = self.db_session.query(Client)
@@ -173,7 +173,7 @@ class Mysql:
 
     def add_contract(self):
         self.session.contract.client_id = self.session.client.id
-        return self.add_in_db(self.session.contract)
+        return self._add_in_db(self.session.contract)
 
     def get_contract_list(self):
         query = self.db_session.query(Contract).filter(Contract.client_id == self.session.client.id)
@@ -198,7 +198,7 @@ class Mysql:
 
     def add_event(self):
         self.session.event.contract_id = self.session.contract.id
-        return self.add_in_db(self.session.event)
+        return self._add_in_db(self.session.event)
 
     def delete_event(self):
         try:
@@ -211,7 +211,7 @@ class Mysql:
             self.db_session.rollback()
             return False
 
-    def add_in_db(self, element_to_add):
+    def _add_in_db(self, element_to_add):
         try:
             self.db_session.add(element_to_add)
             self.db_session.commit()
