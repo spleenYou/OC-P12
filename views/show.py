@@ -376,4 +376,6 @@ class Show:
         return date.strftime('%d %b %Y') if date else ''
 
     def _content_needed(self):
-        return self.session.state != 'GOOD'
+        return (self.session.state != 'GOOD' and
+                not (self.session.status.startswith('ADD') and
+                     self.session.state == 'FAILED'))

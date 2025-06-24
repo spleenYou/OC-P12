@@ -279,6 +279,45 @@ class Ask:
     def command(self):
         return self._prompt('command')
 
+    def select(self, model):
+        previous_filter = self.session.filter
+        previous_status = self.session.status
+
+        def restore_session():
+            self.session.filter = previous_filter
+            self.session.status = previous_status
+        self.session.status = config.select_status[model]
+        while True:
+            self.session.state = 'NORMAL'
+            self._set_filter(previous_status, previous_filter)
+            number = self._prompt(model)
+            if number == '' and self._no_change_allowed():
+                restore_session()
+                return None
+            try:
+                number = int(number)
+                if self._is_number_valid(model, number):
+                    self._set_session_model(model, number)
+                    restore_session()
+                    return None
+                else:
+                    self.session.state = 'FAILED'
+            except Exception:
+                self.session.state = 'ERROR'
+            self.wait()
+
+    def _is_number_valid(self, model, number):
+        number_methods = {
+            'user': self.db.number_of_user,
+            'support': self.db.number_of_user,
+            'client': self.db.number_of_client,
+            'contract': self.db.number_of_contract,
+        }
+        return number < number_methods[model]()
+
+    def _no_change_allowed(self):
+        return self.session.filter == 'SUPPORT' and self.session.status == 'SELECT_USER'
+
     def _prompt(self, thing):
         self.display()
         prompt = getattr(prompts, thing)
@@ -295,3 +334,30 @@ class Ask:
             password=is_password,
             show_default=False
         )
+
+    def _set_filter(self, status, previous_filter):
+        if status in ['UPDATE_CONTRACT', 'DELETE_CONTRACT', 'VIEW_CONTRACT']:
+            self.session.filter = 'WITH_CONTRACT'
+        elif status == 'DELETE_USER':
+            self.session.filter = 'FOR_DELETE'
+        elif previous_filter != 'SUPPORT':
+            if status == 'ADD_EVENT':
+                self.session.filter = 'WITHOUT_EVENT'
+            elif status in ['UPDATE_EVENT', 'DELETE_EVENT', 'VIEW_EVENT']:
+                self.session.filter = 'WITH_EVENT'
+
+    def _set_session_model(self, model, number):
+        get_methods = {
+            'user': self.db.get_user_by_number,
+            'client': self.db.get_client,
+            'contract': self.db.get_contract,
+            'support': self.db.get_user_by_number,
+        }
+        session_attributes = {
+            'user': 'new_user',
+            'support': 'new_user',
+            'client': 'client',
+            'contract': 'contract'
+        }
+        result = get_methods[model](number)
+        setattr(self.session, session_attributes[model], result)

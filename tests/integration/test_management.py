@@ -312,7 +312,6 @@ class TestManagement:
                 '0',
                 '0',
                 '',
-                '',
                 'exit',
                 ''
             ]

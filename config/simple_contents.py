@@ -41,8 +41,4 @@ FAILED = {
         'SELECT_CONTRACT': 'Ce numéro ne correspond pas à un contrat.',
         'CONNECTION': 'Vos identifiants sont inconnus\nL\'application va s\'arrêter.',
         'PASSWORD': 'Les mots de passe ne sont pas identiques.',
-        'ADD_USER': 'Ajout annulé',
-        'ADD_CLIENT': 'Ajout annulé',
-        'ADD_CONTRACT': 'Ajout annulé',
-        'ADD_EVENT': 'Ajout annulé',
 }
