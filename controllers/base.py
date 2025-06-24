@@ -157,7 +157,7 @@ class Controller:
         self.session.new_user = self.session.client.commercial_contact
         self.session.client.company_name = self.ask.company_name()
         self.session.client.name = self.ask.client_name()
-        self.session.client.email = self.ask.email()
+        self.session.client.email = self.ask.client_email()
         self.session.client.phone = self.ask.phone()
         if self.ask.validation():
             self.session.state = 'GOOD'

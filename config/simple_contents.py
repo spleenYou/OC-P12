@@ -38,6 +38,7 @@ ERROR = {
 
 FAILED = {
         'EMAIL': 'Votre saisie ne correspond pas à une adresse mail.',
+        'CLIENT_EMAIL': 'Votre saisie ne correspond pas à une adresse mail.',
         'SELECT_USER': 'Ce numéro ne correspond pas à un utilisateur.',
         'SELECT_CLIENT': 'Ce numéro ne correspond pas à un client.',
         'SELECT_CONTRACT': 'Ce numéro ne correspond pas à un contrat.',

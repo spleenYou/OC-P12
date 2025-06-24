@@ -79,20 +79,11 @@ class Ask:
         )
 
     def phone(self):
-        phone = None
-        previous_status = self.session.status
-        while phone is None:
-            self.session.state = 'NORMAL'
-            self.session.status = previous_status
-            phone = self._prompt('phone')
-            if previous_status == 'UPDATE_CLIENT' and phone == '':
-                phone = self.session.client.phone
-            if re.match(self.phone_regex, phone):
-                return phone
-            phone = None
-            self.session.state = 'ERROR'
-            self.session.status = 'PHONE'
-            self._prompt('wait')
+        return self._pre_prompt(
+            'phone',
+            lambda: self.session.client.phone,
+            lambda: self.session.status == 'UPDATE_CLIENT'
+        )
 
     def total_amount(self):
         return self._pre_prompt(
@@ -102,40 +93,26 @@ class Ask:
         )
 
     def rest_amount(self):
-        rest_amount = None
-        previous_status = self.session.status
-        while rest_amount is None:
-            self.session.state = 'NORMAL'
-            self.session.status = previous_status
-            rest_amount = self._prompt('rest_amount')
-            if previous_status == 'UPDATE_CONTRACT' and rest_amount == '':
-                rest_amount = self.session.contract.rest_amount
-            try:
-                rest_amount = float(rest_amount)
-                return round(rest_amount, 2)
-            except Exception:
-                rest_amount = None
-                self.session.state = 'ERROR'
-                self.session.status = 'REST_AMOUNT'
-                self._prompt('wait')
+        return self._pre_prompt(
+            'rest_amount',
+            lambda: self.session.contract.rest_amount,
+            lambda: self.session.status == 'UPDATE_CONTRACT',
+        )
 
     def email(self, email=None):
-        previous_status = self.session.status
-        while email is None:
-            self.session.status = previous_status
-            self.session.state = 'NORMAL'
-            email = self._prompt('email')
-            if email == '':
-                if previous_status == 'UPDATE_USER':
-                    email = self.session.new_user.email
-                elif previous_status == 'UPDATE_CLIENT':
-                    email = self.session.client.email
-            if not re.fullmatch(self.email_regex, email):
-                self.session.status = 'EMAIL'
-                self.session.state = 'FAILED'
-                email = None
-                self._prompt('wait')
-        return email
+        return self._pre_prompt(
+            'email',
+            lambda: self.session.new_user.email,
+            lambda: self.session.status == 'UPDATE_USER',
+            email
+        )
+
+    def client_email(self):
+        return self._pre_prompt(
+            'client_email',
+            lambda: self.session.client.email,
+            lambda: self.session.status == 'UPDATE_CLIENT'
+        )
 
     def password(self):
         previous_status = self.session.status
@@ -157,7 +134,6 @@ class Ask:
                 else:
                     self.session.status = 'PASSWORD'
                     self.session.state = 'FAILED'
-                    self.session.user.password = None
                     self._prompt('wait')
             else:
                 self.session.status = 'PASSWORD'
@@ -165,61 +141,26 @@ class Ask:
                 self._prompt('wait')
 
     def department(self):
-        previous_status = self.session.status
-        department_id = None
-        if previous_status != 'UPDATE_USER':
-            department_id = self.session.new_user.department_id
-        while department_id is None:
-            self.session.state = 'NORMAL'
-            self.session.status = previous_status
-            department_id = self._prompt('department')
-            if previous_status == 'UPDATE_USER' and department_id == '':
-                return self.session.new_user.department_id
-            try:
-                department_id = int(department_id)
-            except Exception:
-                self.session.state = 'ERROR'
-                self.session.status = 'DEPARTMENT'
-                department_id = None
-                self._prompt('wait')
-        return department_id
+        return self._pre_prompt(
+            'department',
+            lambda: self.session.new_user.department_id,
+            lambda: self.session.status == 'UPDATE_USER'
+        )
 
     def employee_number(self):
-        previous_status = self.session.status
-        employee_number = None
-        while employee_number is None:
-            self.session.status = previous_status
-            self.session.state = 'NORMAL'
-            employee_number = self._prompt('employee_number')
-            if previous_status == 'UPDATE_USER' and employee_number == '':
-                return self.session.new_user.employee_number
-            try:
-                employee_number = int(employee_number)
-            except Exception:
-                self.session.state = 'FAILED'
-                self.session.status = 'EMPLOYEE_NUMBER'
-                employee_number = None
-                self._prompt('wait')
-        return employee_number
+        return self._pre_prompt(
+            'employee_number',
+            lambda: self.session.new_user.employee_number,
+            lambda: self.session.status == 'UPDATE_USER'
+        )
 
     def status(self):
-        contract_status = None
-        previous_status = self.session.status
-        while contract_status is None:
-            self.session.state = 'NORMAL'
-            self.session.status = previous_status
-            contract_status = self._prompt('contract_status').lower()
-            if previous_status == 'UPDATE_CONTRACT' and contract_status == '':
-                return self.session.contract.status
-            if contract_status == 'y':
-                return True
-            elif contract_status == 'n':
-                return False
-            else:
-                contract_status = None
-                self.session.state = 'ERROR'
-                self.session.status = 'CONTRACT_STATUS'
-                self._prompt('wait')
+        self.session.filter == 'status'
+        return self._pre_prompt(
+            'status',
+            lambda: self.session.contract.status,
+            lambda: self.session.status == 'UPDATE_CONTRACT'
+        )
 
     def wait(self):
         self._prompt('wait')
@@ -307,11 +248,14 @@ class Ask:
         result = get_methods[model](number)
         setattr(self.session, session_attributes[model], result)
 
-    def _pre_prompt(self, thing, default_value=None, condition=None):
+    def _pre_prompt(self, thing, default_value=None, condition=None, email=None):
         previous_status = self.session.status
         while True:
             self.session.state = 'NORMAL'
-            value = self._prompt(thing)
+            if email:
+                value = email
+            else:
+                value = self._prompt(thing)
             if value == '':
                 if self.session.status.startswith('ADD') and thing in config.is_nullable:
                     return None
@@ -320,7 +264,6 @@ class Ask:
                 else:
                     self.session.status = thing.upper()
                     self.session.state = 'FAILED'
-                    self.wait()
             else:
                 success, value = self._is_accepted_value(thing, value)
                 if success:
@@ -328,7 +271,7 @@ class Ask:
                 else:
                     self.session.status = thing.upper()
                     self.session.state = "ERROR"
-                    self.wait()
+            self.wait()
             self.session.status = previous_status
 
     def _is_accepted_value(self, thing, value):
@@ -337,13 +280,24 @@ class Ask:
             'is_date': self._is_valid_date,
             'is_int': self._is_valid_int,
             'is_float': self._is_valid_float,
+            'is_email': self._is_valid_email,
         }
         for attr, method in list_method.items():
             if thing in getattr(config, attr):
                 sucess, value = method(value)
                 return sucess, value
 
+    def _is_valid_phone(self, phone):
+        return re.fullmatch(self.phone_regex, phone), phone
+
+    def _is_valid_email(self, email):
+        return re.fullmatch(self.email_regex, email), email
+
     def _is_text(self, value):
+        if self.session.filter == 'status':
+            if value.lower() == 'y':
+                return True, True
+            return False, False
         return True, value
 
     def _is_valid_date(self, date_to_parse):

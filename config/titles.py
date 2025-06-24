@@ -102,4 +102,5 @@ FAILED = {
     'ATTENDEES': 'Erreur de saisie',
     'COMMAND': 'Erreur de saisie',
     'EMAIL': 'Erreur de saisie',
+    'CLIENT_EMAIL': 'Erreur de saisie',
 }

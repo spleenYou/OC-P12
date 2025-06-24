@@ -81,3 +81,10 @@ is_float = [
     'total_amount',
     'rest_amount',
 ]
+is_email = [
+    'email',
+    'client_email'
+]
+is_phone = [
+    'phone'
+]
