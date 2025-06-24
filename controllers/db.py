@@ -157,6 +157,7 @@ class Mysql:
 
     def add_event(self):
         self.session.event.contract_id = self.session.contract.id
+        self.session.event.support_contact_id = self.session.new_user.id
         return self._add_in_db(self.session.event)
 
     def delete_event(self):
@@ -203,7 +204,7 @@ class Mysql:
     def _apply_client_filter(self, query):
         filters = {
             'WITH_EVENT': lambda q: q.filter(Client.contracts.any(Contract.event.has())),
-            'WITHOUT_EVENT': lambda q: q.filter(~Client.contracts.any(Contract.event.has())),
+            'WITHOUT_EVENT': lambda q: q.filter(Client.contracts.any(~Contract.event.has())),
             'WITH_CONTRACT': lambda q: q.filter(Client.contracts.any()),
         }
         return self._apply_filter(query, filters)

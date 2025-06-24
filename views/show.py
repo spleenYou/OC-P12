@@ -100,7 +100,7 @@ class Show:
         )
 
     def content(self):
-        if self.session.state != 'GOOD':
+        if self._content_needed():
             status = self._adapt_status_with_filter()
             simple_content = self._simple_content_view(status, self.session.state)
             if simple_content:
@@ -157,14 +157,6 @@ class Show:
                 ]
             )
         return self._make_table(col_list, row_list)
-
-    def show_select_support_user(self):
-        support_users = self.db.get_user_list()
-        col_list = ['', '', '']
-        row_list = []
-        for index, user in enumerate(support_users):
-            row_list.append([str(index), user.name, user.email])
-        return self._make_table(col_list, row_list, show_header=False)
 
     def show_permissions(self):
         permissions = self.db.get_permissions()
@@ -249,7 +241,7 @@ class Show:
         for user in user_list:
             datas.append(
                 [
-                    user.employee_number,
+                    str(user.employee_number),
                     user.name,
                     user.department_name,
                     user.email,
@@ -313,9 +305,10 @@ class Show:
 
     def _get_support_user_info(self, event):
         if event.support_contact_id is None:
-            return 'Non défini'
-        if event.support_contact is None:
-            event.support_contact = self.db.get_user_by_id(event.support_contact_id)
+            if self.session.new_user.id is None:
+                return 'Non défini'
+            else:
+                event.support_contact = self.db.get_user_by_id(self.session.new_user.id)
         return f'{event.support_contact.name} - {event.support_contact.email}'
 
     def _simple_content_view(self, status, state):
@@ -330,8 +323,6 @@ class Show:
                 return self.show_select_client()
             case 'SELECT_CONTRACT':
                 return self.show_select_contract()
-            case 'SELECT_SUPPORT_USER':
-                return self.show_select_support_user()
             case 'PERMISSION':
                 return self.show_permissions()
             case _:
@@ -359,7 +350,7 @@ class Show:
         return self._make_table(col_list, row_list, show_header=show_header, show_lines=True, justify='center')
 
     def _adapt_status_with_filter(self):
-        if self.session.filter not in ['', 'FIRST_TIME', 'SECOND_TIME'] and 'ALL' not in self.session.filter:
+        if self.session.filter not in ['', 'FIRST_TIME', 'SECOND_TIME', 'SUPPORT'] and 'ALL' not in self.session.filter:
             return self.session.status + '_' + self.session.filter
         return self.session.status
 
@@ -383,3 +374,6 @@ class Show:
 
     def _format_date(self, date):
         return date.strftime('%d %b %Y') if date else ''
+
+    def _content_needed(self):
+        return self.session.state != 'GOOD'

@@ -115,14 +115,14 @@ def event_information(date_now):
 @pytest.fixture
 def controller(session, db_session):
     class MyController(Controller):
-        def __init__(self, prompt, show, db, auth, session):
+        def __init__(self, ask, show, db, auth, session):
             self.session = session
             self.auth = auth(session)
             mysql = Mysql(session=session, authentication=self.auth)
             mysql.db_session = db_session
             self.db = mysql
             self.show = show(self.db, session)
-            self.prompt = prompt(self.show, self.db, session)
+            self.ask = ask(self.show, self.db, session)
             self.email_regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
             self.phone_regex = re.compile(r'^\+?[0-9](?:\d{1,3} ?){1,5}\d{1,4}$')
             self.permissions = None
