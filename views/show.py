@@ -101,8 +101,7 @@ class Show:
 
     def content(self):
         if self._content_needed():
-            status = self._adapt_status_with_filter()
-            simple_content = self._simple_content_view(status, self.session.state)
+            simple_content = self._simple_content_view(self.session.status, self.session.state)
             if simple_content:
                 self.show_content(Text(simple_content, justify='center'))
             else:
@@ -349,11 +348,6 @@ class Show:
         row_list = show_methods_one.get(model_status)()
         return self._make_table(col_list, row_list, show_header=show_header, show_lines=True, justify='center')
 
-    def _adapt_status_with_filter(self):
-        if self.session.filter not in ['', 'FIRST_TIME', 'SECOND_TIME', 'SUPPORT'] and 'ALL' not in self.session.filter:
-            return self.session.status + '_' + self.session.filter
-        return self.session.status
-
     def _make_table(self, col_list, row_list, justify='left', show_header=True, title=None, show_lines=False):
         table = Table(title=title, show_header=show_header, show_lines=show_lines)
         for col in col_list:
@@ -373,7 +367,7 @@ class Show:
         return 'En cours'
 
     def _format_date(self, date):
-        return date.strftime('%d %b %Y') if date else ''
+        return date.strftime('%d %b %Y') if date else 'Non défini'
 
     def _content_needed(self):
         return (self.session.state != 'GOOD' and

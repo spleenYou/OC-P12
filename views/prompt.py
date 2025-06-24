@@ -32,72 +32,44 @@ class Ask:
         )
 
     def name(self):
-        name = self._prompt('name')
-        if name == '':
-            name = self.session.new_user.name
-        return name
+        return self._pre_prompt('name', lambda: self.session.new_user.name)
 
     def notes(self):
-        notes = self._prompt('notes')
-        if self.session.status == 'UPDATE_EVENT' and notes == '':
-            return self.session.contract.event.notes
-        return notes
+        return self._pre_prompt(
+            'notes',
+            lambda: self.session.contract.event.notes,
+            lambda: self.session.status == 'UPDATE_EVENT'
+        )
 
     def client_name(self):
-        name = self._prompt('client_name')
-        if name == '':
-            name = self.session.client.name
-        return name
+        return self._pre_prompt('client_name', lambda: self.session.client.name)
 
     def company_name(self):
-        company_name = self._prompt('company_name')
-        if company_name == '':
-            company_name = self.session.client.company_name
-        return company_name
+        return self._pre_prompt('company_name', lambda: self.session.client.company_name)
 
     def location(self):
-        location = self._prompt('location')
-        if location == '' and self.session.status == 'UPDATE_EVENT':
-            return self.session.contract.event.location
-        return location
+        return self._pre_prompt(
+            'location',
+            lambda: self.session.contract.event.location,
+            lambda: self.session.status == 'UPDATE_EVENT'
+        )
+
+    def command(self):
+        return self._pre_prompt('command')
 
     def date_start(self):
-        date_start = None
-        previous_status = self.session.status
-        while date_start is None:
-            self.session.state = 'NORMAL'
-            self.session.status = previous_status
-            date_start = self._prompt('date_start')
-            if previous_status == 'UPDATE_EVENT' and date_start == '':
-                return self.session.contract.event.date_start
-            try:
-                day, month, year = date_start.split('/')
-                date_start = date(year=int(year), month=int(month), day=int(day))
-                return date_start
-            except Exception:
-                date_start = None
-                self.session.state = 'ERROR'
-                self.session.status = 'DATE_START'
-                self._prompt('wait')
+        return self._pre_prompt(
+            'date_start',
+            lambda: self.session.contract.event.date_start,
+            lambda: self.session.status == 'UPDATE_EVENT',
+        )
 
     def date_stop(self):
-        date_stop = None
-        previous_status = self.session.status
-        while date_stop is None:
-            self.session.state = 'NORMAL'
-            self.session.status = previous_status
-            date_stop = self._prompt('date_stop')
-            if previous_status == 'UPDATE_EVENT' and date_stop == '':
-                return self.session.contract.event.date_stop
-            try:
-                day, month, year = date_stop.split('/')
-                date_stop = date(year=int(year), month=int(month), day=int(day))
-                return date_stop
-            except Exception:
-                date_stop = None
-                self.session.state = 'ERROR'
-                self.session.status = 'DATE_STOP'
-                self._prompt('wait')
+        return self._pre_prompt(
+            'date_stop',
+            lambda: self.session.contract.event.date_start,
+            lambda: self.session.status == 'UPDATE_EVENT',
+        )
 
     def attendees(self):
         attendees = None
@@ -189,8 +161,7 @@ class Ask:
 
     def password(self):
         previous_status = self.session.status
-        password = None
-        while password is None:
+        while True:
             self.session.status = previous_status
             self.session.state = 'NORMAL'
             if self.session.filter == 'FIRST_TIME' and self.session.user.password is not None:
@@ -214,7 +185,6 @@ class Ask:
                 self.session.status = 'PASSWORD'
                 self.session.state = 'ERROR'
                 self._prompt('wait')
-            password = None
 
     def department(self):
         previous_status = self.session.status
@@ -275,9 +245,6 @@ class Ask:
 
     def wait(self):
         self._prompt('wait')
-
-    def command(self):
-        return self._prompt('command')
 
     def select(self, model):
         previous_filter = self.session.filter
@@ -361,3 +328,44 @@ class Ask:
         }
         result = get_methods[model](number)
         setattr(self.session, session_attributes[model], result)
+
+    def _pre_prompt(self, thing, default_value=None, condition=None):
+        previous_status = self.session.status
+        while True:
+            self.session.state = 'NORMAL'
+            value = self._prompt(thing)
+            if value == '':
+                if self.session.status.startswith('ADD') and thing in config.is_nullable:
+                    return None
+                elif condition is None or condition():
+                    return default_value()
+                else:
+                    self.session.status = thing.upper()
+                    self.session.state = 'FAILED'
+                    self.wait()
+            else:
+                if self._is_accepted_value(thing, value):
+                    if thing in config.is_text:
+                        return value
+                    if thing in config.is_date:
+                        day, month, year = value.split('/')
+                        return date(year=int(year), month=int(month), day=int(day))
+                else:
+                    self.session.status = thing.upper()
+                    self.session.state = "ERROR"
+                    self.wait()
+            self.session.status = previous_status
+
+    def _is_accepted_value(self, thing, value):
+        return ((thing in config.is_text) or
+                (thing in config.is_date and self._is_valid_date(value, thing)))
+
+    def _is_valid_date(self, date_to_parse, thing):
+        try:
+            day, month, year = date_to_parse.split('/')
+            parsed_date = date(year=int(year), month=int(month), day=int(day))
+            if thing == 'date_start':
+                return parsed_date >= date.today()
+            return parsed_date >= self.session.event.date_start
+        except Exception:
+            return False

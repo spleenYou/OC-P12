@@ -321,6 +321,8 @@ class TestCommercial:
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.main_menu()
         captured = capsys.readouterr()
+        for c in captured:
+            print(c)
         assert 'Ajout d\'un évènement' in captured.out
         assert 'Evènement ajouté' in captured.out
 

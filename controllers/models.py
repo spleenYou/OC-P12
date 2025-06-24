@@ -72,7 +72,7 @@ class Event(Base):
     support_contact_id = Column(Integer, ForeignKey('epic_users.id'), nullable=True)
     location = Column(String(255))
     attendees = Column(Integer)
-    notes = Column(Text)
+    notes = Column(Text, nullable=True)
     contract = relationship('Contract', back_populates='event')
     support_contact = relationship('EpicUser', back_populates='events')
 

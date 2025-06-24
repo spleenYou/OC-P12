@@ -51,3 +51,25 @@ select_status = {
     'client': 'SELECT_CLIENT',
     'contract': 'SELECT_CONTRACT',
 }
+is_nullable = [
+    'notes',
+    'date_start',
+    'date_stop',
+    'support_contact_id',
+]
+is_text = [
+    'command',
+    'name',
+    'email',
+    'password',
+    'client_name',
+    'phone',
+    'company_name',
+    'location',
+    'notes'
+
+]
+is_date = [
+    'date_start',
+    'date_stop',
+]

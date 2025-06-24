@@ -82,6 +82,7 @@ GOOD = {
 }
 
 FAILED = {
+    'ADD_USER': 'Impossible d\'enregistrer l\'utilisateur',
     'UPDATE_USER': 'Utilisateur non mis à jour',
     'ADD_CLIENT': 'Impossible d\'ajouter le client',
     'ADD_CONTRACT': '*impossible d\'ajouter le contrat',
@@ -90,10 +91,13 @@ FAILED = {
     'ADD_EVENT': 'Evènement non ajouté',
     'UPDATE_EVENT': 'Evènement non mis à jour',
     'DELETE_EVENT': 'Evènement non supprimé',
-    'ADD_USER': 'Impossible d\'enregistrer l\'utilisateur',
     'CONNECTION': 'Erreur de connexion',
     'SELECT_USER': 'Erreur de saisie',
     'SELECT_CLIENT': 'Erreur de saisie',
+    'SELECT_CONTRACT': 'Erreur de saisie',
     'PASSWORD': 'Erreur de saisie',
-    'EMAIL': 'Erreur de saisie',
+    'NULL': 'Erreur de saisie',
+    'LOCATION': 'Erreur de saisie',
+    'ATTENDEES': 'Erreur de saisie',
+    'COMMAND': 'Erreur de saisie',
 }

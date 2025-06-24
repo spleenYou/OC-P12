@@ -19,7 +19,6 @@ NORMAL = {
 ERROR = {
         'ADD_USER_STOPPED': ('Il faut au moins un utilisateur pour utiliser l\'application\n'
                              'Fermeture de l\'application'),
-        'UNKNOWN': 'Cette commande est inconnue.',
         'EMPLOYEE_NUMBER': 'Votre saisie ne correspond pas à un numéro d\'employé.',
         'DEPARTMENT': 'Votre saisie ne correspond pas à un département.',
         'SELECT_USER': 'Merci d\'entrer un nombre.',
@@ -31,7 +30,8 @@ ERROR = {
         'CONTRACT_STATUS': 'Cette réponse n\'est pas possible.\n\nMerci d\'indiquer y or n comme demandé.',
         'TOKEN': 'Vous avez été déconnecté, merci de vous reconnecter.',
         'PASSWORD': 'Votre mot de passe ne peut pas être vide.',
-
+        'DATE_START': 'Date non valide.',
+        'DATE_STOP': 'Date non valide.',
 }
 
 FAILED = {
@@ -41,4 +41,8 @@ FAILED = {
         'SELECT_CONTRACT': 'Ce numéro ne correspond pas à un contrat.',
         'CONNECTION': 'Vos identifiants sont inconnus\nL\'application va s\'arrêter.',
         'PASSWORD': 'Les mots de passe ne sont pas identiques.',
+        'NULL': 'Merci d\'indiquer quelque chose',
+        'LOCATION': 'Merci d\'indiquer un lieu.',
+        'ATTENDEES': 'Merci d\'entrer un nombre.',
+        'COMMAND': 'Commande nulle.',
 }
