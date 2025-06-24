@@ -101,7 +101,10 @@ class Show:
 
     def content(self):
         if self._content_needed():
-            simple_content = self._simple_content_view(self.session.status, self.session.state)
+            status = self.session.status
+            if self.session.filter == 'STOPPED':
+                status = self.session.status + '_STOPPED'
+            simple_content = self._simple_content_view(status, self.session.state)
             if simple_content:
                 self.show_content(Text(simple_content, justify='center'))
             else:

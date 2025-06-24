@@ -72,22 +72,11 @@ class Ask:
         )
 
     def attendees(self):
-        attendees = None
-        previous_status = self.session.status
-        while attendees is None:
-            self.session.state = 'NORMAL'
-            self.session.status = previous_status
-            attendees = self._prompt('attendees')
-            if previous_status == 'UPDATE_EVENT' and attendees == '':
-                return self.session.contract.event.attendees
-            try:
-                attendees = int(attendees)
-                return attendees
-            except Exception:
-                attendees = None
-                self.session.state = 'ERROR'
-                self.session.status = 'ATTENDEES'
-                self._prompt('wait')
+        return self._pre_prompt(
+            'attendees',
+            lambda: self.session.contract.event.attendees,
+            lambda: self.session.status == 'UPDATE_EVENT',
+        )
 
     def phone(self):
         phone = None
@@ -106,22 +95,11 @@ class Ask:
             self._prompt('wait')
 
     def total_amount(self):
-        total_amount = None
-        previous_status = self.session.status
-        while total_amount is None:
-            self.session.state = 'NORMAL'
-            self.session.status = previous_status
-            total_amount = self._prompt('total_amount')
-            if previous_status == 'UPDATE_CONTRACT' and total_amount == '':
-                total_amount = self.session.contract.total_amount
-            try:
-                total_amount = float(total_amount)
-                return round(total_amount, 2)
-            except Exception:
-                total_amount = None
-                self.session.state = 'ERROR'
-                self.session.status = 'TOTAL_AMOUNT'
-                self._prompt('wait')
+        return self._pre_prompt(
+            'total_amount',
+            lambda: self.session.contract.total_amount,
+            lambda: self.session.status == 'UPDATE_CONTRACT',
+        )
 
     def rest_amount(self):
         rest_amount = None
@@ -344,12 +322,9 @@ class Ask:
                     self.session.state = 'FAILED'
                     self.wait()
             else:
-                if self._is_accepted_value(thing, value):
-                    if thing in config.is_text:
-                        return value
-                    if thing in config.is_date:
-                        day, month, year = value.split('/')
-                        return date(year=int(year), month=int(month), day=int(day))
+                success, value = self._is_accepted_value(thing, value)
+                if success:
+                    return value
                 else:
                     self.session.status = thing.upper()
                     self.session.state = "ERROR"
@@ -357,15 +332,43 @@ class Ask:
             self.session.status = previous_status
 
     def _is_accepted_value(self, thing, value):
-        return ((thing in config.is_text) or
-                (thing in config.is_date and self._is_valid_date(value, thing)))
+        list_method = {
+            'is_text': self._is_text,
+            'is_date': self._is_valid_date,
+            'is_int': self._is_valid_int,
+            'is_float': self._is_valid_float,
+        }
+        for attr, method in list_method.items():
+            if thing in getattr(config, attr):
+                sucess, value = method(value)
+                return sucess, value
 
-    def _is_valid_date(self, date_to_parse, thing):
+    def _is_text(self, value):
+        return True, value
+
+    def _is_valid_date(self, date_to_parse):
+        success, value = self._try_convert(date_to_parse, self._parse_date)
+        if not success:
+            return False, None
+        if self.session.event.date_start is None:
+            success = value >= date.today()
+        else:
+            success = value >= self.session.event.date_start
+        return success, value
+
+    def _parse_date(self, date_to_parse):
+        day, month, year = date_to_parse.split('/')
+        return date(year=int(year), month=int(month), day=int(day))
+
+    def _is_valid_float(self, number):
+        return self._try_convert(number, float)
+
+    def _is_valid_int(self, number):
+        return self._try_convert(number, int)
+
+    def _try_convert(self, value, func):
         try:
-            day, month, year = date_to_parse.split('/')
-            parsed_date = date(year=int(year), month=int(month), day=int(day))
-            if thing == 'date_start':
-                return parsed_date >= date.today()
-            return parsed_date >= self.session.event.date_start
-        except Exception:
-            return False
+            value = func(value)
+            return True, value
+        except (ValueError, TypeError):
+            return False, None

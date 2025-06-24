@@ -73,3 +73,11 @@ is_date = [
     'date_start',
     'date_stop',
 ]
+is_int = [
+    'attendees',
+    'employee_number',
+]
+is_float = [
+    'total_amount',
+    'rest_amount',
+]

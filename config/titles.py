@@ -49,6 +49,7 @@ ERROR = {
     'SELECT_USER': 'Erreur de saisie',
     'PHONE': 'Erreur de saisie',
     'TOTAL_AMOUNT': 'Erreur de saisie',
+    'ATTENDEES': 'Erreur de saisie',
     'REST_AMOUNT': 'Erreur de saisie',
     'DATE_START': 'Erreur de saisie',
     'DATE_STOP': 'Erreur de saisie',
@@ -100,4 +101,5 @@ FAILED = {
     'LOCATION': 'Erreur de saisie',
     'ATTENDEES': 'Erreur de saisie',
     'COMMAND': 'Erreur de saisie',
+    'EMAIL': 'Erreur de saisie',
 }

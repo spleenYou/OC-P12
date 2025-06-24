@@ -25,13 +25,15 @@ ERROR = {
         'SELECT_CLIENT': 'Merci d\'entrer un nombre.',
         'TOTAL_AMOUNT': 'Merci d\'entrer un nombre.',
         'REST_AMOUNT': 'Merci d\'entrer un nombre.',
+        'ATTENDEES': 'Merci d\'entrer un nombre.',
         'SELECT_CONTRACT': 'Merci d\'entrer un nombre.',
         'PHONE': 'Numéro de téléphone incorrect.',
         'CONTRACT_STATUS': 'Cette réponse n\'est pas possible.\n\nMerci d\'indiquer y or n comme demandé.',
         'TOKEN': 'Vous avez été déconnecté, merci de vous reconnecter.',
         'PASSWORD': 'Votre mot de passe ne peut pas être vide.',
         'DATE_START': 'Date non valide.',
-        'DATE_STOP': 'Date non valide.',
+        'DATE_START': 'Date non valide.',
+        'UNKNOWN': 'Cette commande est inconnue.',
 }
 
 FAILED = {
