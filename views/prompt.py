@@ -115,30 +115,14 @@ class Ask:
         )
 
     def password(self):
-        previous_status = self.session.status
-        while True:
-            self.session.status = previous_status
-            self.session.state = 'NORMAL'
-            if self.session.filter == 'FIRST_TIME' and self.session.user.password is not None:
-                self.session.filter = 'SECOND_TIME'
-            password = self._prompt('password')
-            if password != '':
-                if self.session.status == 'CONNECTION':
-                    return password
-                elif self.session.user.password is None:
-                    self.session.user.password = password
-                elif password == self.session.user.password:
-                    self.session.status = 'CONNECTION'
-                    self.session.filter = ''
-                    return None
-                else:
-                    self.session.status = 'PASSWORD'
-                    self.session.state = 'FAILED'
-                    self._prompt('wait')
-            else:
-                self.session.status = 'PASSWORD'
-                self.session.state = 'ERROR'
-                self._prompt('wait')
+        if self.session.filter == 'FIRST_TIME':
+            self.session.user.password = self._pre_prompt('password', condition=lambda: False)
+            self.session.filter = 'SECOND_TIME'
+            password = self._pre_prompt('password', condition=lambda: False)
+            self.session.status = 'CONNECTION'
+            self.session.filter = ''
+            return password
+        return self._pre_prompt('password', condition=lambda: False)
 
     def department(self):
         return self._pre_prompt(
@@ -155,7 +139,7 @@ class Ask:
         )
 
     def status(self):
-        self.session.filter == 'status'
+        self.session.filter = 'status'
         return self._pre_prompt(
             'status',
             lambda: self.session.contract.status,
@@ -281,9 +265,10 @@ class Ask:
             'is_int': self._is_valid_int,
             'is_float': self._is_valid_float,
             'is_email': self._is_valid_email,
+            'phone': self._is_valid_phone
         }
         for attr, method in list_method.items():
-            if thing in getattr(config, attr):
+            if (hasattr(config, attr) and thing in getattr(config, attr)) or thing == attr:
                 sucess, value = method(value)
                 return sucess, value
 
@@ -294,10 +279,10 @@ class Ask:
         return re.fullmatch(self.email_regex, email), email
 
     def _is_text(self, value):
+        if self.session.filter == 'SECOND_TIME':
+            return value == self.session.user.password, value
         if self.session.filter == 'status':
-            if value.lower() == 'y':
-                return True, True
-            return False, False
+            return True, True if value.lower() == 'y' else False
         return True, value
 
     def _is_valid_date(self, date_to_parse):

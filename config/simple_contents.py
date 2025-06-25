@@ -13,7 +13,8 @@ NORMAL = {
                  ' attribuées à votre département.\n\n'
                  'Pour les connaître taper PERMISSION\n\n'
                  'RESET PASSWORD pour redéfinir votre mot de passe'),
-        'PASSWORD': 'Bienvenue pour votre première connexion.\n\nVeuillez définir votre mot de passe.',
+        'PASSWORD_FIRST_TIME': 'Bienvenue pour votre première connexion.\n\nVeuillez définir votre mot de passe.',
+        'PASSWORD_SECOND_TIME': 'Bienvenue pour votre première connexion.\n\nVeuillez confirmer votre mot de passe.',
 }
 
 ERROR = {
@@ -34,16 +35,20 @@ ERROR = {
         'DATE_START': 'Date non valide.',
         'DATE_START': 'Date non valide.',
         'UNKNOWN': 'Cette commande est inconnue.',
+        'PASSWORD_SECOND_TIME': 'Les mots de passe ne sont pas identiques.',
+        'EMAIL': 'Votre saisie ne correspond pas à une adresse mail.',
 }
 
 FAILED = {
-        'EMAIL': 'Votre saisie ne correspond pas à une adresse mail.',
+        'EMAIL': 'Merci d\'entrer une adresse mail.',
         'CLIENT_EMAIL': 'Votre saisie ne correspond pas à une adresse mail.',
         'SELECT_USER': 'Ce numéro ne correspond pas à un utilisateur.',
         'SELECT_CLIENT': 'Ce numéro ne correspond pas à un client.',
         'SELECT_CONTRACT': 'Ce numéro ne correspond pas à un contrat.',
         'CONNECTION': 'Vos identifiants sont inconnus\nL\'application va s\'arrêter.',
-        'PASSWORD': 'Les mots de passe ne sont pas identiques.',
+        'PASSWORD_FIRST_TIME': 'Votre mot de passe ne peut pas être vide.',
+        'PASSWORD_SECOND_TIME': 'Votre mot de passe ne peut pas être vide.',
+        'PASSWORD': 'Votre mot de passe ne peut pas être vide.',
         'NULL': 'Merci d\'indiquer quelque chose',
         'LOCATION': 'Merci d\'indiquer un lieu.',
         'ATTENDEES': 'Merci d\'entrer un nombre.',

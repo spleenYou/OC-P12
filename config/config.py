@@ -60,14 +60,13 @@ is_nullable = [
 is_text = [
     'command',
     'name',
-    'email',
     'password',
     'client_name',
     'phone',
     'company_name',
     'location',
-    'notes'
-
+    'notes',
+    'status'
 ]
 is_date = [
     'date_start',
@@ -76,6 +75,7 @@ is_date = [
 is_int = [
     'attendees',
     'employee_number',
+    'department'
 ]
 is_float = [
     'total_amount',
@@ -84,7 +84,4 @@ is_float = [
 is_email = [
     'email',
     'client_email'
-]
-is_phone = [
-    'phone'
 ]

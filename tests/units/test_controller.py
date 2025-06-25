@@ -95,7 +95,6 @@ class TestController:
                 '',
                 password,
                 password,
-                password,
                 '',
                 'exit',
                 ''

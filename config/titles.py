@@ -64,6 +64,7 @@ ERROR = {
     'ADD_EVENT': 'Erreur de saisie',
     'ADD_CONTRACT': 'Erreur de saisie',
     'ADD_CLIENT': 'Erreur de saisie',
+    'EMAIL': 'Erreur de saisie',
 }
 
 GOOD = {
@@ -87,6 +88,7 @@ FAILED = {
     'UPDATE_USER': 'Utilisateur non mis à jour',
     'ADD_CLIENT': 'Impossible d\'ajouter le client',
     'ADD_CONTRACT': '*impossible d\'ajouter le contrat',
+    'UPDATE_CONTRACT': 'Contrat non mis à jour',
     'DELETE_CONTRACT': 'Contrat non supprimé',
     'UPDATE_CLIENT': 'Client non mis à jour',
     'ADD_EVENT': 'Evènement non ajouté',

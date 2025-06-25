@@ -102,8 +102,8 @@ class Show:
     def content(self):
         if self._content_needed():
             status = self.session.status
-            if self.session.filter == 'STOPPED':
-                status = self.session.status + '_STOPPED'
+            if self.session.filter in ['STOPPED', 'FIRST_TIME', 'SECOND_TIME']:
+                status = self.session.status + '_' + self.session.filter
             simple_content = self._simple_content_view(status, self.session.state)
             if simple_content:
                 self.show_content(Text(simple_content, justify='center'))
