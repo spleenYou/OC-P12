@@ -14,16 +14,13 @@ class Controller:
     def check_token_and_perm(function):
         @wraps(function)
         def func_check(self, *args, **kwargs):
-            if self.db.number_of_user() > 0:
+            if self._has_user():
                 if not self.auth.check_token():
-                    self.session.status = 'TOKEN'
-                    self.session.state = 'ERROR'
+                    self.session.set_session(status='TOKEN', state='ERROR')
                     return False
-            if self.permissions is not None:
-                if self.session.status[:4] != 'VIEW' and not getattr(self.permissions, self.session.status.lower()):
-                    self.session.status = 'FORBIDDEN'
-                    self.session.state = 'ERROR'
-                    return False
+            if self._has_permission():
+                self.session.set_session(status='FORBIDDEN', state='ERROR')
+                return False
             result = function(self, *args, **kwargs)
             return result
         return func_check
@@ -35,57 +32,52 @@ class Controller:
             self.session.new_user.department_id = 3
             self.session.user.department_id = 3
             self.session.new_user.email = email
-            self.session.status = 'ADD_USER'
+            self.session.set_session('ADD_USER')
             if not self.add_user():
-                self.session.state = 'ERROR'
-                self.session.filter = 'STOPPED'
+                self.session.set_session(state='ERROR', filter='STOPPED')
                 self.ask.wait()
                 return None
-        self.session.status = 'CONNECTION'
+        self.session.set_session(status='CONNECTION')
         self.session.user.email = self.ask.email(email)
         password_in_db = self.db.get_user_password()
         if password_in_db is None:
-            self.session.filter = 'FIRST_TIME'
-            self.session.status = 'PASSWORD'
+            self.session.set_session(status='PASSWORD', filter='FIRST_TIME')
             self.ask.password()
             self.db.update_password_user()
             password_in_db = self.db.get_user_password()
-        self.session.status = 'CONNECTION'
         password = self.ask.password()
         if self.auth.check_password(password, password_in_db):
             self.session.user = self.db.get_user_by_mail(self.session.user.email)
             self.permissions = self.session.user.department.permissions
             self.auth.generate_token()
-            self.session.state = 'GOOD'
+            self.session.set_session(state='GOOD')
             self.ask.wait()
             self.main_menu()
         else:
-            self.session.state = 'FAILED'
+            self.session.set_session(state='FAILED')
             self.ask.wait()
 
     def main_menu(self):
         command = ['']
         while self._stay(command):
-            self.session.state = 'NORMAL'
-            self.session.status = 'MAIN_MENU'
+            self.session.set_session(status='MAIN_MENU', state='NORMAL')
             command = self.ask.command()
             command = command.upper().split(' ')
             if self._authorized_command(command):
                 if len(command) > 1 and command[1] == 'PASSWORD':
                     self.reset_password()
                 else:
-                    self.session.status = command[0]
+                    self.session.set_session(status=command[0])
             elif self._authorized_crud_command(command):
                 if self._command_possible(command):
                     self._make_filter(command)
                     command = '_'.join([command[0], command[1]])
-                    self.session.status = command
+                    self.session.set_session(status=command)
                     eval('self.' + command.lower())()
                 else:
-                    self.session.status = 'NO_' + command[1]
+                    self.session.set_session('NO_' + command[1])
             else:
-                self.session.status = 'UNKNOWN'
-                self.session.state = 'ERROR'
+                self.session.set_session(status='UNKNOWN', state='ERROR')
             self.ask.wait()
             self.session.reset_session()
             if self.session.status == 'TOKEN':
@@ -102,10 +94,10 @@ class Controller:
             self.session.new_user.department_id = self.ask.department()
         if self.ask.validation():
             if self.db.add_user():
-                self.session.state = 'GOOD'
+                self.session.set_session(state='GOOD')
                 return True
             else:
-                self.session.state = 'FAILED'
+                self.session.set_session(state='FAILED')
                 return False
 
     @check_token_and_perm
@@ -117,11 +109,11 @@ class Controller:
         self.session.new_user.employee_number = self.ask.employee_number()
         self.session.new_user.department_id = self.ask.department()
         if self.ask.validation():
-            self.session.state = 'GOOD'
+            self.session.set_session(state='GOOD')
             savepoint.commit()
             self.db.db_session.commit()
         else:
-            self.session.state = 'FAILED'
+            self.session.set_session(state='FAILED')
             savepoint.rollback()
 
     @check_token_and_perm
@@ -133,8 +125,7 @@ class Controller:
     def delete_user(self):
         self.ask.select('user')
         if self.ask.validation():
-            self.session.state = 'GOOD'
-            self.session.status = 'DELETE_USER'
+            self.session.set_session(state='GOOD')
             self.db.delete_user()
 
     @check_token_and_perm
@@ -146,9 +137,9 @@ class Controller:
         self.session.client.phone = self.ask.phone()
         if self.ask.validation():
             if self.db.add_client():
-                self.session.state = 'GOOD'
+                self.session.set_session(state='GOOD')
             else:
-                self.session.state = 'FAILED'
+                self.session.set_session(state='FAILED')
 
     @check_token_and_perm
     def update_client(self):
@@ -160,11 +151,11 @@ class Controller:
         self.session.client.email = self.ask.client_email()
         self.session.client.phone = self.ask.phone()
         if self.ask.validation():
-            self.session.state = 'GOOD'
+            self.session.set_session(state='GOOD')
             savepoint.commit()
             self.db.db_session.commit()
         else:
-            self.session.state = 'FAILED'
+            self.session.set_session(state='FAILED')
             savepoint.rollback()
 
     @check_token_and_perm
@@ -178,7 +169,7 @@ class Controller:
         self.ask.select('client')
         self.session.new_user = self.session.client.commercial_contact
         if self.ask.validation():
-            self.session.state = 'GOOD'
+            self.session.set_session(state='GOOD')
             self.db.delete_client()
 
     @check_token_and_perm
@@ -188,9 +179,9 @@ class Controller:
         self.session.contract.rest_amount = self.ask.rest_amount()
         if self.ask.validation():
             if self.db.add_contract():
-                self.session.state = 'GOOD'
+                self.session.set_session(state='GOOD')
             else:
-                self.session.state = 'FAILED'
+                self.session.set_session(state='FAILED')
 
     @check_token_and_perm
     def update_contract(self):
@@ -201,11 +192,11 @@ class Controller:
         self.session.contract.rest_amount = self.ask.rest_amount()
         self.session.contract.status = self.ask.status()
         if self.ask.validation():
-            self.session.state = 'GOOD'
+            self.session.set_session(state='GOOD')
             savepoint.commit()
             self.db.db_session.commit()
         else:
-            self.session.state = 'FAILED'
+            self.session.set_session(state='FAILED')
             savepoint.rollback()
 
     @check_token_and_perm
@@ -214,16 +205,16 @@ class Controller:
         self.ask.select('contract')
         if self.ask.validation():
             if self.db.delete_contract():
-                self.session.state = 'GOOD'
+                self.session.set_session(state='GOOD')
             else:
-                self.session.state = 'FAILED'
+                self.session.set_session(state='FAILED')
 
     @check_token_and_perm
     def view_contract(self):
         if not self._for_all():
             filter = self.session.filter
             self.ask.select('client')
-            self.session.filter = filter
+            self.session.set_session(filter=filter)
             self.ask.select('contract')
 
     @check_token_and_perm
@@ -236,21 +227,20 @@ class Controller:
             self.session.event.date_start = self.ask.date_start()
             self.session.event.date_stop = self.ask.date_stop()
             self.session.event.notes = self.ask.notes()
-            self.session.filter = 'SUPPORT'
-            if self.db.number_of_user() > 0:
+            self.session.set_session(filter='SUPPORT')
+            if self._has_user():
                 self.ask.select('support')
             validation = self.ask.validation()
             if validation:
                 if self.db.add_event():
-                    self.session.state = 'GOOD'
+                    self.session.set_session(state='GOOD')
                 else:
-                    self.session.state = 'ERROR'
+                    self.session.set_session(state='ERROR')
             else:
                 self.db.db_session.rollback()
-                self.session.state = 'FAILED'
+                self.session.set_session(state='FAILED')
         else:
-            self.session.status = 'NO_CLIENT'
-            self.session.state = 'WITHOUT_EVENT'
+            self.session.set_session(status='NO_CLIENT', state='WITHOUT_EVENT')
 
     @check_token_and_perm
     def update_event(self):
@@ -263,15 +253,15 @@ class Controller:
             self.session.contract.event.date_start = self.ask.date_start()
             self.session.contract.event.date_stop = self.ask.date_stop()
             self.session.contract.event.notes = self.ask.notes()
-        self.session.filter = 'SUPPORT'
-        if self.db.number_of_user() > 0:
+        self.session.set_session(filter='SUPPORT')
+        if self._has_user():
             self.ask.select('support')
         if self.ask.validation():
-            self.session.state = 'GOOD'
+            self.session.set_session(state='GOOD')
             savepoint.commit()
             self.db.db_session.commit()
         else:
-            self.session.state = 'FAILED'
+            self.session.set_session(state='FAILED')
             savepoint.rollback()
 
     @check_token_and_perm
@@ -280,9 +270,9 @@ class Controller:
         self.ask.select('contract')
         if self.ask.validation():
             if self.db.delete_event():
-                self.session.state = 'GOOD'
+                self.session.set_session(state='GOOD')
             else:
-                self.session.state = 'FAILED'
+                self.session.set_session(state='FAILED')
 
     @check_token_and_perm
     def view_event(self):
@@ -304,7 +294,7 @@ class Controller:
     def _make_filter(self, command):
         if command[0] == 'VIEW':
             filter = [c for c in command[2:]]
-            self.session.filter = '_'.join(filter)
+            self.session.set_session(filter='_'.join(filter))
 
     def _command_possible(self, command):
         return (command[0] == 'ADD' or
@@ -316,3 +306,12 @@ class Controller:
     def _authorized_crud_command(self, command):
         return (command[0] in ['ADD', 'UPDATE', 'VIEW', 'DELETE'] and
                 command[1] in ['USER', 'CLIENT', 'CONTRACT', 'EVENT'])
+
+    def _has_user(self):
+        return self.db.number_of_user() > 0
+
+    def _has_permission(self):
+        if self.permissions is None and self.session.status == 'ADD_USER':
+            return False
+        return (self.session.status[:4] != 'VIEW' and
+                not getattr(self.permissions, self.session.status.lower()))

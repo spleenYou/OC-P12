@@ -15,3 +15,11 @@ class Session:
         self.event = Event()
         self.state = 'NORMAL'
         self.filter = ''
+
+    def set_session(self, status=None, state=None, filter=None):
+        if status is not None:
+            self.status = status
+        if state is not None:
+            self.state = state
+        if filter is not None:
+            self.filter = filter

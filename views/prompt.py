@@ -35,11 +35,7 @@ class Ask:
         return self._pre_prompt('name', lambda: self.session.new_user.name)
 
     def notes(self):
-        return self._pre_prompt(
-            'notes',
-            lambda: self.session.contract.event.notes,
-            lambda: self.session.status == 'UPDATE_EVENT'
-        )
+        return self._pre_prompt('notes', lambda: self.session.contract.event.notes)
 
     def client_name(self):
         return self._pre_prompt('client_name', lambda: self.session.client.name)
@@ -48,102 +44,55 @@ class Ask:
         return self._pre_prompt('company_name', lambda: self.session.client.company_name)
 
     def location(self):
-        return self._pre_prompt(
-            'location',
-            lambda: self.session.contract.event.location,
-            lambda: self.session.status == 'UPDATE_EVENT'
-        )
+        return self._pre_prompt('location', lambda: self.session.contract.event.location)
 
     def command(self):
         return self._pre_prompt('command')
 
     def date_start(self):
-        return self._pre_prompt(
-            'date_start',
-            lambda: self.session.contract.event.date_start,
-            lambda: self.session.status == 'UPDATE_EVENT',
-        )
+        return self._pre_prompt('date_start', lambda: self.session.contract.event.date_start)
 
     def date_stop(self):
-        return self._pre_prompt(
-            'date_stop',
-            lambda: self.session.contract.event.date_start,
-            lambda: self.session.status == 'UPDATE_EVENT',
-        )
+        return self._pre_prompt('date_stop', lambda: self.session.contract.event.date_start)
 
     def attendees(self):
-        return self._pre_prompt(
-            'attendees',
-            lambda: self.session.contract.event.attendees,
-            lambda: self.session.status == 'UPDATE_EVENT',
-        )
+        return self._pre_prompt('attendees', lambda: self.session.contract.event.attendees)
 
     def phone(self):
-        return self._pre_prompt(
-            'phone',
-            lambda: self.session.client.phone,
-            lambda: self.session.status == 'UPDATE_CLIENT'
-        )
+        return self._pre_prompt('phone', lambda: self.session.client.phone)
 
     def total_amount(self):
-        return self._pre_prompt(
-            'total_amount',
-            lambda: self.session.contract.total_amount,
-            lambda: self.session.status == 'UPDATE_CONTRACT',
-        )
+        return self._pre_prompt('total_amount', lambda: self.session.contract.total_amount)
 
     def rest_amount(self):
-        return self._pre_prompt(
-            'rest_amount',
-            lambda: self.session.contract.rest_amount,
-            lambda: self.session.status == 'UPDATE_CONTRACT',
-        )
+        return self._pre_prompt('rest_amount', lambda: self.session.contract.rest_amount)
 
     def email(self, email=None):
-        return self._pre_prompt(
-            'email',
-            lambda: self.session.new_user.email,
-            lambda: self.session.status == 'UPDATE_USER',
-            email
-        )
+        return self._pre_prompt('email', lambda: self.session.new_user.email, email)
 
     def client_email(self):
-        return self._pre_prompt(
-            'client_email',
-            lambda: self.session.client.email,
-            lambda: self.session.status == 'UPDATE_CLIENT'
-        )
+        return self._pre_prompt('client_email', lambda: self.session.client.email)
 
     def password(self):
         if self.session.filter == 'FIRST_TIME':
-            self.session.user.password = self._pre_prompt('password', condition=lambda: False)
-            self.session.filter = 'SECOND_TIME'
-            password = self._pre_prompt('password', condition=lambda: False)
-            self.session.status = 'CONNECTION'
-            self.session.filter = ''
+            self.session.user.password = self._pre_prompt('password')
+            self.session.set_session(filter='SECOND_TIME')
+            password = self._pre_prompt('password')
+            self.session.set_session(status='CONNECTION', filter='')
             return password
-        return self._pre_prompt('password', condition=lambda: False)
+        return self._pre_prompt('password')
 
     def department(self):
-        return self._pre_prompt(
-            'department',
-            lambda: self.session.new_user.department_id,
-            lambda: self.session.status == 'UPDATE_USER'
-        )
+        return self._pre_prompt('department', lambda: self.session.new_user.department_id)
 
     def employee_number(self):
-        return self._pre_prompt(
-            'employee_number',
-            lambda: self.session.new_user.employee_number,
-            lambda: self.session.status == 'UPDATE_USER'
-        )
+        return self._pre_prompt('employee_number', lambda: self.session.new_user.employee_number)
 
     def status(self):
-        self.session.filter = 'status'
+        self.session.set_session(filter='status')
         return self._pre_prompt(
             'status',
-            lambda: self.session.contract.status,
-            lambda: self.session.status == 'UPDATE_CONTRACT'
+            lambda: self.session.contract.status
         )
 
     def wait(self):
@@ -154,11 +103,11 @@ class Ask:
         previous_status = self.session.status
 
         def restore_session():
-            self.session.filter = previous_filter
-            self.session.status = previous_status
-        self.session.status = config.select_status[model]
+            self.session.set_session(status=previous_status, filter=previous_filter)
+
+        self.session.set_session(status=config.select_status[model])
         while True:
-            self.session.state = 'NORMAL'
+            self.session.set_session(state='NORMAL')
             self._set_filter(previous_status, previous_filter)
             number = self._prompt(model)
             if number == '' and self._no_change_allowed():
@@ -171,9 +120,9 @@ class Ask:
                     restore_session()
                     return None
                 else:
-                    self.session.state = 'FAILED'
+                    self.session.set_session(state='FAILED')
             except Exception:
-                self.session.state = 'ERROR'
+                self.session.set_session(state='ERROR')
             self.wait()
 
     def _is_number_valid(self, model, number):
@@ -207,14 +156,14 @@ class Ask:
 
     def _set_filter(self, status, previous_filter):
         if status in ['UPDATE_CONTRACT', 'DELETE_CONTRACT', 'VIEW_CONTRACT']:
-            self.session.filter = 'WITH_CONTRACT'
+            self.session.set_session(filter='WITH_CONTRACT')
         elif status == 'DELETE_USER':
-            self.session.filter = 'FOR_DELETE'
+            self.session.set_session(filter='FOR_DELETE')
         elif previous_filter != 'SUPPORT':
             if status == 'ADD_EVENT':
-                self.session.filter = 'WITHOUT_EVENT'
+                self.session.set_session(filter='WITHOUT_EVENT')
             elif status in ['UPDATE_EVENT', 'DELETE_EVENT', 'VIEW_EVENT']:
-                self.session.filter = 'WITH_EVENT'
+                self.session.set_session(filter='WITH_EVENT')
 
     def _set_session_model(self, model, number):
         get_methods = {
@@ -232,10 +181,10 @@ class Ask:
         result = get_methods[model](number)
         setattr(self.session, session_attributes[model], result)
 
-    def _pre_prompt(self, thing, default_value=None, condition=None, email=None):
+    def _pre_prompt(self, thing, default_value=None, email=None):
         previous_status = self.session.status
         while True:
-            self.session.state = 'NORMAL'
+            self.session.set_session(state='NORMAL')
             if email:
                 value = email
             else:
@@ -243,20 +192,18 @@ class Ask:
             if value == '':
                 if self.session.status.startswith('ADD') and thing in config.is_nullable:
                     return None
-                elif condition is None or condition():
+                elif self.session.status.startswith('UPDATE'):
                     return default_value()
                 else:
-                    self.session.status = thing.upper()
-                    self.session.state = 'FAILED'
+                    self.session.set_session(status=thing.upper(), state='FAILED')
             else:
                 success, value = self._is_accepted_value(thing, value)
                 if success:
                     return value
                 else:
-                    self.session.status = thing.upper()
-                    self.session.state = "ERROR"
+                    self.session.set_session(status=thing.upper(), state="ERROR")
             self.wait()
-            self.session.status = previous_status
+            self.session.set_session(status=previous_status)
 
     def _is_accepted_value(self, thing, value):
         list_method = {

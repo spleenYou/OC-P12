@@ -103,6 +103,7 @@ FAILED = {
     'LOCATION': 'Erreur de saisie',
     'ATTENDEES': 'Erreur de saisie',
     'COMMAND': 'Erreur de saisie',
+    'COMPANY_NAME': 'Erreur de saisie',
     'EMAIL': 'Erreur de saisie',
     'CLIENT_EMAIL': 'Erreur de saisie',
 }
