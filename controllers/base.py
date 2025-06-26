@@ -74,6 +74,8 @@ class Controller:
                     self.session.set_session(status=command)
                     if command.startswith('DELETE'):
                         self.delete(command.split('_')[1].lower())
+                    elif command.startswith('VIEW'):
+                        self.view(command.split('_')[1].lower())
                     else:
                         eval('self.' + command.lower())()
                 else:
@@ -223,29 +225,9 @@ class Controller:
             savepoint.rollback()
 
     @check_token_and_perm
-    def view_user(self):
+    def view(self, model):
         if not self._for_all():
-            self.ask.select('user')
-
-    @check_token_and_perm
-    def view_client(self):
-        if not self._for_all():
-            self.ask.select('client')
-            self.session.user = self.session.client.commercial_contact
-
-    @check_token_and_perm
-    def view_contract(self):
-        if not self._for_all():
-            filter = self.session.filter
-            self.ask.select('client')
-            self.session.set_session(filter=filter)
-            self.ask.select('contract')
-
-    @check_token_and_perm
-    def view_event(self):
-        if not self._for_all():
-            self.ask.select('client')
-            self.ask.select('contract')
+            self._fill_session(model)
 
     @check_token_and_perm
     def delete(self, model):

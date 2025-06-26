@@ -352,7 +352,7 @@ class TestController:
         self.add_user(controller, commercial_user)
         controller.session.status = 'VIEW_USER'
         monkeypatch.setattr('builtins.input', lambda *args: '1')
-        controller.view_user()
+        controller.view('user')
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Informations sur l\'utilisateur' in captured.out
@@ -424,7 +424,7 @@ class TestController:
         self.add_client(controller, client_information, 0)
         controller.session.status = 'VIEW_CLIENT'
         monkeypatch.setattr('builtins.input', lambda *args: '0')
-        controller.view_client()
+        controller.view('client')
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Informations sur le client' in captured.out
@@ -530,7 +530,7 @@ class TestController:
         controller.session.status = 'VIEW_CONTRACT'
         inputs = iter(['0', '0'])
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.view_contract()
+        controller.view('contract')
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Informations sur le contrat' in captured.out
@@ -672,7 +672,7 @@ class TestController:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.view_event()
+        controller.view('event')
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Informations sur l\'évènement' in captured.out
