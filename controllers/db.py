@@ -51,12 +51,12 @@ class Mysql:
         return [d[0] for d in self.db_session.query(Department.name).order_by(Department.id).all()]
 
     def add_user(self):
-        return self._add_in_db(self.session.new_user)
+        return self._add_in_db(self.session.user)
 
     def update_password_user(self):
         count = self.db_session.query(EpicUser) \
-            .filter(EpicUser.email == self.session.user.email) \
-            .update({'password': self.auth.hash_password(self.session.user.password)})
+            .filter(EpicUser.email == self.session.connected_user.email) \
+            .update({'password': self.auth.hash_password(self.session.connected_user.password)})
         self.db_session.commit()
         return count > 0
 
@@ -91,7 +91,7 @@ class Mysql:
     def get_user_password(self):
         password = self.db_session.query(EpicUser) \
             .with_entities(EpicUser.password) \
-            .filter(EpicUser.email == self.session.user.email).first()
+            .filter(EpicUser.email == self.session.connected_user.email).first()
         if password:
             return password[0]
         return None
@@ -101,10 +101,11 @@ class Mysql:
         query = self._apply_user_filter(query)
         return query.all()
 
-    def delete_user(self):
+    def delete(self, model):
         try:
-            self.db_session.delete(self.session.new_user)
-            result = self.session.new_user in self.db_session.deleted
+            attr = getattr(self.session, model)
+            self.db_session.delete(attr)
+            result = attr in self.db_session.deleted
             self.db_session.commit()
             return result
         except Exception as ex:
@@ -113,24 +114,13 @@ class Mysql:
             return False
 
     def add_client(self):
-        self.session.client.commercial_contact_id = self.session.user.id
+        self.session.client.commercial_contact_id = self.session.connected_user.id
         return self._add_in_db(self.session.client)
 
     def get_client_list(self):
         query = self.db_session.query(Client)
         query = self._apply_client_filter(query)
         return query.all()
-
-    def delete_client(self):
-        try:
-            self.db_session.delete(self.session.client)
-            result = self.session.client in self.db_session.deleted
-            self.db_session.commit()
-            return result
-        except Exception as ex:
-            print(ex)
-            self.db_session.rollback()
-            return False
 
     def add_contract(self):
         self.session.contract.client_id = self.session.client.id
@@ -144,32 +134,9 @@ class Mysql:
         query = self._apply_contract_filter(query)
         return query.all()
 
-    def delete_contract(self):
-        try:
-            self.db_session.delete(self.session.contract)
-            result = self.session.contract in self.db_session.deleted
-            self.db_session.commit()
-            return result
-        except Exception as ex:
-            print(ex)
-            self.db_session.rollback()
-            return False
-
     def add_event(self):
         self.session.event.contract_id = self.session.contract.id
-        self.session.event.support_contact_id = self.session.new_user.id
         return self._add_in_db(self.session.event)
-
-    def delete_event(self):
-        try:
-            self.db_session.delete(self.session.contract.event)
-            result = self.session.contract.event in self.db_session.deleted
-            self.db_session.commit()
-            return result
-        except Exception as ex:
-            print(ex)
-            self.db_session.rollback()
-            return False
 
     def get_permissions(self):
         return self.db_session.query(Permission).all()
@@ -194,7 +161,7 @@ class Mysql:
 
     def _apply_user_filter(self, query):
         filters = {
-            'FOR_DELETE': lambda q: q.filter(EpicUser.id != self.session.user.id),
+            'FOR_DELETE': lambda q: q.filter(EpicUser.id != self.session.connected_user.id),
             'COMMERCIAL': lambda q: q.filter(EpicUser.department_id == 1),
             'SUPPORT': lambda q: q.filter(EpicUser.department_id == 2),
             'MANAGEMENT': lambda q: q.filter(EpicUser.department_id == 3),

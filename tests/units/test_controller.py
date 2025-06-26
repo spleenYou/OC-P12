@@ -8,12 +8,12 @@ from views.show import Show
 
 class TestController:
     def add_user(self, controller, user):
-        controller.session.new_user = user
+        controller.session.user = user
         controller.db.add_user()
         controller.session.reset_session()
 
     def add_client(self, controller, client, user_nb):
-        controller.session.user = controller.db.get_user_by_number(user_nb)
+        controller.session.connected_user = controller.db.get_user_by_number(user_nb)
         controller.session.client = client
         controller.db.add_client()
         controller.session.reset_session()
@@ -32,8 +32,8 @@ class TestController:
         controller.session.reset_session()
 
     def connect_user(self, controller, user_nb):
-        controller.session.user = controller.db.get_user_by_number(user_nb)
-        controller.permissions = controller.session.user.department.permissions
+        controller.session.connected_user = controller.db.get_user_by_number(user_nb)
+        controller.permissions = controller.session.connected_user.department.permissions
         controller.auth.generate_token()
 
     def test_init_controller(self):
@@ -109,7 +109,7 @@ class TestController:
         assert 'Les mots de passe ne sont pas identiques' in captured.out
 
     def test_start_with_user_and_login_failed(self, monkeypatch, controller, management_user, password, capsys):
-        controller.session.new_user = management_user
+        controller.session.user = management_user
         controller.db.add_user()
         controller.session.user = controller.db.get_user_by_number(0)
         inputs = iter(
@@ -341,7 +341,7 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.delete_user()
+        controller.delete('user')
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Utilisateur supprimé' in captured.out
@@ -413,7 +413,7 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.delete_client()
+        controller.delete('client')
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Client supprimé' in captured.out
@@ -510,7 +510,7 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.delete_contract()
+        controller.delete('contract')
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Contrat supprimé' in captured.out
@@ -641,7 +641,7 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.delete_event()
+        controller.delete('event')
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Evènement supprimé' in captured.out

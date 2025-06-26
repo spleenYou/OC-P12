@@ -32,7 +32,7 @@ class Ask:
         )
 
     def name(self):
-        return self._pre_prompt('name', lambda: self.session.new_user.name)
+        return self._pre_prompt('name', lambda: self.session.user.name)
 
     def notes(self):
         return self._pre_prompt('notes', lambda: self.session.contract.event.notes)
@@ -68,25 +68,25 @@ class Ask:
         return self._pre_prompt('rest_amount', lambda: self.session.contract.rest_amount)
 
     def email(self, email=None):
-        return self._pre_prompt('email', lambda: self.session.new_user.email, email)
+        return self._pre_prompt('email', lambda: self.session.user.email, email)
 
     def client_email(self):
         return self._pre_prompt('client_email', lambda: self.session.client.email)
 
     def password(self):
         if self.session.filter == 'FIRST_TIME':
-            self.session.user.password = self._pre_prompt('password')
+            self.session.connected_user.password = self._pre_prompt('password')
             self.session.set_session(filter='SECOND_TIME')
-            password = self._pre_prompt('password')
+            self.session.connected_user.password = self._pre_prompt('password')
             self.session.set_session(status='CONNECTION', filter='')
-            return password
+            return None
         return self._pre_prompt('password')
 
     def department(self):
-        return self._pre_prompt('department', lambda: self.session.new_user.department_id)
+        return self._pre_prompt('department', lambda: self.session.user.department_id)
 
     def employee_number(self):
-        return self._pre_prompt('employee_number', lambda: self.session.new_user.employee_number)
+        return self._pre_prompt('employee_number', lambda: self.session.user.employee_number)
 
     def status(self):
         self.session.set_session(filter='status')
@@ -173,8 +173,8 @@ class Ask:
             'support': self.db.get_user_by_number,
         }
         session_attributes = {
-            'user': 'new_user',
-            'support': 'new_user',
+            'user': 'user',
+            'support': 'user',
             'client': 'client',
             'contract': 'contract'
         }
@@ -227,7 +227,7 @@ class Ask:
 
     def _is_text(self, value):
         if self.session.filter == 'SECOND_TIME':
-            return value == self.session.user.password, value
+            return value == self.session.connected_user.password, value
         if self.session.filter == 'status':
             return True, True if value.lower() == 'y' else False
         return True, value

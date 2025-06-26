@@ -60,7 +60,7 @@ class Show:
         self.show_content(logo.logo)
 
     def session_information(self):
-        if self.session.user.id is not None and self.session.status != 'LOGIN_OK':
+        if self.session.connected_user.id is not None and self.session.status != 'LOGIN_OK':
             col_list = ['', '', '', '']
             row_list = [
                 [
@@ -70,10 +70,10 @@ class Show:
                     'Adresse mail',
                 ],
                 [
-                    str(self.session.user.employee_number),
-                    self.session.user.name,
-                    self.session.user.department_name,
-                    self.session.user.email,
+                    str(self.session.connected_user.employee_number),
+                    self.session.connected_user.name,
+                    self.session.connected_user.department_name,
+                    self.session.connected_user.email,
                 ]
             ]
             self.show_content(
@@ -184,13 +184,13 @@ class Show:
     def show_user(self):
         department_list = self.db.get_department_list()
         datas = [
-            ('Nom', self.session.new_user.name or ''),
-            ('Email', self.session.new_user.email or ''),
-            ('Numéro d\'employé', (str(self.session.new_user.employee_number)
-                                   if self.session.new_user.employee_number else '')),
-            ('Département', (department_list[self.session.new_user.department_id - 1]
-                             if self.session.new_user.department_id else '')),
-            ('Date de création', self._format_date(self.session.new_user.date_creation or datetime.datetime.now())),
+            ('Nom', self.session.user.name or ''),
+            ('Email', self.session.user.email or ''),
+            ('Numéro d\'employé', (str(self.session.user.employee_number)
+                                   if self.session.user.employee_number else '')),
+            ('Département', (department_list[self.session.user.department_id - 1]
+                             if self.session.user.department_id else '')),
+            ('Date de création', self._format_date(self.session.user.date_creation or datetime.datetime.now())),
         ]
         return [[label, value] for label, value in datas]
 
@@ -302,15 +302,15 @@ class Show:
 
     def _get_commercial_info(self):
         if self.session.client.commercial_contact_id is None:
-            return f'{self.session.user.name} - {self.session.user.email}'
+            return f'{self.session.connected_user.name} - {self.session.connected_user.email}'
         return f'{self.session.client.commercial_contact.name} - {self.session.client.commercial_contact.email}'
 
     def _get_support_user_info(self, event):
         if event.support_contact_id is None:
-            if self.session.new_user.id is None:
+            if self.session.user.id is None:
                 return 'Non défini'
             else:
-                event.support_contact = self.db.get_user_by_id(self.session.new_user.id)
+                event.support_contact = self.db.get_user_by_id(self.session.user.id)
         return f'{event.support_contact.name} - {event.support_contact.email}'
 
     def _simple_content_view(self, status, state):

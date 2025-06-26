@@ -53,4 +53,8 @@ FAILED = {
         'LOCATION': 'Merci d\'indiquer un lieu.',
         'ATTENDEES': 'Merci d\'entrer un nombre.',
         'COMMAND': 'Commande nulle.',
+        'DELETE_USER': 'Utilisateur non supprimé',
+        'DELETE_CLIENT': 'Client non supprimé',
+        'DELETE_CONTRACT': 'Contrat non supprimé',
+        'DELETE_EVENT': 'Evènement non supprimé',
 }

@@ -125,6 +125,8 @@ class TestCommercial:
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.main_menu()
         captured = capsys.readouterr()
+        for c in captured:
+            print(c)
         assert 'Suppression d\'un client' in captured.out
         assert 'Client supprimé' in captured.out
 
