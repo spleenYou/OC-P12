@@ -46,3 +46,19 @@ class TestFailed:
         controller.main_menu()
         captured = capsys.readouterr()
         assert 'Aucun évènement n\'est enregistré' in captured.out
+
+    def test_command_with_wrong_token(self, controller, monkeypatch, management_user, capsys, commercial_user):
+        func.add_user(controller, management_user)
+        func.connect_user(controller, management_user, monkeypatch)
+        controller.session.token = 'wrong token'
+        inputs = iter(
+            [
+                'ADD USER',
+                '',
+            ]
+        )
+        monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
+        controller.main_menu()
+        captured = capsys.readouterr()
+        assert 'Déconnexion automatique' in captured.out
+        assert 'Vous avez été déconnecté, merci de vous reconnecter.' in captured.out

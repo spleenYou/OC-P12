@@ -1,9 +1,14 @@
 import func
+import pytest
 
 
 class TestCommercial:
-    def test_add_user(self, controller, commercial_user, monkeypatch, capsys):
+
+    @pytest.fixture(autouse=True)
+    def setup(self, controller, commercial_user, monkeypatch):
         func.connect_user(controller, commercial_user, monkeypatch)
+
+    def test_add_user(self, controller, monkeypatch, capsys):
         inputs = iter(
             [
                 'ADD USER',
@@ -17,8 +22,7 @@ class TestCommercial:
         captured = capsys.readouterr()
         assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
-    def test_update_user(self, controller, commercial_user, monkeypatch, capsys):
-        func.connect_user(controller, commercial_user, monkeypatch)
+    def test_update_user(self, controller, monkeypatch, capsys):
         inputs = iter(
             [
                 'UPDATE USER',
@@ -32,8 +36,7 @@ class TestCommercial:
         captured = capsys.readouterr()
         assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
-    def test_delete_user(self, controller, commercial_user, monkeypatch, capsys):
-        func.connect_user(controller, commercial_user, monkeypatch)
+    def test_delete_user(self, controller,  monkeypatch, capsys):
         inputs = iter(
             [
                 'DELETE USER',
@@ -47,8 +50,7 @@ class TestCommercial:
         captured = capsys.readouterr()
         assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
-    def test_view_user(self, controller, commercial_user, monkeypatch, capsys):
-        func.connect_user(controller, commercial_user, monkeypatch)
+    def test_view_user(self, controller, monkeypatch, capsys):
         inputs = iter(
             [
                 'VIEW USER',
@@ -64,8 +66,7 @@ class TestCommercial:
         assert 'Sélection d\'un utilisateur' in captured.out
         assert 'Informations sur l\'utilisateur' in captured.out
 
-    def test_add_client(self, controller, commercial_user, client_information, monkeypatch, capsys):
-        func.connect_user(controller, commercial_user, monkeypatch)
+    def test_add_client(self, controller, client_information, monkeypatch, capsys):
         inputs = iter(
             [
                 'ADD CLIENT',
@@ -82,11 +83,12 @@ class TestCommercial:
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.main_menu()
         captured = capsys.readouterr()
+        for c in captured:
+            print(c)
         assert 'Ajout d\'un client' in captured.out
         assert 'Client ajouté' in captured.out
 
-    def test_update_client(self, controller, commercial_user, client_information, monkeypatch, capsys):
-        func.connect_user(controller, commercial_user, monkeypatch)
+    def test_update_client(self, controller, client_information, monkeypatch, capsys):
         func.add_client(controller, client_information)
         inputs = iter(
             [
@@ -109,8 +111,7 @@ class TestCommercial:
         assert client_information.name in captured.out
         assert 'Client mis à jour' in captured.out
 
-    def test_delete_client(self, controller, commercial_user, client_information, monkeypatch, capsys):
-        func.connect_user(controller, commercial_user, monkeypatch)
+    def test_delete_client(self, controller, client_information, monkeypatch, capsys):
         func.add_client(controller, client_information)
         inputs = iter(
             [
@@ -130,8 +131,7 @@ class TestCommercial:
         assert 'Suppression d\'un client' in captured.out
         assert 'Client supprimé' in captured.out
 
-    def test_view_client(self, controller, commercial_user, client_information, monkeypatch, capsys):
-        func.connect_user(controller, commercial_user, monkeypatch)
+    def test_view_client(self, controller, client_information, monkeypatch, capsys):
         func.add_client(controller, client_information)
         inputs = iter(
             [
@@ -152,11 +152,9 @@ class TestCommercial:
     def test_add_contract(
             self,
             controller,
-            commercial_user,
             client_information,
             monkeypatch,
             capsys):
-        func.connect_user(controller, commercial_user, monkeypatch)
         func.add_client(controller, client_information)
         inputs = iter(
             [
@@ -174,12 +172,10 @@ class TestCommercial:
     def test_update_contract_without_change(
             self,
             controller,
-            commercial_user,
             client_information,
             contract_information,
             monkeypatch,
             capsys):
-        func.connect_user(controller, commercial_user, monkeypatch)
         func.add_client(controller, client_information)
         func.add_contract(controller, contract_information, 0)
         inputs = iter(
@@ -207,12 +203,10 @@ class TestCommercial:
     def test_update_contract_with_change(
             self,
             controller,
-            commercial_user,
             client_information,
             contract_information,
             monkeypatch,
             capsys):
-        func.connect_user(controller, commercial_user, monkeypatch)
         func.add_client(controller, client_information)
         func.add_contract(controller, contract_information, 0)
         inputs = iter(
@@ -238,12 +232,10 @@ class TestCommercial:
     def test_delete_contract(
             self,
             controller,
-            commercial_user,
             client_information,
             contract_information,
             monkeypatch,
             capsys):
-        func.connect_user(controller, commercial_user, monkeypatch)
         func.add_client(controller, client_information)
         func.add_contract(controller, contract_information, 0)
         inputs = iter(
@@ -266,12 +258,10 @@ class TestCommercial:
     def test_view_contract(
             self,
             controller,
-            commercial_user,
             client_information,
             contract_information,
             monkeypatch,
             capsys):
-        func.connect_user(controller, commercial_user, monkeypatch)
         func.add_client(controller, client_information)
         func.add_contract(controller, contract_information, 0)
         inputs = iter(
@@ -292,15 +282,13 @@ class TestCommercial:
     def test_add_event(
             self,
             controller,
-            commercial_user,
             support_user,
             client_information,
             contract_information,
             event_information,
             monkeypatch,
             capsys):
-        func.connect_user(controller, support_user, monkeypatch)
-        func.connect_user(controller, commercial_user, monkeypatch)
+        func.add_user(controller, support_user)
         func.add_client(controller, client_information)
         func.add_contract(controller, contract_information, 0)
         inputs = iter(
@@ -338,11 +326,10 @@ class TestCommercial:
             event_information,
             monkeypatch,
             capsys):
-        func.connect_user(controller, support_user, monkeypatch)
-        func.connect_user(controller, commercial_user, monkeypatch)
+        func.add_user(controller, support_user)
         func.add_client(controller, client_information)
         func.add_contract(controller, contract_information, 0)
-        func.add_event(controller, event_information, 0, 1, 0)
+        func.add_event(controller, event_information, 0, 2, 0)
         inputs = iter(
             [
                 'UPDATE EVENT',
@@ -359,18 +346,16 @@ class TestCommercial:
     def test_delete_event(
             self,
             controller,
-            commercial_user,
             support_user,
             client_information,
             contract_information,
             event_information,
             monkeypatch,
             capsys):
-        func.connect_user(controller, support_user, monkeypatch)
-        func.connect_user(controller, commercial_user, monkeypatch)
+        func.add_user(controller, support_user)
         func.add_client(controller, client_information)
         func.add_contract(controller, contract_information, 0)
-        func.add_event(controller, event_information, 0, 1, 0)
+        func.add_event(controller, event_information, 0, 2, 0)
         inputs = iter(
             [
                 'DELETE EVENT',
@@ -399,10 +384,9 @@ class TestCommercial:
             monkeypatch,
             capsys):
         func.connect_user(controller, support_user, monkeypatch)
-        func.connect_user(controller, commercial_user, monkeypatch)
         func.add_client(controller, client_information)
         func.add_contract(controller, contract_information, 0)
-        func.add_event(controller, event_information, 0, 1, 0)
+        func.add_event(controller, event_information, 0, 2, 0)
         inputs = iter(
             [
                 'VIEW EVENT',

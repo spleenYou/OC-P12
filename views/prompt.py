@@ -68,7 +68,7 @@ class Ask:
         return self._pre_prompt('rest_amount', lambda: self.session.contract.rest_amount)
 
     def email(self, email=None):
-        return self._pre_prompt('email', lambda: self.session.user.email, email)
+        return self._pre_prompt('email', lambda: self.session.user.email)
 
     def client_email(self):
         return self._pre_prompt('client_email', lambda: self.session.client.email)
@@ -126,13 +126,7 @@ class Ask:
             self.wait()
 
     def _is_number_valid(self, model, number):
-        number_methods = {
-            'user': self.db.number_of_user,
-            'support': self.db.number_of_user,
-            'client': self.db.number_of_client,
-            'contract': self.db.number_of_contract,
-        }
-        return number < number_methods[model]()
+        return number < self.db.number_of(model)
 
     def _no_change_allowed(self):
         return self.session.filter == 'SUPPORT' and self.session.status == 'SELECT_USER'
@@ -181,14 +175,11 @@ class Ask:
         result = get_methods[model](number)
         setattr(self.session, session_attributes[model], result)
 
-    def _pre_prompt(self, thing, default_value=None, email=None):
+    def _pre_prompt(self, thing, default_value=None):
         previous_status = self.session.status
         while True:
             self.session.set_session(state='NORMAL')
-            if email:
-                value = email
-            else:
-                value = self._prompt(thing)
+            value = self._prompt(thing)
             if value == '':
                 if self.session.status.startswith('ADD') and thing in config.is_nullable:
                     return None

@@ -49,6 +49,16 @@ def session():
 
 
 @pytest.fixture
+def test_user():
+    return EpicUser(
+        name="Test",
+        email="test@example.com",
+        employee_number='4',
+        department_id=1
+    )
+
+
+@pytest.fixture
 def commercial_user():
     return EpicUser(
         name="Commercial",

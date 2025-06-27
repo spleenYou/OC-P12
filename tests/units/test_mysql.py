@@ -5,22 +5,22 @@ from controllers.db import Mysql
 class TestMysql:
     def add_user(self, db, user):
         db.session.user = user
-        db.add_user()
+        db.add('user')
         db.session.reset_session()
 
     def add_client(self, db, client):
         db.session.client = client
-        db.add_client()
+        db.add('client')
         db.session.reset_session()
 
     def add_contract(self, db, contract):
         db.session.contract = contract
-        db.add_contract()
+        db.add('contract')
         db.session.reset_session()
 
     def add_event(self, db, event):
         db.session.event = event
-        db.add_event()
+        db.add('event')
         db.session.reset_session()
 
     def test_init_mysql(self, authentication):
@@ -28,26 +28,26 @@ class TestMysql:
         assert db.engine is not None
 
     def test_number_of_user_empty(self, mysql):
-        assert mysql.number_of_user() == 0
+        assert mysql.number_of('user') == 0
 
     def test_number_of_user_not_empty(self, mysql, management_user):
         mysql.db_session.add(management_user)
         mysql.db_session.commit()
-        assert mysql.number_of_user() == 1
+        assert mysql.number_of('user') == 1
 
     def test_get_password_stored(self, mysql, management_user):
         self.add_user(mysql, management_user)
         mysql.session.connected_user.email = management_user.email
         mysql.session.connected_user.password = 'password'
-        mysql.update_password_user()
-        password = mysql.get_user_password()
+        mysql.update_password_user(management_user.email)
+        password = mysql.get_user_password(management_user.email)
         assert re.search(
             "[$]{1}argon2id[$]{1}v=19[$]{1}m=65536,t=4,p=1[$]{1}[+.\x00-9a-zA-Z]{22}[$]{1}[+.\x00-9a-zA-Z]{43}",
             password
         ) is not None
 
     def test_get_password_failed(self, mysql):
-        assert mysql.get_user_password() is None
+        assert mysql.get_user_password('test@test.com') is None
 
     def test_add_in_db_ok(self, mysql, management_user, monkeypatch, secret):
         new_user = management_user
@@ -82,11 +82,11 @@ class TestMysql:
     def test_delete_user(self, mysql, management_user):
         self.add_user(mysql, management_user)
         users = mysql.get_user_list()
-        assert mysql.number_of_user() == 1
+        assert mysql.number_of('user') == 1
         mysql.session.user = users[0]
         result = mysql.delete('user')
         assert result is True
-        assert mysql.number_of_user() == 0
+        assert mysql.number_of('user') == 0
 
     def test_delete_user_failed(self, mysql):
         assert mysql.delete('user') is False
@@ -98,7 +98,7 @@ class TestMysql:
         mysql.session.client.email = 'client@example.com'
         mysql.session.client.phone = '0202020202'
         mysql.session.client.company_name = 'Nom de l\'entreprise du client'
-        result = mysql.add_client()
+        result = mysql.add('client')
         assert result is True
 
     def test_update_client(self, mysql, commercial_user, client_information):
@@ -146,7 +146,7 @@ class TestMysql:
         self.add_client(mysql, client_information)
         mysql.session.client = mysql.get_client(0)
         mysql.session.contract = contract_information
-        result = mysql.add_contract()
+        result = mysql.add('contract')
         assert result is True
 
     def test_update_contract(self, mysql, commercial_user, client_information, contract_information):
@@ -213,7 +213,7 @@ class TestMysql:
         mysql.session.client = mysql.get_client(0)
         mysql.session.contract = mysql.get_contract(0)
         mysql.session.event = event_information
-        result = mysql.add_event()
+        result = mysql.add('event')
         assert result is True
 
     def test_update_event(
@@ -296,7 +296,7 @@ class TestMysql:
         self.add_client(mysql, client_information)
         mysql.session.client = mysql.get_client(0)
         self.add_contract(mysql, contract_information)
-        assert mysql.number_of_contract() == 1
+        assert mysql.number_of('contract') == 1
 
     def test_number_of_contract_for_user(
             self,
@@ -312,7 +312,7 @@ class TestMysql:
         mysql.session.client = mysql.get_client(0)
         self.add_contract(mysql, contract_information)
         mysql.session.client = mysql.get_client(0)
-        assert mysql.number_of_contract() == 1
+        assert mysql.number_of('contract') == 1
 
     def test_number_of_contract_with_event(
             self,
@@ -329,7 +329,7 @@ class TestMysql:
         self.add_contract(mysql, contract_information)
         mysql.session.client = mysql.get_client(0)
         mysql.session.filter = 'WITH_EVENT'
-        assert mysql.number_of_contract() == 0
+        assert mysql.number_of('contract') == 0
 
     def test_number_of_contract_without_event(
             self,
@@ -346,7 +346,7 @@ class TestMysql:
         self.add_contract(mysql, contract_information)
         mysql.session.client = mysql.get_client(0)
         mysql.session.filter = 'WITHOUT_EVENT'
-        assert mysql.number_of_contract() == 1
+        assert mysql.number_of('contract') == 1
 
     def test_number_of_event(
             self,
@@ -365,7 +365,7 @@ class TestMysql:
         mysql.session.client = mysql.get_client(0)
         mysql.session.contract = mysql.get_contract(0)
         self.add_event(mysql, event_information)
-        assert mysql.number_of_event() == 1
+        assert mysql.number_of('event') == 1
 
     def test_get_user_by_number(self, mysql, commercial_user):
         self.add_user(mysql, commercial_user)

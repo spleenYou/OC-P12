@@ -9,26 +9,26 @@ from views.show import Show
 class TestController:
     def add_user(self, controller, user):
         controller.session.user = user
-        controller.db.add_user()
+        controller.db.add('user')
         controller.session.reset_session()
 
     def add_client(self, controller, client, user_nb):
         controller.session.connected_user = controller.db.get_user_by_number(user_nb)
         controller.session.client = client
-        controller.db.add_client()
+        controller.db.add('client')
         controller.session.reset_session()
 
     def add_contract(self, controller, contract, client_nb):
         controller.session.client = controller.db.get_client(client_nb)
         controller.session.contract = contract
-        controller.db.add_contract()
+        controller.db.add('contract')
         controller.session.reset_session()
 
     def add_event(self, controller, event, contract_nb, client_nb):
         controller.session.client = controller.db.get_client(client_nb)
         controller.session.contract = controller.db.get_contract(contract_nb)
         controller.session.event = event
-        controller.db.add_event()
+        controller.db.add('event')
         controller.session.reset_session()
 
     def connect_user(self, controller, user_nb):
@@ -110,7 +110,7 @@ class TestController:
 
     def test_start_with_user_and_login_failed(self, monkeypatch, controller, management_user, password, capsys):
         controller.session.user = management_user
-        controller.db.add_user()
+        controller.db.add('user')
         controller.session.user = controller.db.get_user_by_number(0)
         inputs = iter(
             [
@@ -227,19 +227,6 @@ class TestController:
         controller.main_menu()
         captured = capsys.readouterr()
         assert 'Tableau des permissions' in captured.out
-
-    def test_add_user_with_wrong_token(self, controller, monkeypatch, management_user, capsys, commercial_user):
-        self.add_user(controller, management_user)
-        self.connect_user(controller, 0)
-        controller.session.token = 'wrong token'
-        controller.session.status = 'ADD_USER'
-        controller.add_user()
-        controller.show.display()
-        captured = capsys.readouterr()
-        for c in captured:
-            print(c)
-        assert 'Déconnexion automatique' in captured.out
-        assert 'Vous avez été déconnecté, merci de vous reconnecter.' in captured.out
 
     def test_update_user_change_name(self, controller, monkeypatch, management_user, capsys, commercial_user):
         self.add_user(controller, management_user)
@@ -372,7 +359,7 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.add_client()
+        controller.add('client')
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Client ajouté' in captured.out
@@ -451,7 +438,7 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.add_contract()
+        controller.add('contract')
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Ajout d\'un contrat' in captured.out
@@ -566,7 +553,7 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.add_event()
+        controller.add('event')
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Ajout d\'un évènement' in captured.out

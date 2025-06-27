@@ -24,38 +24,47 @@ class Mysql:
         Session = sessionmaker(bind=self.engine)
         return Session()
 
-    def number_of_user(self):
-        query = self.db_session.query(EpicUser)
-        query = self._apply_user_filter(query)
-        return query.count()
-
-    def number_of_client(self):
-        query = self.db_session.query(Client)
-        query = self._apply_client_filter(query)
-        return query.count()
-
-    def number_of_contract(self):
-        if self.session.client.id is None or self._for_all():
-            query = self.db_session.query(Contract)
-        else:
-            query = self.db_session.query(Contract).filter(Contract.client_id == self.session.client.id)
-        query = self._apply_contract_filter(query)
-        return query.count()
-
-    def number_of_event(self):
-        query = self.db_session.query(Event)
-        query = self._apply_event_filter(query)
+    def number_of(self, model):
+        model_table = {
+            'user': EpicUser,
+            'support': EpicUser,
+            'client': Client,
+            'contract': Contract,
+            'event': Event
+        }
+        method_filter = {
+            'user': self._apply_user_filter,
+            'support': self._apply_user_filter,
+            'client': self._apply_client_filter,
+            'contract': self._apply_contract_filter,
+            'event': self._apply_event_filter
+        }
+        query = self.db_session.query(model_table[model])
+        query = method_filter[model](query)
         return query.count()
 
     def get_department_list(self):
         return [d[0] for d in self.db_session.query(Department.name).order_by(Department.id).all()]
 
-    def add_user(self):
-        return self._add_in_db(self.session.user)
+    def add(self, model):
+        self._fill_missing_field(model)
+        return self._add_in_db(getattr(self.session, model))
 
-    def update_password_user(self):
+    def _fill_missing_field(self, model):
+        match model:
+            case 'user':
+                pass
+            case 'client':
+                self.session.client.commercial_contact_id = self.session.connected_user.id
+            case 'contract':
+                self.session.contract.client_id = self.session.client.id
+            case 'event':
+                self.session.event.contract_id = self.session.contract.id
+        return None
+
+    def update_password_user(self, email):
         count = self.db_session.query(EpicUser) \
-            .filter(EpicUser.email == self.session.connected_user.email) \
+            .filter(EpicUser.email == email) \
             .update({'password': self.auth.hash_password(self.session.connected_user.password)})
         self.db_session.commit()
         return count > 0
@@ -88,10 +97,10 @@ class Mysql:
         query = self._apply_contract_filter(query)
         return query.all()[number]
 
-    def get_user_password(self):
+    def get_user_password(self, email):
         password = self.db_session.query(EpicUser) \
             .with_entities(EpicUser.password) \
-            .filter(EpicUser.email == self.session.connected_user.email).first()
+            .filter(EpicUser.email == email).first()
         if password:
             return password[0]
         return None
@@ -113,18 +122,10 @@ class Mysql:
             self.db_session.rollback()
             return False
 
-    def add_client(self):
-        self.session.client.commercial_contact_id = self.session.connected_user.id
-        return self._add_in_db(self.session.client)
-
     def get_client_list(self):
         query = self.db_session.query(Client)
         query = self._apply_client_filter(query)
         return query.all()
-
-    def add_contract(self):
-        self.session.contract.client_id = self.session.client.id
-        return self._add_in_db(self.session.contract)
 
     def get_contract_list(self):
         if self._for_all():
@@ -133,10 +134,6 @@ class Mysql:
             query = self.db_session.query(Contract).filter(Contract.client_id == self.session.client.id)
         query = self._apply_contract_filter(query)
         return query.all()
-
-    def add_event(self):
-        self.session.event.contract_id = self.session.contract.id
-        return self._add_in_db(self.session.event)
 
     def get_permissions(self):
         return self.db_session.query(Permission).all()
@@ -177,6 +174,8 @@ class Mysql:
         return self._apply_filter(query, filters)
 
     def _apply_contract_filter(self, query):
+        if not (self.session.client.id is None or self._for_all()):
+            query = query.filter(Contract.client_id == self.session.client.id)
         filters = {
             'FINISHED': lambda q: q.filter(Contract.status is True),
             'NOT_FINISHED': lambda q: q.filter(Contract.status is False),
