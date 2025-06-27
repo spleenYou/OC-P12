@@ -1,3 +1,6 @@
+from config import config
+
+
 class Controller:
     def __init__(self, ask, show, db, auth, session):
         self.session = session()
@@ -21,10 +24,8 @@ class Controller:
         if not self._has_user():
             self.ask.wait()
             self.auth.generate_secret_key()
-            self.session.connected_user.email = email
-            self.session.user.department_id = 3
-            self.session.set_session(status='ADD_USER')
-            if not self.add('user'):
+            self.session.set_session(status='ADD_USER', filter='FIRST_TIME')
+            if not self._execute_crud():
                 self.session.set_session(state='ERROR', filter='STOPPED')
                 self.ask.wait()
                 return None
@@ -65,15 +66,7 @@ class Controller:
                 self.session.set_session(status='_'.join([command[0], command[1]]))
                 if self._check_token_and_perm():
                     if self._is_in_db(command[1].lower()):
-                        methods = {
-                            'ADD': self.add,
-                            'VIEW': self.view,
-                            'DELETE': self.delete,
-                        }
-                        if command[0] in methods:
-                            methods[command[0]](command[1].lower())
-                        else:
-                            eval('self.' + self.session.status.lower())()
+                        self._execute_crud()
                     else:
                         self.session.set_session('NO_' + command[1])
             else:
@@ -83,143 +76,102 @@ class Controller:
             if self.session.status == 'TOKEN':
                 return None
 
-    def _is_in_db(self, model):
-        return self.db.number_of(model) > 0 or self.session.status.startswith('ADD')
-
-    def add(self, model):
-        self._fill_model(model)
-        if self.ask.validation():
-            if self.db.add(model):
+    def _execute_crud(self):
+        action, model = self.session.status.lower().split('_')
+        self._fill_session(model)
+        if action in ['add', 'update']:
+            if action == 'update':
+                savepoint = self._save_model(model)
+            self._fill_model(model)
+        if action != 'view':
+            validation = self.ask.validation()
+        else:
+            validation = True
+        if validation:
+            if self._execute_command(action, model):
                 self.session.set_session(state='GOOD')
                 return True
             else:
                 self.session.set_session(state='ERROR')
+                validation = False
         else:
             self.session.set_session(state='FAILED')
+        if action == 'update':
+            self._restore_model(model, savepoint)
         return False
+
+    def _save_model(self, model):
+        save = {}
+        model_to_save = getattr(self.session, model)
+        for attr in getattr(config, model + '_attrs'):
+            save[attr] = getattr(model_to_save, attr)
+        return save
+
+    def _restore_model(self, model, save):
+        model_to_restore = getattr(self.session, model)
+        for attr in getattr(config, model + '_attrs'):
+            setattr(model_to_restore, attr, save[attr])
+
+    def _execute_command(self, action, model):
+        match action:
+            case 'add':
+                return self.db.add(model)
+            case 'update':
+                return True
+            case 'view':
+                return True
+            case 'delete':
+                return self.db.delete(model)
+
+    def _is_in_db(self, model):
+        return self.db.number_of(model) > 0 or self.session.status.startswith('ADD')
 
     def _fill_model(self, model):
         match model:
             case 'user':
                 self.session.user.name = self.ask.name()
-                if self.session.user.email is None:
-                    self.session.user.email = self.ask.email()
+                self.session.user.email = self.ask.email()
                 self.session.user.employee_number = self.ask.employee_number()
-                if self.session.user.department_id is None:
+                if self.session.filter == 'FIRST_TIME':
+                    self.session.user.department_id = 3
+                else:
                     self.session.user.department_id = self.ask.department()
             case 'client':
                 self.session.client.company_name = self.ask.company_name()
                 self.session.client.name = self.ask.client_name()
-                self.session.client.email = self.ask.email()
+                self.session.client.email = self.ask.client_email()
                 self.session.client.phone = self.ask.phone()
             case 'contract':
-                self.ask.select('client')
                 self.session.contract.total_amount = self.ask.total_amount()
                 self.session.contract.rest_amount = self.ask.rest_amount()
+                if self.session.status.startswith('UPDATE'):
+                    self.session.contract.status = self.ask.status()
             case 'event':
-                self.ask.select('client')
-                self.ask.select('contract')
-                self.session.event.location = self.ask.location()
-                self.session.event.attendees = self.ask.attendees()
-                self.session.event.date_start = self.ask.date_start()
-                self.session.event.date_stop = self.ask.date_stop()
-                self.session.event.notes = self.ask.notes()
+                if self.session.connected_user.department_id != 3:
+                    self.session.event.location = self.ask.location()
+                    self.session.event.attendees = self.ask.attendees()
+                    self.session.event.date_start = self.ask.date_start()
+                    self.session.event.date_stop = self.ask.date_stop()
+                    self.session.event.notes = self.ask.notes()
                 self.session.set_session(filter='SUPPORT')
                 if self._has_user():
                     self.ask.select('support')
 
-    def update_user(self):
-        self.ask.select('user')
-        savepoint = self.db.db_session.begin_nested()
-        self.session.user.name = self.ask.name()
-        self.session.user.email = self.ask.email()
-        self.session.user.employee_number = self.ask.employee_number()
-        self.session.user.department_id = self.ask.department()
-        if self.ask.validation():
-            self.session.set_session(state='GOOD')
-            savepoint.commit()
-            self.db.db_session.commit()
-        else:
-            self.session.set_session(state='FAILED')
-            savepoint.rollback()
-
-    def update_client(self):
-        self.ask.select('client')
-        savepoint = self.db.db_session.begin_nested()
-        self.session.user = self.session.client.commercial_contact
-        self.session.client.company_name = self.ask.company_name()
-        self.session.client.name = self.ask.client_name()
-        self.session.client.email = self.ask.client_email()
-        self.session.client.phone = self.ask.phone()
-        if self.ask.validation():
-            self.session.set_session(state='GOOD')
-            savepoint.commit()
-            self.db.db_session.commit()
-        else:
-            self.session.set_session(state='FAILED')
-            savepoint.rollback()
-
-    def update_contract(self):
-        self.ask.select('client')
-        self.ask.select('contract')
-        savepoint = self.db.db_session.begin_nested()
-        self.session.contract.total_amount = self.ask.total_amount()
-        self.session.contract.rest_amount = self.ask.rest_amount()
-        self.session.contract.status = self.ask.status()
-        if self.ask.validation():
-            self.session.set_session(state='GOOD')
-            savepoint.commit()
-            self.db.db_session.commit()
-        else:
-            self.session.set_session(state='FAILED')
-            savepoint.rollback()
-
-    def update_event(self):
-        self.ask.select('client')
-        self.ask.select('contract')
-        savepoint = self.db.db_session.begin_nested()
-        if self.session.connected_user.department_id != 3:
-            self.session.contract.event.location = self.ask.location()
-            self.session.contract.event.attendees = self.ask.attendees()
-            self.session.contract.event.date_start = self.ask.date_start()
-            self.session.contract.event.date_stop = self.ask.date_stop()
-            self.session.contract.event.notes = self.ask.notes()
-        self.session.set_session(filter='SUPPORT')
-        if self._has_user():
-            self.ask.select('support')
-        if self.ask.validation():
-            self.session.set_session(state='GOOD')
-            savepoint.commit()
-            self.db.db_session.commit()
-        else:
-            self.session.set_session(state='FAILED')
-            savepoint.rollback()
-
-    def view(self, model):
-        if not self._for_all():
-            self._fill_session(model)
-
-    def delete(self, model):
-        self._fill_session(model)
-        if self.ask.validation():
-            if self.db.delete(model):
-                self.session.set_session(state='GOOD')
-            else:
-                self.session.set_session(state='ERROR')
-        else:
-            self.session.set_session(state='FAILED')
-
     def _fill_session(self, model):
+        if self.session.status.startswith('VIEW') and self._for_all():
+            return None
         if model == 'user':
-            self.ask.select('user')
-        else:
+            if not self.session.status.startswith('ADD'):
+                self.ask.select('user')
+        elif not (model == 'client' and self.session.status.startswith('ADD')):
             self.ask.select('client')
             if model != 'client':
-                self.ask.select('contract')
-                if model == 'event':
-                    self.session.event = self.session.contract.event
-            else:
-                self.session.user = self.session.client.commercial_contact
+                if not (model == 'contract' and self.session.status.startswith('ADD')):
+                    self.ask.select('contract')
+                    if model == 'event' and self.session.contract.event:
+                        self.session.event = self.session.contract.event
+                else:
+                    self.session.user = self.session.client.commercial_contact
         return None
 
     def _reset_password(self):

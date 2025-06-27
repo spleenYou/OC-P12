@@ -245,7 +245,7 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.update_user()
+        controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Commercial 2' in captured.out
@@ -276,7 +276,7 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.update_user()
+        controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Erreur de saisie' in captured.out
@@ -308,7 +308,7 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.update_user()
+        controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Erreur de saisie' in captured.out
@@ -328,7 +328,7 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.delete('user')
+        controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Utilisateur supprimé' in captured.out
@@ -339,7 +339,7 @@ class TestController:
         self.add_user(controller, commercial_user)
         controller.session.status = 'VIEW_USER'
         monkeypatch.setattr('builtins.input', lambda *args: '1')
-        controller.view('user')
+        controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Informations sur l\'utilisateur' in captured.out
@@ -359,7 +359,7 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.add('client')
+        controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Client ajouté' in captured.out
@@ -381,7 +381,7 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.update_client()
+        controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Nouvelle entreprise' in captured.out
@@ -400,7 +400,7 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.delete('client')
+        controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Client supprimé' in captured.out
@@ -411,7 +411,7 @@ class TestController:
         self.add_client(controller, client_information, 0)
         controller.session.status = 'VIEW_CLIENT'
         monkeypatch.setattr('builtins.input', lambda *args: '0')
-        controller.view('client')
+        controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Informations sur le client' in captured.out
@@ -438,7 +438,7 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.add('contract')
+        controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Ajout d\'un contrat' in captured.out
@@ -469,7 +469,7 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.update_contract()
+        controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Terminé' in captured.out
@@ -497,7 +497,7 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.delete('contract')
+        controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Contrat supprimé' in captured.out
@@ -517,7 +517,7 @@ class TestController:
         controller.session.status = 'VIEW_CONTRACT'
         inputs = iter(['0', '0'])
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.view('contract')
+        controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Informations sur le contrat' in captured.out
@@ -553,7 +553,7 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.add('event')
+        controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Ajout d\'un évènement' in captured.out
@@ -594,7 +594,7 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.update_event()
+        controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
         assert 'la-bas' in captured.out
@@ -628,7 +628,7 @@ class TestController:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.delete('event')
+        controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Evènement supprimé' in captured.out
@@ -659,7 +659,7 @@ class TestController:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.view('event')
+        controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Informations sur l\'évènement' in captured.out

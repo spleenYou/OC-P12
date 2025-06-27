@@ -85,3 +85,29 @@ is_email = [
     'email',
     'client_email'
 ]
+user_attrs = [
+    'name',
+    'email',
+    'department_id',
+    'employee_number',
+]
+client_attrs = [
+    'name',
+    'email',
+    'phone',
+    'company_name',
+    'date_last_update',
+]
+contract_attrs = [
+    'total_amount',
+    'rest_amount',
+    'status',
+]
+event_attrs = [
+    'date_start',
+    'date_stop',
+    'support_contact_id',
+    'location',
+    'attendees',
+    'notes',
+]
