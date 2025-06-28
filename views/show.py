@@ -116,7 +116,7 @@ class Show:
         return None
 
     def show_select_user(self):
-        users = self.db.get_user_list()
+        users = self.db.get_list('user')
         col_list = ['N°', 'N° d\'employé', 'Nom', 'Email', 'Département']
         row_list = []
         for index, user in enumerate(users):
@@ -132,7 +132,7 @@ class Show:
         return self._make_table(col_list, row_list)
 
     def show_select_client(self):
-        clients = self.db.get_client_list()
+        clients = self.db.get_list('client')
         col_list = ['N°', 'Nom de l\'entreprise', 'Contact']
         row_list = []
         for index, client in enumerate(clients):
@@ -146,7 +146,7 @@ class Show:
         return self._make_table(col_list, row_list)
 
     def show_select_contract(self):
-        contracts = self.db.get_contract_list()
+        contracts = self.db.get_list('contract')
         col_list = ['N°', 'Date de création', 'Montant total', 'Status']
         row_list = []
         for index, contract in enumerate(contracts):
@@ -238,7 +238,7 @@ class Show:
         return [[label, value] for label, value in datas]
 
     def show_users(self):
-        user_list = self.db.get_user_list()
+        user_list = self.db.get_list('user')
         datas = []
         for user in user_list:
             datas.append(
@@ -253,7 +253,7 @@ class Show:
         return datas
 
     def show_clients(self):
-        client_list = self.db.get_client_list()
+        client_list = self.db.get_list('client')
         datas = []
         for client in client_list:
             datas.append(
@@ -269,7 +269,7 @@ class Show:
         return datas
 
     def show_contracts(self):
-        contract_list = self.db.get_contract_list()
+        contract_list = self.db.get_list('contract')
         datas = []
         for contract in contract_list:
             datas.append(
@@ -284,7 +284,7 @@ class Show:
         return datas
 
     def show_events(self):
-        event_list = self.db.get_event_list()
+        event_list = self.db.get__list('event')
         datas = []
         for event in event_list:
             datas.append(

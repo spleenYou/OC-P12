@@ -72,7 +72,7 @@ class TestMysql:
 
     def test_get_user_list(self, mysql, management_user):
         self.add_user(mysql, management_user)
-        result = mysql.get_user_list()
+        result = mysql.get_list('user')
         assert len(result) != 0
         assert result[0].name == management_user.name
         assert result[0].email == management_user.email
@@ -81,7 +81,7 @@ class TestMysql:
 
     def test_delete_user(self, mysql, management_user):
         self.add_user(mysql, management_user)
-        users = mysql.get_user_list()
+        users = mysql.get_list('user')
         assert mysql.number_of('user') == 1
         mysql.session.user = users[0]
         result = mysql.delete('user')
@@ -115,25 +115,25 @@ class TestMysql:
         self.add_user(mysql, commercial_user)
         mysql.session.connected_user = mysql.get_user_by_number(0)
         self.add_client(mysql, client_information)
-        clients = mysql.get_client_list()
+        clients = mysql.get_list('client')
         assert len(clients) == 1
         mysql.session.client = clients[0]
         assert mysql.delete('client') is True
-        assert len(mysql.get_client_list()) == 0
+        assert len(mysql.get_list('client')) == 0
 
     def test_delete_client_failed(self, mysql, commercial_user, client_information):
         self.add_user(mysql, commercial_user)
         mysql.session.connected_user = mysql.get_user_by_number(0)
         self.add_client(mysql, client_information)
-        assert len(mysql.get_client_list()) == 1
+        assert len(mysql.get_list('client')) == 1
         assert mysql.delete('client') is False
-        assert len(mysql.get_client_list()) == 1
+        assert len(mysql.get_list('client')) == 1
 
     def test_get_client_list(self, mysql, commercial_user, client_information):
         self.add_user(mysql, commercial_user)
         mysql.session.connected_user = mysql.get_user_by_number(0)
         self.add_client(mysql, client_information)
-        clients = mysql.get_client_list()
+        clients = mysql.get_list('client')
         assert len(clients) != 0
         assert clients[0].name == client_information.name
         assert clients[0].email == client_information.email
@@ -170,9 +170,9 @@ class TestMysql:
         self.add_contract(mysql, contract_information)
         mysql.session.client = mysql.get_client(0)
         mysql.session.contract = mysql.get_contract(0)
-        assert len(mysql.get_contract_list()) == 1
+        assert len(mysql.get_list('contract')) == 1
         assert mysql.delete('contract') is True
-        assert len(mysql.get_contract_list()) == 0
+        assert len(mysql.get_list('contract')) == 0
 
     def test_delete_contract_failed(self, mysql, commercial_user, client_information, contract_information):
         self.add_user(mysql, commercial_user)
@@ -181,9 +181,9 @@ class TestMysql:
         mysql.session.client = mysql.get_client(0)
         self.add_contract(mysql, contract_information)
         mysql.session.client = mysql.get_client(0)
-        assert len(mysql.get_contract_list()) == 1
+        assert len(mysql.get_list('contract')) == 1
         assert mysql.delete('contract') is False
-        assert len(mysql.get_contract_list()) == 1
+        assert len(mysql.get_list('contract')) == 1
 
     def test_get_contract_list(self, mysql, commercial_user, client_information, contract_information):
         self.add_user(mysql, commercial_user)
@@ -192,7 +192,7 @@ class TestMysql:
         mysql.session.client = mysql.get_client(0)
         self.add_contract(mysql, contract_information)
         mysql.session.client = mysql.get_client(0)
-        result = mysql.get_contract_list()
+        result = mysql.get_list('contract')
         assert len(result) != 0
         assert result[0].client_id == mysql.session.client.id
         assert result[0].total_amount == contract_information.total_amount

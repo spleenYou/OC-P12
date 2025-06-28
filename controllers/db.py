@@ -25,22 +25,8 @@ class Mysql:
         return Session()
 
     def number_of(self, model):
-        model_table = {
-            'user': EpicUser,
-            'support': EpicUser,
-            'client': Client,
-            'contract': Contract,
-            'event': Event
-        }
-        method_filter = {
-            'user': self._apply_user_filter,
-            'support': self._apply_user_filter,
-            'client': self._apply_client_filter,
-            'contract': self._apply_contract_filter,
-            'event': self._apply_event_filter
-        }
-        query = self.db_session.query(model_table[model])
-        query = method_filter[model](query)
+        query = self.db_session.query(self._get_model(model))
+        query = self._get_filter_method(model)(query)
         return query.count()
 
     def get_department_list(self):
@@ -49,18 +35,6 @@ class Mysql:
     def add(self, model):
         self._fill_missing_field(model)
         return self._add_in_db(getattr(self.session, model))
-
-    def _fill_missing_field(self, model):
-        match model:
-            case 'user':
-                pass
-            case 'client':
-                self.session.client.commercial_contact_id = self.session.connected_user.id
-            case 'contract':
-                self.session.contract.client_id = self.session.client.id
-            case 'event':
-                self.session.event.contract_id = self.session.contract.id
-        return None
 
     def update_password_user(self, email):
         count = self.db_session.query(EpicUser) \
@@ -105,11 +79,6 @@ class Mysql:
             return password[0]
         return None
 
-    def get_user_list(self):
-        query = self.db_session.query(EpicUser).order_by(EpicUser.id)
-        query = self._apply_user_filter(query)
-        return query.all()
-
     def delete(self, model):
         try:
             attr = getattr(self.session, model)
@@ -122,26 +91,13 @@ class Mysql:
             self.db_session.rollback()
             return False
 
-    def get_client_list(self):
-        query = self.db_session.query(Client)
-        query = self._apply_client_filter(query)
-        return query.all()
-
-    def get_contract_list(self):
-        if self._for_all():
-            query = self.db_session.query(Contract)
-        else:
-            query = self.db_session.query(Contract).filter(Contract.client_id == self.session.client.id)
-        query = self._apply_contract_filter(query)
+    def get_list(self, model):
+        query = self.db_session.query(self._get_model(model))
+        query = self._get_filter_method(model)(query)
         return query.all()
 
     def get_permissions(self):
         return self.db_session.query(Permission).all()
-
-    def get_event_list(self):
-        query = self.db_session.query(Event)
-        query = self._apply_event_filter(query)
-        return query.all()
 
     def _add_in_db(self, element_to_add):
         try:
@@ -203,3 +159,35 @@ class Mysql:
 
     def _for_all(self):
         return 'ALL' in self.session.filter
+
+    def _fill_missing_field(self, model):
+        match model:
+            case 'user':
+                pass
+            case 'client':
+                self.session.client.commercial_contact_id = self.session.connected_user.id
+            case 'contract':
+                self.session.contract.client_id = self.session.client.id
+            case 'event':
+                self.session.event.contract_id = self.session.contract.id
+        return None
+
+    def _get_model(self, model):
+        model_table = {
+            'user': EpicUser,
+            'support': EpicUser,
+            'client': Client,
+            'contract': Contract,
+            'event': Event
+        }
+        return model_table[model]
+
+    def _get_filter_method(self, model):
+        method_filter = {
+            'user': self._apply_user_filter,
+            'support': self._apply_user_filter,
+            'client': self._apply_client_filter,
+            'contract': self._apply_contract_filter,
+            'event': self._apply_event_filter
+        }
+        return method_filter[model]
