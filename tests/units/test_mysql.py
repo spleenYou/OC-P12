@@ -64,10 +64,10 @@ class TestMysql:
 
     def test_update_user(self, mysql, management_user):
         self.add_user(mysql, management_user)
-        result = mysql.get_user_by_number(0)
+        result = mysql.get('user', 0)
         assert result.name == management_user.name
         result.name = 'Nouveau nom'
-        result = mysql.get_user_by_number(0)
+        result = mysql.get('user', 0)
         assert result.name == 'Nouveau nom'
 
     def test_get_user_list(self, mysql, management_user):
@@ -93,7 +93,7 @@ class TestMysql:
 
     def test_add_client(self, mysql, commercial_user):
         self.add_user(mysql, commercial_user)
-        mysql.session.connected_user = mysql.get_user_by_number(0)
+        mysql.session.connected_user = mysql.get('user', 0)
         mysql.session.client.name = 'Nom du client'
         mysql.session.client.email = 'client@example.com'
         mysql.session.client.phone = '0202020202'
@@ -103,17 +103,17 @@ class TestMysql:
 
     def test_update_client(self, mysql, commercial_user, client_information):
         self.add_user(mysql, commercial_user)
-        mysql.session.connected_user = mysql.get_user_by_number(0)
+        mysql.session.connected_user = mysql.get('user', 0)
         self.add_client(mysql, client_information)
-        mysql.session.client = mysql.get_client(0)
+        mysql.session.client = mysql.get('client', 0)
         assert mysql.session.client.name == client_information.name
         mysql.session.client.name = 'Nouveau nom'
-        client = mysql.get_client(0)
+        client = mysql.get('client', 0)
         assert client.name == 'Nouveau nom'
 
     def test_delete_client(self, mysql, commercial_user, client_information):
         self.add_user(mysql, commercial_user)
-        mysql.session.connected_user = mysql.get_user_by_number(0)
+        mysql.session.connected_user = mysql.get('user', 0)
         self.add_client(mysql, client_information)
         clients = mysql.get_list('client')
         assert len(clients) == 1
@@ -123,7 +123,7 @@ class TestMysql:
 
     def test_delete_client_failed(self, mysql, commercial_user, client_information):
         self.add_user(mysql, commercial_user)
-        mysql.session.connected_user = mysql.get_user_by_number(0)
+        mysql.session.connected_user = mysql.get('user', 0)
         self.add_client(mysql, client_information)
         assert len(mysql.get_list('client')) == 1
         assert mysql.delete('client') is False
@@ -131,7 +131,7 @@ class TestMysql:
 
     def test_get_client_list(self, mysql, commercial_user, client_information):
         self.add_user(mysql, commercial_user)
-        mysql.session.connected_user = mysql.get_user_by_number(0)
+        mysql.session.connected_user = mysql.get('user', 0)
         self.add_client(mysql, client_information)
         clients = mysql.get_list('client')
         assert len(clients) != 0
@@ -142,56 +142,56 @@ class TestMysql:
 
     def test_add_contract(self, mysql, commercial_user, client_information, contract_information):
         self.add_user(mysql, commercial_user)
-        mysql.session.connected_user = mysql.get_user_by_number(0)
+        mysql.session.connected_user = mysql.get('user', 0)
         self.add_client(mysql, client_information)
-        mysql.session.client = mysql.get_client(0)
+        mysql.session.client = mysql.get('client', 0)
         mysql.session.contract = contract_information
         result = mysql.add('contract')
         assert result is True
 
     def test_update_contract(self, mysql, commercial_user, client_information, contract_information):
         self.add_user(mysql, commercial_user)
-        mysql.session.connected_user = mysql.get_user_by_number(0)
+        mysql.session.connected_user = mysql.get('user', 0)
         self.add_client(mysql, client_information)
-        mysql.session.client = mysql.get_client(0)
+        mysql.session.client = mysql.get('client', 0)
         self.add_contract(mysql, contract_information)
-        mysql.session.client = mysql.get_client(0)
-        mysql.session.contract = mysql.get_contract(0)
+        mysql.session.client = mysql.get('client', 0)
+        mysql.session.contract = mysql.get('contract', 0)
         assert mysql.session.contract.rest_amount == int(contract_information.total_amount)
         mysql.session.contract.rest_amount = 500
-        mysql.session.contract = mysql.get_contract(0)
+        mysql.session.contract = mysql.get('contract', 0)
         assert mysql.session.contract.rest_amount == 500
 
     def test_delete_contract(self, mysql, commercial_user, client_information, contract_information):
         self.add_user(mysql, commercial_user)
-        mysql.session.connected_user = mysql.get_user_by_number(0)
+        mysql.session.connected_user = mysql.get('user', 0)
         self.add_client(mysql, client_information)
-        mysql.session.client = mysql.get_client(0)
+        mysql.session.client = mysql.get('client', 0)
         self.add_contract(mysql, contract_information)
-        mysql.session.client = mysql.get_client(0)
-        mysql.session.contract = mysql.get_contract(0)
+        mysql.session.client = mysql.get('client', 0)
+        mysql.session.contract = mysql.get('contract', 0)
         assert len(mysql.get_list('contract')) == 1
         assert mysql.delete('contract') is True
         assert len(mysql.get_list('contract')) == 0
 
     def test_delete_contract_failed(self, mysql, commercial_user, client_information, contract_information):
         self.add_user(mysql, commercial_user)
-        mysql.session.connected_user = mysql.get_user_by_number(0)
+        mysql.session.connected_user = mysql.get('user', 0)
         self.add_client(mysql, client_information)
-        mysql.session.client = mysql.get_client(0)
+        mysql.session.client = mysql.get('client', 0)
         self.add_contract(mysql, contract_information)
-        mysql.session.client = mysql.get_client(0)
+        mysql.session.client = mysql.get('client', 0)
         assert len(mysql.get_list('contract')) == 1
         assert mysql.delete('contract') is False
         assert len(mysql.get_list('contract')) == 1
 
     def test_get_contract_list(self, mysql, commercial_user, client_information, contract_information):
         self.add_user(mysql, commercial_user)
-        mysql.session.connected_user = mysql.get_user_by_number(0)
+        mysql.session.connected_user = mysql.get('user', 0)
         self.add_client(mysql, client_information)
-        mysql.session.client = mysql.get_client(0)
+        mysql.session.client = mysql.get('client', 0)
         self.add_contract(mysql, contract_information)
-        mysql.session.client = mysql.get_client(0)
+        mysql.session.client = mysql.get('client', 0)
         result = mysql.get_list('contract')
         assert len(result) != 0
         assert result[0].client_id == mysql.session.client.id
@@ -206,12 +206,12 @@ class TestMysql:
             contract_information,
             event_information):
         self.add_user(mysql, commercial_user)
-        mysql.session.connected_user = mysql.get_user_by_number(0)
+        mysql.session.connected_user = mysql.get('user', 0)
         self.add_client(mysql, client_information)
-        mysql.session.client = mysql.get_client(0)
+        mysql.session.client = mysql.get('client', 0)
         self.add_contract(mysql, contract_information)
-        mysql.session.client = mysql.get_client(0)
-        mysql.session.contract = mysql.get_contract(0)
+        mysql.session.client = mysql.get('client', 0)
+        mysql.session.contract = mysql.get('contract', 0)
         mysql.session.event = event_information
         result = mysql.add('event')
         assert result is True
@@ -226,18 +226,18 @@ class TestMysql:
             event_information):
         self.add_user(mysql, commercial_user)
         self.add_user(mysql, support_user)
-        mysql.session.connected_user = mysql.get_user_by_number(0)
+        mysql.session.connected_user = mysql.get('user', 0)
         self.add_client(mysql, client_information)
-        mysql.session.client = mysql.get_client(0)
+        mysql.session.client = mysql.get('client', 0)
         self.add_contract(mysql, contract_information)
-        mysql.session.client = mysql.get_client(0)
-        mysql.session.contract = mysql.get_contract(0)
+        mysql.session.client = mysql.get('client', 0)
+        mysql.session.contract = mysql.get('contract', 0)
         self.add_event(mysql, event_information)
-        mysql.session.client = mysql.get_client(0)
-        mysql.session.contract = mysql.get_contract(0)
+        mysql.session.client = mysql.get('client', 0)
+        mysql.session.contract = mysql.get('contract', 0)
         assert mysql.session.contract.event.attendees == event_information.attendees
         mysql.session.contract.event.attendees = 200
-        mysql.session.contract = mysql.get_contract(0)
+        mysql.session.contract = mysql.get('contract', 0)
         assert mysql.session.contract.event.attendees == 200
 
     def test_delete_event(
@@ -250,15 +250,15 @@ class TestMysql:
             event_information):
         self.add_user(mysql, commercial_user)
         self.add_user(mysql, support_user)
-        mysql.session.connected_user = mysql.get_user_by_number(0)
+        mysql.session.connected_user = mysql.get('user', 0)
         self.add_client(mysql, client_information)
-        mysql.session.client = mysql.get_client(0)
+        mysql.session.client = mysql.get('client', 0)
         self.add_contract(mysql, contract_information)
-        mysql.session.client = mysql.get_client(0)
-        mysql.session.contract = mysql.get_contract(0)
+        mysql.session.client = mysql.get('client', 0)
+        mysql.session.contract = mysql.get('contract', 0)
         self.add_event(mysql, event_information)
-        mysql.session.client = mysql.get_client(0)
-        mysql.session.contract = mysql.get_contract(0)
+        mysql.session.client = mysql.get('client', 0)
+        mysql.session.contract = mysql.get('contract', 0)
         mysql.session.event = mysql.session.contract.event
         assert mysql.session.contract.event is not None
         assert mysql.delete('event') is True
@@ -274,12 +274,12 @@ class TestMysql:
             event_information):
         self.add_user(mysql, commercial_user)
         self.add_user(mysql, support_user)
-        mysql.session.connected_user = mysql.get_user_by_number(0)
+        mysql.session.connected_user = mysql.get('user', 0)
         self.add_client(mysql, client_information)
-        mysql.session.client = mysql.get_client(0)
+        mysql.session.client = mysql.get('client', 0)
         self.add_contract(mysql, contract_information)
-        mysql.session.client = mysql.get_client(0)
-        mysql.session.contract = mysql.get_contract(0)
+        mysql.session.client = mysql.get('client', 0)
+        mysql.session.contract = mysql.get('contract', 0)
         assert mysql.session.contract.event is None
         assert mysql.delete('event') is False
 
@@ -292,9 +292,9 @@ class TestMysql:
             contract_information):
         self.add_user(mysql, commercial_user)
         self.add_user(mysql, support_user)
-        mysql.session.connected_user = mysql.get_user_by_number(0)
+        mysql.session.connected_user = mysql.get('user', 0)
         self.add_client(mysql, client_information)
-        mysql.session.client = mysql.get_client(0)
+        mysql.session.client = mysql.get('client', 0)
         self.add_contract(mysql, contract_information)
         assert mysql.number_of('contract') == 1
 
@@ -307,11 +307,11 @@ class TestMysql:
             contract_information):
         self.add_user(mysql, commercial_user)
         self.add_user(mysql, support_user)
-        mysql.session.connected_user = mysql.get_user_by_number(0)
+        mysql.session.connected_user = mysql.get('user', 0)
         self.add_client(mysql, client_information)
-        mysql.session.client = mysql.get_client(0)
+        mysql.session.client = mysql.get('client', 0)
         self.add_contract(mysql, contract_information)
-        mysql.session.client = mysql.get_client(0)
+        mysql.session.client = mysql.get('client', 0)
         assert mysql.number_of('contract') == 1
 
     def test_number_of_contract_with_event(
@@ -323,11 +323,11 @@ class TestMysql:
             contract_information):
         self.add_user(mysql, commercial_user)
         self.add_user(mysql, support_user)
-        mysql.session.connected_user = mysql.get_user_by_number(0)
+        mysql.session.connected_user = mysql.get('user', 0)
         self.add_client(mysql, client_information)
-        mysql.session.client = mysql.get_client(0)
+        mysql.session.client = mysql.get('client', 0)
         self.add_contract(mysql, contract_information)
-        mysql.session.client = mysql.get_client(0)
+        mysql.session.client = mysql.get('client', 0)
         mysql.session.filter = 'WITH_EVENT'
         assert mysql.number_of('contract') == 0
 
@@ -340,11 +340,11 @@ class TestMysql:
             contract_information):
         self.add_user(mysql, commercial_user)
         self.add_user(mysql, support_user)
-        mysql.session.connected_user = mysql.get_user_by_number(0)
+        mysql.session.connected_user = mysql.get('user', 0)
         self.add_client(mysql, client_information)
-        mysql.session.client = mysql.get_client(0)
+        mysql.session.client = mysql.get('client', 0)
         self.add_contract(mysql, contract_information)
-        mysql.session.client = mysql.get_client(0)
+        mysql.session.client = mysql.get('client', 0)
         mysql.session.filter = 'WITHOUT_EVENT'
         assert mysql.number_of('contract') == 1
 
@@ -358,18 +358,18 @@ class TestMysql:
             event_information):
         self.add_user(mysql, commercial_user)
         self.add_user(mysql, support_user)
-        mysql.session.connected_user = mysql.get_user_by_number(0)
+        mysql.session.connected_user = mysql.get('user', 0)
         self.add_client(mysql, client_information)
-        mysql.session.client = mysql.get_client(0)
+        mysql.session.client = mysql.get('client', 0)
         self.add_contract(mysql, contract_information)
-        mysql.session.client = mysql.get_client(0)
-        mysql.session.contract = mysql.get_contract(0)
+        mysql.session.client = mysql.get('client', 0)
+        mysql.session.contract = mysql.get('contract', 0)
         self.add_event(mysql, event_information)
         assert mysql.number_of('event') == 1
 
     def test_get_user_by_number(self, mysql, commercial_user):
         self.add_user(mysql, commercial_user)
-        assert mysql.get_user_by_number(0).id == 1
+        assert mysql.get('user', 0).id == 1
 
     def test_get_user_by_mail(self, mysql, commercial_user):
         self.add_user(mysql, commercial_user)

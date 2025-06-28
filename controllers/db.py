@@ -46,29 +46,15 @@ class Mysql:
     def get_user_by_mail(self, email):
         return self.db_session.query(EpicUser).filter(EpicUser.email == email).first()
 
-    def get_user_by_number(self, number):
-        query = self.db_session.query(EpicUser).order_by(EpicUser.id)
-        query = self._apply_user_filter(query)
-        return query.all()[number]
-
     def get_user_by_id(self, id):
         return self.db_session.query(EpicUser) \
             .filter(EpicUser.id == id) \
             .first()
 
-    def get_client(self, number):
-        query = self.db_session.query(Client).order_by(Client.id)
-        query = self._apply_client_filter(query)
-        return query.all()[number]
-
-    def get_contract(self, number):
-        if self._for_all():
-            query = self.db_session.query(Contract).order_by(Contract.id)
-        else:
-            query = self.db_session.query(Contract) \
-                        .filter(Contract.client_id == self.session.client.id) \
-                        .order_by(Contract.id)
-        query = self._apply_contract_filter(query)
+    def get(self, model, number):
+        model_obj = self._get_model(model)
+        query = self.db_session.query(model_obj).order_by(model_obj.id)
+        query = self._get_filter_method(model)(query)
         return query.all()[number]
 
     def get_user_password(self, email):

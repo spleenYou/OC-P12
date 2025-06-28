@@ -13,26 +13,26 @@ class TestController:
         controller.session.reset_session()
 
     def add_client(self, controller, client, user_nb):
-        controller.session.connected_user = controller.db.get_user_by_number(user_nb)
+        controller.session.connected_user = controller.db.get('user', user_nb)
         controller.session.client = client
         controller.db.add('client')
         controller.session.reset_session()
 
     def add_contract(self, controller, contract, client_nb):
-        controller.session.client = controller.db.get_client(client_nb)
+        controller.session.client = controller.db.get('client', client_nb)
         controller.session.contract = contract
         controller.db.add('contract')
         controller.session.reset_session()
 
     def add_event(self, controller, event, contract_nb, client_nb):
-        controller.session.client = controller.db.get_client(client_nb)
-        controller.session.contract = controller.db.get_contract(contract_nb)
+        controller.session.client = controller.db.get('client', client_nb)
+        controller.session.contract = controller.db.get('contract', contract_nb)
         controller.session.event = event
         controller.db.add('event')
         controller.session.reset_session()
 
     def connect_user(self, controller, user_nb):
-        controller.session.connected_user = controller.db.get_user_by_number(user_nb)
+        controller.session.connected_user = controller.db.get('user', user_nb)
         controller.permissions = controller.session.connected_user.department.permissions
         controller.auth.generate_token()
 
@@ -111,7 +111,7 @@ class TestController:
     def test_start_with_user_and_login_failed(self, monkeypatch, controller, management_user, password, capsys):
         controller.session.user = management_user
         controller.db.add('user')
-        controller.session.user = controller.db.get_user_by_number(0)
+        controller.session.user = controller.db.get('user', 0)
         inputs = iter(
             [
                 management_user.email,
@@ -577,8 +577,8 @@ class TestController:
         self.connect_user(controller, 1)
         self.add_event(controller, event_information, 0, 0)
         controller.session.status = 'UPDATE_EVENT'
-        controller.session.client = controller.db.get_client(0)
-        controller.session.contract = controller.db.get_contract(0)
+        controller.session.client = controller.db.get('client', 0)
+        controller.session.contract = controller.db.get('contract', 0)
         inputs = iter(
             [
                 '0',
