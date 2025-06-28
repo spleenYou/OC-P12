@@ -74,17 +74,14 @@ class Controller:
             if action == 'update':
                 savepoint = self._save_model(model)
             self._fill_model(model)
-        if action != 'view':
-            validation = self.ask.validation()
-        else:
-            validation = True
-        if validation:
+        if action == 'view':
+            return None
+        if self.ask.validation():
             if self._execute_command(action, model):
                 self.session.set_session(state='GOOD')
                 return True
             else:
                 self.session.set_session(state='ERROR')
-                validation = False
         else:
             self.session.set_session(state='FAILED')
         if action == 'update':
