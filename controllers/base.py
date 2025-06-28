@@ -207,8 +207,9 @@ class Controller:
         self.db.update_password_user(email)
 
     def _prepare_session(self, email):
-        self.session.connected_user = self.db.get_user_by_mail(email)
+        self.session.set_session(state='GOOD', filter='EMAIL')
+        self.session.connected_user.email = email
+        self.session.connected_user = self.db.get('user', 0)
         self.permissions = self.session.connected_user.department.permissions
         self.auth.generate_token()
-        self.session.set_session(state='GOOD')
         self.ask.wait()

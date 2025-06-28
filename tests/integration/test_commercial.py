@@ -383,7 +383,7 @@ class TestCommercial:
             event_information,
             monkeypatch,
             capsys):
-        func.connect_user(controller, support_user, monkeypatch)
+        func.add_user(controller, support_user)
         func.add_client(controller, client_information)
         func.add_contract(controller, contract_information, 0)
         func.add_event(controller, event_information, 0, 2, 0)

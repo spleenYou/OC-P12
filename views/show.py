@@ -310,7 +310,8 @@ class Show:
             if self.session.user.id is None:
                 return 'Non défini'
             else:
-                event.support_contact = self.db.get_user_by_id(self.session.user.id)
+                self.session.set_session(filter='ID')
+                event.support_contact = self.db.get('user', 0)
         return f'{event.support_contact.name} - {event.support_contact.email}'
 
     def _simple_content_view(self, status, state):

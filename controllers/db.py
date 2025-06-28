@@ -38,18 +38,10 @@ class Mysql:
 
     def update_password_user(self, email):
         count = self.db_session.query(EpicUser) \
-            .filter(EpicUser.email == email) \
-            .update({'password': self.auth.hash_password(self.session.connected_user.password)})
+                    .filter(EpicUser.email == email) \
+                    .update({'password': self.auth.hash_password(self.session.connected_user.password)})
         self.db_session.commit()
         return count > 0
-
-    def get_user_by_mail(self, email):
-        return self.db_session.query(EpicUser).filter(EpicUser.email == email).first()
-
-    def get_user_by_id(self, id):
-        return self.db_session.query(EpicUser) \
-            .filter(EpicUser.id == id) \
-            .first()
 
     def get(self, model, number):
         model_obj = self._get_model(model)
@@ -98,16 +90,18 @@ class Mysql:
     def _clean_filter(self):
         return self.session.filter.replace('ALL_', '')
 
-    def _apply_user_filter(self, query):
+    def _user_filter(self, query):
         filters = {
             'FOR_DELETE': lambda q: q.filter(EpicUser.id != self.session.connected_user.id),
             'COMMERCIAL': lambda q: q.filter(EpicUser.department_id == 1),
             'SUPPORT': lambda q: q.filter(EpicUser.department_id == 2),
             'MANAGEMENT': lambda q: q.filter(EpicUser.department_id == 3),
+            'EMAIL': lambda q: q.filter(EpicUser.email == self.session.connected_user.email),
+            'ID': lambda q: q.filter(EpicUser.id == self.session.user.id),
         }
         return self._apply_filter(query, filters)
 
-    def _apply_client_filter(self, query):
+    def _client_filter(self, query):
         filters = {
             'WITH_EVENT': lambda q: q.filter(Client.contracts.any(Contract.event.has())),
             'WITHOUT_EVENT': lambda q: q.filter(Client.contracts.any(~Contract.event.has())),
@@ -115,7 +109,7 @@ class Mysql:
         }
         return self._apply_filter(query, filters)
 
-    def _apply_contract_filter(self, query):
+    def _contract_filter(self, query):
         if not (self.session.client.id is None or self._for_all()):
             query = query.filter(Contract.client_id == self.session.client.id)
         filters = {
@@ -126,7 +120,7 @@ class Mysql:
         }
         return self._apply_filter(query, filters)
 
-    def _apply_event_filter(self, query):
+    def _event_filter(self, query):
         filters = {
             'WITH_SUPPORT': lambda q: q.filter(Event.support_contact.has()),
             'WITHOUT_SUPPORT': lambda q: q.filter(~Event.support_contact.has()),
@@ -169,9 +163,9 @@ class Mysql:
 
     def _get_filter_method(self, model):
         method_filter = {
-            'user': self._apply_user_filter,
-            'client': self._apply_client_filter,
-            'contract': self._apply_contract_filter,
-            'event': self._apply_event_filter
+            'user': self._user_filter,
+            'client': self._client_filter,
+            'contract': self._contract_filter,
+            'event': self._event_filter
         }
         return method_filter[model]

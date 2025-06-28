@@ -372,5 +372,7 @@ class TestMysql:
         assert mysql.get('user', 0).id == 1
 
     def test_get_user_by_mail(self, mysql, commercial_user):
+        mysql.session.set_session(filter='EMAIL')
         self.add_user(mysql, commercial_user)
-        assert mysql.get_user_by_mail(commercial_user.email).id == 1
+        mysql.session.connected_user.email = commercial_user.email
+        assert mysql.get('user', 0).id == 1
