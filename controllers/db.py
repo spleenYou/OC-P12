@@ -161,7 +161,6 @@ class Mysql:
     def _get_model(self, model):
         model_table = {
             'user': EpicUser,
-            'support': EpicUser,
             'client': Client,
             'contract': Contract,
             'event': Event
@@ -171,7 +170,6 @@ class Mysql:
     def _get_filter_method(self, model):
         method_filter = {
             'user': self._apply_user_filter,
-            'support': self._apply_user_filter,
             'client': self._apply_client_filter,
             'contract': self._apply_contract_filter,
             'event': self._apply_event_filter

@@ -160,14 +160,8 @@ class Ask:
                 self.session.set_session(filter='WITH_EVENT')
 
     def _set_session_model(self, model, number):
-        session_attributes = {
-            'user': 'user',
-            'support': 'user',
-            'client': 'client',
-            'contract': 'contract'
-        }
         result = self.db.get(model, number)
-        setattr(self.session, session_attributes[model], result)
+        setattr(self.session, model, result)
 
     def _pre_prompt(self, thing, default_value=None):
         previous_status = self.session.status

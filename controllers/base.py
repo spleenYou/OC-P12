@@ -141,9 +141,9 @@ class Controller:
                     self.session.event.date_start = self.ask.date_start()
                     self.session.event.date_stop = self.ask.date_stop()
                     self.session.event.notes = self.ask.notes()
-                self.session.set_session(filter='SUPPORT')
                 if self._has_user():
-                    self.ask.select('support')
+                    self.session.set_session(filter='SUPPORT')
+                    self.ask.select('user')
 
     def _fill_session(self, model):
         if self.session.status.startswith('VIEW') and self._for_all():

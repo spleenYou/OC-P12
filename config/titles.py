@@ -22,7 +22,6 @@ NORMAL = {
     'VIEW_EVENTS': 'Informations sur les évènements',
     'SELECT_USER': 'Sélection d\'un utilisateur',
     'SELECT_USER_FOR_DELETE': 'Sélection d\'un utilisateur',
-    'SELECT_SUPPORT_USER': 'Selection d\'un utilisateur support',
     'SELECT_CLIENT': 'Selection d\'un client',
     'SELECT_CLIENT_WITH_EVENT': 'Selection d\'un client',
     'SELECT_CLIENT_WITHOUT_EVENT': 'Selection d\'un client',
