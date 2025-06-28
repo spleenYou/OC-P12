@@ -15,7 +15,7 @@ class Controller:
             if not self.auth.check_token():
                 self.session.set_session(status='TOKEN', state='ERROR')
                 return False
-        if self._has_permission():
+        if not self._has_permission():
             self.session.set_session(status='FORBIDDEN', state='ERROR')
             return False
         return True
@@ -23,28 +23,19 @@ class Controller:
     def start(self, email):
         if not self._has_user():
             self.ask.wait()
-            self.auth.generate_secret_key()
             self.session.set_session(status='ADD_USER', filter='FIRST_TIME')
             if not self._execute_crud():
                 self.session.set_session(state='ERROR', filter='STOPPED')
                 self.ask.wait()
                 return None
+            self.auth.generate_secret_key()
         self.session.set_session(status='CONNECTION')
         if not email:
             email = self.ask.email()
-        password_in_db = self.db.get_user_password(email)
-        if password_in_db is None:
-            self.session.set_session(status='PASSWORD', filter='FIRST_TIME')
-            self.ask.password()
-            self.db.update_password_user(email)
-            password_in_db = self.db.get_user_password(email)
+        password_in_db = self._find_password_in_db(email)
         password = self.ask.password()
         if self.auth.check_password(password, password_in_db):
-            self.session.connected_user = self.db.get_user_by_mail(email)
-            self.permissions = self.session.connected_user.department.permissions
-            self.auth.generate_token()
-            self.session.set_session(state='GOOD')
-            self.ask.wait()
+            self._prepare_session(email)
             self.main_menu()
         else:
             self.session.set_session(state='FAILED')
@@ -62,10 +53,10 @@ class Controller:
                 else:
                     self.session.set_session(status=command[0])
             elif self._is_crud_command(command):
-                self._make_filter(command)
                 self.session.set_session(status='_'.join([command[0], command[1]]))
                 if self._check_token_and_perm():
                     if self._is_in_db(command[1].lower()):
+                        self._make_filter(command)
                         self._execute_crud()
                     else:
                         self.session.set_session('NO_' + command[1])
@@ -202,6 +193,25 @@ class Controller:
 
     def _has_permission(self):
         if self.permissions is None and self.session.status == 'ADD_USER':
-            return False
-        return (self.session.status[:4] != 'VIEW' and
-                not getattr(self.permissions, self.session.status.lower()))
+            return True
+        return (self.session.status.startswith('VIEW') or
+                getattr(self.permissions, self.session.status.lower()))
+
+    def _find_password_in_db(self, email):
+        password = self.db.get_user_password(email)
+        if password is None:
+            self._define_password(email)
+            password = self.db.get_user_password(email)
+        return password
+
+    def _define_password(self, email):
+        self.session.set_session(status='PASSWORD', filter='FIRST_TIME')
+        self.ask.password()
+        self.db.update_password_user(email)
+
+    def _prepare_session(self, email):
+        self.session.connected_user = self.db.get_user_by_mail(email)
+        self.permissions = self.session.connected_user.department.permissions
+        self.auth.generate_token()
+        self.session.set_session(state='GOOD')
+        self.ask.wait()
