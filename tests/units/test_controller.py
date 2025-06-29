@@ -81,7 +81,7 @@ class TestController:
         captured = capsys.readouterr()
         assert 'Définition du mot de passe' in captured.out
         assert 'Erreur de saisie' in captured.out
-        assert 'Votre mot de passe ne peut pas être vide.' in captured.out
+        assert 'Votre mot de passe ne peut pas être vide' in captured.out
         assert 'Veuillez définir votre mot de passe' in captured.out
         assert 'Connexion réussie' in captured.out
 
@@ -206,11 +206,12 @@ class TestController:
         controller.main_menu()
         captured = capsys.readouterr()
         assert 'Aide' in captured.out
-        assert 'Liste des actions possibles :' in captured.out
-        assert 'ADD | UPDATE | VIEW | DELETE' in captured.out
-        assert 'Liste des catégories possibles :' in captured.out
-        assert 'USER | CLIENT | CONTRACT | EVENT' in captured.out
-        assert 'Syntaxe : ACTION CATEGORIE' in captured.out
+        assert 'Syntaxe : ACTION CATEGORIE *' in captured.out
+        assert '* Pour voir les filtres disponibles taper FILTER' in captured.out
+        assert 'L\'accès à certaines actions est restreint en fonction des permissions' in captured.out
+        assert ' attribuées à votre département' in captured.out
+        assert 'Pour les connaître taper PERMISSION' in captured.out
+        assert 'RESET PASSWORD pour redéfinir votre mot de passe' in captured.out
 
     def test_permission(self, controller, monkeypatch, management_user, capsys):
         self.add_user(controller, management_user)
@@ -280,7 +281,7 @@ class TestController:
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Erreur de saisie' in captured.out
-        assert 'Votre saisie ne correspond pas à un département.' in captured.out
+        assert 'Votre saisie ne correspond pas à un département' in captured.out
         assert 'Utilisateur mis à jour' in captured.out
 
     def test_update_user_change_email_failed(
@@ -312,7 +313,7 @@ class TestController:
         controller.show.display()
         captured = capsys.readouterr()
         assert 'Erreur de saisie' in captured.out
-        assert 'Votre saisie ne correspond pas à une adresse mail.' in captured.out
+        assert 'Votre saisie ne correspond pas à une adresse mail' in captured.out
         assert 'Utilisateur mis à jour' in captured.out
 
     def test_delete_user(self, controller, monkeypatch, management_user, capsys, commercial_user):

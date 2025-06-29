@@ -60,5 +60,7 @@ class TestFailed:
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         controller.main_menu()
         captured = capsys.readouterr()
+        for c in captured:
+            print(c)
         assert 'Déconnexion automatique' in captured.out
-        assert 'Vous avez été déconnecté, merci de vous reconnecter.' in captured.out
+        assert 'Vous avez été déconnecté, merci de vous reconnecter' in captured.out

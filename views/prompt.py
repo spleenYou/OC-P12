@@ -120,9 +120,9 @@ class Ask:
                     restore_session()
                     return None
                 else:
-                    self.session.set_session(state='FAILED')
+                    self.session.set_session(state='ERROR')
             except Exception:
-                self.session.set_session(state='ERROR')
+                self.session.set_session(state='FAILED')
             self.wait()
 
     def _is_number_valid(self, model, number):
@@ -143,7 +143,7 @@ class Ask:
             if self.session.filter == 'SECOND_TIME':
                 prompt = prompt[:-1] + '(vérification) :'
         return NewPrompt.ask(
-            '\n[dark_orange3]' + prompt + '[/dark_orange3]',
+            '\n[dark_orange3]  ' + prompt + '[/dark_orange3]',
             password=is_password,
             show_default=False
         )

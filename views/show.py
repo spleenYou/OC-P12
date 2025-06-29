@@ -25,7 +25,7 @@ class Show:
             content (list): List of the text to show
             align (str): Position of the content. Three possiblities left, center or right
         """
-        self.clear_screen()
+        self._clear_screen()
         self.head_menu()
         self.session_information()
         self.title()
@@ -46,7 +46,7 @@ class Show:
         )
         self.rich_console.print(panel)
 
-    def clear_screen(self):
+    def _clear_screen(self):
         "Clean the console for all os"
 
         command = "clear"
@@ -87,17 +87,30 @@ class Show:
             )
 
     def title(self):
-
         state = self.session.state.lower()
         border_style = getattr(config, state + '_' + 'border_style')
         text_color = getattr(config, state + '_' + 'text_color')
-        status = self.session.status
-        if 'ALL' in self.session.filter:
-            status = status + 'S'
+        title = self._find_title()
         self.show_content(
-            f'[bold {text_color}]' + getattr(titles, state.upper())[status] + f'[/bold {text_color}]',
+            f'[bold {text_color}]' + title + f'[/bold {text_color}]',
             border_style
         )
+
+    def _find_title(self):
+        state = self.session.state
+        status = self.session.status
+        action = status.split('_')[0]
+        if state == 'ERROR' and self.session.status not in titles.ERROR:
+            status = 'ERROR'
+        if state == 'FAILED':
+            if action not in titles.FAILED:
+                status = 'ERROR'
+            else:
+                status = action
+        elif 'ALL' in self.session.filter:
+            status = status + 'S'
+        title = getattr(titles, state)[status]
+        return title
 
     def content(self):
         if self._content_needed():
@@ -111,7 +124,7 @@ class Show:
                 complex_content = self._complex_content_view()
                 if complex_content:
                     self.show_content(complex_content)
-                elif self.session.status.startswith(('ADD', 'UPDATE', 'DELETE', 'VIEW')):
+                else:
                     self.show_content(self._content_model_view())
         return None
 
@@ -179,7 +192,7 @@ class Show:
             '* : L\'équipe management peut seulement mettre à jour\nle contact support d\'un évènement',
             justify='center'
         )
-        return Group(table, '', note)
+        return Group(Align.center(table), '', note)
 
     def show_user(self):
         department_list = self.db.get_department_list()
@@ -284,7 +297,7 @@ class Show:
         return datas
 
     def show_events(self):
-        event_list = self.db.get__list('event')
+        event_list = self.db.get_list('event')
         datas = []
         for event in event_list:
             datas.append(
@@ -316,7 +329,9 @@ class Show:
 
     def _simple_content_view(self, status, state):
         state_dict = getattr(contents, state, {})
-        return state_dict.get(status)
+        if status in state_dict:
+            return state_dict.get(status)
+        return None
 
     def _complex_content_view(self):
         match self.session.status:
@@ -328,8 +343,27 @@ class Show:
                 return self.show_select_contract()
             case 'PERMISSION':
                 return self.show_permissions()
+            case 'HELP':
+                return self._show_help()
             case _:
                 return None
+
+    def _show_help(self):
+        col_list = ['', '', '', '', '']
+        row_list = [
+            ('Action', 'ADD', 'UPDATE', 'VIEW', 'DELETE'),
+            ('Catégorie', 'USER', 'CLIENT', 'CONTRACT', 'EVENT')
+        ]
+        table = self._make_table(col_list, row_list, show_lines=True, show_header=False, justify='center')
+        text = Text(
+            'Syntaxe : ACTION CATEGORIE *\n\n'
+            '* Pour voir les filtres disponibles taper FILTER\n\n'
+            'L\'accès à certaines actions est restreint en fonction des permissions'
+            ' attribuées à votre département\n\n'
+            'Pour les connaître taper PERMISSION\n\n'
+            'RESET PASSWORD pour redéfinir votre mot de passe',
+            justify='center')
+        return Group(Align.center(table), '', text)
 
     def _content_model_view(self):
         model_status = self.session.status.split('_')[-1]
@@ -375,5 +409,7 @@ class Show:
 
     def _content_needed(self):
         return (self.session.state != 'GOOD' and
-                not (self.session.status.startswith('ADD') and
-                     self.session.state == 'FAILED'))
+                not (self.session.status.startswith(('ADD', 'UPDATE', 'DELETE')) and
+                     self.session.state == 'FAILED') and
+                self.session.status not in config.status_without_content and
+                not (self.session.status == 'CONNECTION' and self.session.state == 'NORMAL'))

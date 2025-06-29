@@ -111,3 +111,10 @@ event_attrs = [
     'attendees',
     'notes',
 ]
+status_without_content = [
+    'FORBIDDEN',
+    'EXIT',
+    'NO_CLIENT',
+    'NO_CONTRACT',
+    'NO_EVENT',
+]

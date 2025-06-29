@@ -1,6 +1,6 @@
 email = 'Veuillez entrer votre e-mail :'
 client_email = 'Veuillez entrer l\'e-mail du client :'
-name = 'Veuillez entrer le nom  :'
+name = 'Veuillez entrer le nom :'
 employee_number = 'Veuillez entrer votre numéro d\'employé :'
 department = 'Veuillez entrer votre le numéro de votre équipe (departments) :'
 client_name = 'Veuillez entrer le nom du contact client :'
