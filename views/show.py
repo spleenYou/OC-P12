@@ -31,7 +31,7 @@ class Show:
         self._title()
         self._content()
 
-    def show_content(self, content, border_style=config.normal_border_style):
+    def _show_content(self, content, border_style=config.normal_border_style):
         """Shows the content decorated
 
         Args:
@@ -57,11 +57,10 @@ class Show:
     def _head_menu(self):
         "Shows the name of the program decorated"
 
-        self.show_content(logo.logo)
+        self._show_content(logo.logo)
 
     def _session_information(self):
         if self.session.connected_user.id is not None and self.session.status != 'LOGIN_OK':
-            col_list = ['', '', '', '']
             row_list = [
                 [
                     'Numéro d\'employé',
@@ -76,9 +75,9 @@ class Show:
                     self.session.connected_user.email,
                 ]
             ]
-            self.show_content(
+            self._show_content(
                 self._make_table(
-                    col_list=col_list,
+                    col_name='session',
                     row_list=row_list,
                     justify='center',
                     show_header=False,
@@ -91,7 +90,7 @@ class Show:
         border_style = getattr(config, state + '_' + 'border_style')
         text_color = getattr(config, state + '_' + 'text_color')
         title = self._find_title()
-        self.show_content(
+        self._show_content(
             f'[bold {text_color}]' + title + f'[/bold {text_color}]',
             border_style
         )
@@ -119,18 +118,17 @@ class Show:
                 status = self.session.status + '_' + self.session.filter
             simple_content = self._simple_content_view(status, self.session.state)
             if simple_content:
-                self.show_content(Text(simple_content, justify='center'))
+                self._show_content(Text(simple_content, justify='center'))
             else:
                 complex_content = self._complex_content_view()
                 if complex_content:
-                    self.show_content(complex_content)
+                    self._show_content(complex_content)
                 else:
-                    self.show_content(self._content_model_view())
+                    self._show_content(self._content_model_view())
         return None
 
-    def show_select_user(self):
+    def _show_select_user(self):
         users = self.db.get_list('user')
-        col_list = ['N°', 'N° d\'employé', 'Nom', 'Email', 'Département']
         row_list = []
         for index, user in enumerate(users):
             row_list.append(
@@ -142,11 +140,10 @@ class Show:
                     user.department_name
                 ]
             )
-        return self._make_table(col_list, row_list)
+        return self._make_table(col_name='select_user', row_list=row_list)
 
-    def show_select_client(self):
+    def _show_select_client(self):
         clients = self.db.get_list('client')
-        col_list = ['N°', 'Nom de l\'entreprise', 'Contact']
         row_list = []
         for index, client in enumerate(clients):
             row_list.append(
@@ -156,11 +153,10 @@ class Show:
                     client.name
                 ]
             )
-        return self._make_table(col_list, row_list)
+        return self._make_table(col_name='select_client', row_list=row_list)
 
-    def show_select_contract(self):
+    def _show_select_contract(self):
         contracts = self.db.get_list('contract')
-        col_list = ['N°', 'Date de création', 'Montant total', 'Status']
         row_list = []
         for index, contract in enumerate(contracts):
             row_list.append(
@@ -171,30 +167,27 @@ class Show:
                     "Terminé" if contract.status else "En cours"
                 ]
             )
-        return self._make_table(col_list, row_list)
+        return self._make_table(col_name='select_contract', row_list=row_list)
 
-    def show_permissions(self):
+    def _show_permissions(self):
         permissions = self.db.get_permissions()
         department_name = self.db.get_department_list()
         nb_dept = len(department_name)
-        col_list = ['Command']
         row_list = []
-        for perm in permissions:
-            col_list.append(department_name[int(perm.department_id) - 1])
         for perm in config.permission_table:
             perms = ['X' if getattr(permissions[i], perm) else '' for i in range(nb_dept)]
             if perm == 'update_event':
                 perms[2] = '*'
             perm = perm.replace('_', ' ')
             row_list.append([perm] + perms)
-        table = self._make_table(col_list, row_list, justify='center', show_lines=True)
+        table = self._make_table(col_name='permissions', row_list=row_list, justify='center', show_lines=True)
         note = Text(
             '* : L\'équipe management peut seulement mettre à jour\nle contact support d\'un évènement',
             justify='center'
         )
         return Group(Align.center(table), '', note)
 
-    def show_user(self):
+    def _get_row_user(self):
         department_list = self.db.get_department_list()
         datas = [
             ('Nom', self.session.user.name or ''),
@@ -205,9 +198,9 @@ class Show:
                              if self.session.user.department_id else '')),
             ('Date de création', self._format_date(self.session.user.date_creation or datetime.datetime.now())),
         ]
-        return [[label, value] for label, value in datas]
+        return datas
 
-    def show_client(self):
+    def _get_row_client(self):
         datas = [
             ('Nom de l\'entreprise', self.session.client.company_name or ''),
             ('Nom du contact', self.session.client.name or ''),
@@ -218,9 +211,9 @@ class Show:
             ('Date de création', self._format_date(self.session.client.date_creation or datetime.datetime.now())),
             ('Dernière mise à jour', self._format_date(self.session.client.date_last_update)),
         ]
-        return [[label, value] for label, value in datas]
+        return datas
 
-    def show_contract(self):
+    def _get_row_contract(self):
         datas = [
             ('Client', self.session.client.company_name + ' - ' + self.session.client.name),
             ('Commercial', (f"{self.session.client.commercial_contact.name} - "
@@ -230,9 +223,9 @@ class Show:
             ('Statut', self._get_contract_status(self.session.contract)),
             ('Date de création', self._format_date(self.session.contract.date_creation or datetime.datetime.now()))
         ]
-        return [[label, value] for label, value in datas]
+        return datas
 
-    def show_event(self):
+    def _get_row_event(self):
         event = self._select_event()
         datas = [
             ('Client', self.session.client.company_name + ' - ' + self.session.client.name),
@@ -248,9 +241,9 @@ class Show:
             ('Notes', event.notes or ''),
             ('Date de création', self._format_date(event.date_creation or datetime.datetime.now())),
         ]
-        return [[label, value] for label, value in datas]
+        return datas
 
-    def show_users(self):
+    def _get_row_users(self):
         user_list = self.db.get_list('user')
         datas = []
         for user in user_list:
@@ -265,7 +258,7 @@ class Show:
             )
         return datas
 
-    def show_clients(self):
+    def _get_row_clients(self):
         client_list = self.db.get_list('client')
         datas = []
         for client in client_list:
@@ -281,7 +274,7 @@ class Show:
             )
         return datas
 
-    def show_contracts(self):
+    def _get_row_contracts(self):
         contract_list = self.db.get_list('contract')
         datas = []
         for contract in contract_list:
@@ -296,7 +289,7 @@ class Show:
             )
         return datas
 
-    def show_events(self):
+    def _get_row_events(self):
         event_list = self.db.get_list('event')
         datas = []
         for event in event_list:
@@ -336,13 +329,13 @@ class Show:
     def _complex_content_view(self):
         match self.session.status:
             case 'SELECT_USER':
-                return self.show_select_user()
+                return self._show_select_user()
             case 'SELECT_CLIENT':
-                return self.show_select_client()
+                return self._show_select_client()
             case 'SELECT_CONTRACT':
-                return self.show_select_contract()
+                return self._show_select_contract()
             case 'PERMISSION':
-                return self.show_permissions()
+                return self._show_permissions()
             case 'HELP':
                 return self._show_help()
             case 'FILTER':
@@ -351,33 +344,22 @@ class Show:
                 return None
 
     def _show_help(self):
-        col_list = ['', '', '', '', '']
         row_list = [
             ('Action', 'ADD', 'UPDATE', 'VIEW', 'DELETE'),
             ('Catégorie', 'USER', 'CLIENT', 'CONTRACT', 'EVENT')
         ]
-        table = self._make_table(col_list, row_list, show_lines=True, show_header=False, justify='center')
-        text = Text(
-            'Syntaxe : ACTION CATEGORIE *\n\n'
-            '* Pour voir les filtres disponibles taper FILTER\n\n'
-            'L\'accès à certaines actions est restreint en fonction des permissions'
-            ' attribuées à votre département\n\n'
-            'Pour les connaître taper PERMISSION\n\n'
-            'RESET PASSWORD pour redéfinir votre mot de passe',
-            justify='center')
+        table = self._make_table(
+            col_name='help',
+            row_list=row_list,
+            show_lines=True,
+            show_header=False,
+            justify='center'
+        )
+        text = Text(config.text_help, justify='center')
         return Group(Align.center(table), '', text)
 
     def _show_filter(self):
-        col_list = ['', '']
-        tables = [
-            Text(
-                'Syntaxe: COMMAND FILTER\n\n'
-                'Permet d\'afficher les détails d\'un élément parmi une liste\n\n'
-                'Syntaxe: COMMAND ALL FILTER\n\n'
-                'Permet d\'afficher un tableau avec tous les éléments du filtre\n\n',
-                justify='center'
-            )
-        ]
+        tables = [Text(config.filter_text, justify='center')]
         for category in config.filter:
             row_list = []
             for filter, text in config.filter[category].items():
@@ -385,8 +367,8 @@ class Show:
             tables.append(
                 Align.center(
                     self._make_table(
-                        col_list,
-                        row_list,
+                        col_name='filter',
+                        row_list=row_list,
                         show_lines=True,
                         show_header=False,
                         justify='center',
@@ -400,28 +382,32 @@ class Show:
 
     def _content_model_view(self):
         model_status = self.session.status.split('_')[-1]
-        show_methods_one = {
-            'USER': self.show_user,
-            'CLIENT': self.show_client,
-            'CONTRACT': self.show_contract,
-            'EVENT': self.show_event,
-            'USERS': self.show_users,
-            'CLIENTS': self.show_clients,
-            'CONTRACTS': self.show_contracts,
-            'EVENTS': self.show_events
+        get_row_methods = {
+            'USER': self._get_row_user,
+            'CLIENT': self._get_row_client,
+            'CONTRACT': self._get_row_contract,
+            'EVENT': self._get_row_event,
+            'USERS': self._get_row_users,
+            'CLIENTS': self._get_row_clients,
+            'CONTRACTS': self._get_row_contracts,
+            'EVENTS': self._get_row_events
         }
-        col_list = ['', '']
         show_header = False
         if 'ALL' in self.session.filter:
             show_header = True
             model_status = model_status + 'S'
-            col_list = getattr(config, 'col_' + model_status.lower())
-        row_list = show_methods_one.get(model_status)()
-        return self._make_table(col_list, row_list, show_header=show_header, show_lines=True, justify='center')
+        row_list = get_row_methods.get(model_status)()
+        return self._make_table(
+            col_name=model_status.lower(),
+            row_list=row_list,
+            show_header=show_header,
+            show_lines=True,
+            justify='center'
+        )
 
-    def _make_table(self, col_list, row_list, justify='left', show_header=True, title=None, show_lines=False):
+    def _make_table(self, col_name, row_list, justify='left', show_header=True, title=None, show_lines=False):
         table = Table(title=title, show_header=show_header, show_lines=show_lines)
-        for col in col_list:
+        for col in config.col[col_name]:
             table.add_column(col, justify=justify)
         for row in row_list:
             table.add_row(*row)

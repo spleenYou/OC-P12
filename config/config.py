@@ -14,37 +14,6 @@ permission_table = [
     'add_contract', 'update_contract', 'delete_contract',
     'add_event', 'update_event', 'delete_event',
 ]
-col_users = [
-    'N° d\'employé',
-    'Nom',
-    'Département',
-    'Adresse mail',
-    'Date de création',
-]
-col_clients = [
-    'Entreprise',
-    'Contact',
-    'Adresse mail',
-    'Téléphone',
-    'Dernière mise à jour',
-    'Création',
-]
-col_contracts = [
-    'Client',
-    'Montant total',
-    'Restant à payer',
-    'Status',
-    'Création',
-]
-col_events = [
-    'Client',
-    'Montant total',
-    'Lieu',
-    'Nb de personnes',
-    'Début',
-    'Fin',
-    'Création',
-]
 select_status = {
     'user': 'SELECT_USER',
     'support': 'SELECT_USER',
@@ -147,3 +116,31 @@ filter = {
         'WITHOUT_DATE_STOP': 'Voir un évènement qui n\'a pas de date de fin',
     }
 }
+col = {
+    'session': ['', '', '', ''],
+    'select_user': ['N°', 'N° d\'employé', 'Nom', 'Email', 'Département'],
+    'select_client': ['N°', 'Nom de l\'entreprise', 'Contact'],
+    'select_contract': ['N°', 'Date de création', 'Montant total', 'Status'],
+    'permissions': ['Command', 'commercial', 'support', 'management'],
+    'help': ['', '', '', '', ''],
+    'filter': ['', ''],
+    'model': ['', ''],
+    'user': ['', ''],
+    'client': ['', ''],
+    'contract': ['', ''],
+    'event': ['', ''],
+    'users': ['N° d\'employé', 'Nom', 'Département', 'Adresse mail', 'Date de création'],
+    'clients': ['Entreprise', 'Contact', 'Adresse mail', 'Téléphone', 'Dernière mise à jour', 'Création'],
+    'contracts': ['Client', 'Montant total', 'Restant à payer', 'Status', 'Création'],
+    'events': ['Client', 'Montant total', 'Lieu', 'Nb de personnes', 'Début', 'Fin', 'Création'],
+}
+text_help = ('Syntaxe : ACTION CATEGORIE *\n\n'
+             '* Pour voir les filtres disponibles taper FILTER\n\n'
+             'L\'accès à certaines actions est restreint en fonction des permissions'
+             ' attribuées à votre département\n\n'
+             'Pour les connaître taper PERMISSION\n\n'
+             'RESET PASSWORD pour redéfinir votre mot de passe')
+filter_text = ('Syntaxe: COMMAND FILTER\n\n'
+               'Permet d\'afficher les détails d\'un élément parmi une liste\n\n'
+               'Syntaxe: COMMAND ALL FILTER\n\n'
+               'Permet d\'afficher un tableau avec tous les éléments du filtre\n\n')
