@@ -106,6 +106,7 @@ class Mysql:
             'WITH_EVENT': lambda q: q.filter(Client.contracts.any(Contract.event.has())),
             'WITHOUT_EVENT': lambda q: q.filter(Client.contracts.any(~Contract.event.has())),
             'WITH_CONTRACT': lambda q: q.filter(Client.contracts.any()),
+            'WITHOUT_CONTRACT': lambda q: q.filter(~Client.contracts.any()),
         }
         return self._apply_filter(query, filters)
 

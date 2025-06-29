@@ -26,10 +26,10 @@ class Show:
             align (str): Position of the content. Three possiblities left, center or right
         """
         self._clear_screen()
-        self.head_menu()
-        self.session_information()
-        self.title()
-        self.content()
+        self._head_menu()
+        self._session_information()
+        self._title()
+        self._content()
 
     def show_content(self, content, border_style=config.normal_border_style):
         """Shows the content decorated
@@ -54,12 +54,12 @@ class Show:
             command = "cls"
         os.system(command)
 
-    def head_menu(self):
+    def _head_menu(self):
         "Shows the name of the program decorated"
 
         self.show_content(logo.logo)
 
-    def session_information(self):
+    def _session_information(self):
         if self.session.connected_user.id is not None and self.session.status != 'LOGIN_OK':
             col_list = ['', '', '', '']
             row_list = [
@@ -86,7 +86,7 @@ class Show:
                     title='Utilisateur connecté')
             )
 
-    def title(self):
+    def _title(self):
         state = self.session.state.lower()
         border_style = getattr(config, state + '_' + 'border_style')
         text_color = getattr(config, state + '_' + 'text_color')
@@ -112,7 +112,7 @@ class Show:
         title = getattr(titles, state)[status]
         return title
 
-    def content(self):
+    def _content(self):
         if self._content_needed():
             status = self.session.status
             if self.session.filter in ['STOPPED', 'FIRST_TIME', 'SECOND_TIME']:
@@ -345,6 +345,8 @@ class Show:
                 return self.show_permissions()
             case 'HELP':
                 return self._show_help()
+            case 'FILTER':
+                return self._show_filter()
             case _:
                 return None
 
@@ -364,6 +366,37 @@ class Show:
             'RESET PASSWORD pour redéfinir votre mot de passe',
             justify='center')
         return Group(Align.center(table), '', text)
+
+    def _show_filter(self):
+        col_list = ['', '']
+        tables = [
+            Text(
+                'Syntaxe: COMMAND FILTER\n\n'
+                'Permet d\'afficher les détails d\'un élément parmi une liste\n\n'
+                'Syntaxe: COMMAND ALL FILTER\n\n'
+                'Permet d\'afficher un tableau avec tous les éléments du filtre\n\n',
+                justify='center'
+            )
+        ]
+        for category in config.filter:
+            row_list = []
+            for filter, text in config.filter[category].items():
+                row_list.append((filter, text))
+            tables.append(
+                Align.center(
+                    self._make_table(
+                        col_list,
+                        row_list,
+                        show_lines=True,
+                        show_header=False,
+                        justify='center',
+                        title='COMMAND : '+category
+                    )
+                )
+            )
+            tables.append('')
+        text = Text('', justify='center')
+        return Group(*tables)
 
     def _content_model_view(self):
         model_status = self.session.status.split('_')[-1]

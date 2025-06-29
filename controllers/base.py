@@ -179,7 +179,7 @@ class Controller:
             self.session.set_session(filter='_'.join(filter))
 
     def _authorized_command(self, command):
-        return command[0] in ['HELP', 'EXIT', 'PERMISSION', 'RESET']
+        return command[0] in config.authorized_commands
 
     def _is_crud_command(self, command):
         return (command[0] in ['ADD', 'UPDATE', 'VIEW', 'DELETE'] and

@@ -38,6 +38,7 @@ NORMAL = {
     'EXIT': 'Au revoir',
     'MAIN_MENU': 'Menu principal',
     'PASSWORD': 'Définition du mot de passe',
+    'FILTER': 'Aide pour les filtres',
 }
 
 ERROR = {

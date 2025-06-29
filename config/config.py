@@ -118,3 +118,32 @@ status_without_content = [
     'NO_CONTRACT',
     'NO_EVENT',
 ]
+authorized_commands = ['HELP', 'EXIT', 'PERMISSION', 'RESET', 'FILTER']
+
+filter = {
+    'VIEW USER': {
+        'COMMERCIAL': 'Voir un utilisateur du département commercial',
+        'SUPPORT': 'Voir un utilisateur du département support',
+        'MANAGEMENT': 'Voir un utilisateur du département management',
+    },
+    'VIEW CLIENT': {
+        'WITH_CONTRACT': 'Voir un client qui a au moins un contrat',
+        'WITHOUT_CONTRACT': 'Voir un client qui n\'a pas de contrat',
+        'WITH_EVENT': 'Voir un client qui a un au moins un évènement',
+        'WITHOUT_EVENT': 'Voir un client qui n\'a pas d\'évènement',
+    },
+    'VIEW CONTRACT': {
+        'WITH_EVENT': 'Voir un contrat qui a un au moins un évènement',
+        'WITHOUT_EVENT': 'Voir un contrat qui n\'a pas d\'évènement',
+        'FINISHED': 'Voir un contrat qui est terminé',
+        'NOT_FINISHED': 'Voir un contrat qui n\'est pas terminé',
+    },
+    'VIEW EVENT': {
+        'WITH_SUPPORT': 'Voir un évènement qui a un utilisateur support',
+        'WITHOUT_SUPPORT': 'Voir un évènement qui n\'a pas d\'utilisateur support',
+        'WITH_DATE_START': 'Voir un évènement qui a une date de début',
+        'WITHOUT_DATE_START': 'Voir un évènement qui n\'a pas de date de début',
+        'WITH_DATE_STOP': 'Voir un évènement qui a une date de fin',
+        'WITHOUT_DATE_STOP': 'Voir un évènement qui n\'a pas de date de fin',
+    }
+}
