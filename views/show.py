@@ -233,7 +233,7 @@ class Show:
                             f"{self.session.client.commercial_contact.email}")),
             ('Support', self._get_support_user_info(event)),
             ('Statut du contrat', 'Terminé' if self.session.contract.status else 'En cours'),
-            ('Reste à payer', str(self.session.contract.rest_amount)),
+            ('Reste à payer', f'{str(self.session.contract.rest_amount)}/{str(self.session.contract.total_amount)}'),
             ('Lieu', event.location),
             ('Nombre de personnes', str(event.attendees) if event.attendees else ''),
             ('Date de début', self._format_date(event.date_start)),

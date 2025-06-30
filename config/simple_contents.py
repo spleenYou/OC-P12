@@ -11,7 +11,7 @@ NORMAL = {
 ERROR = {
         'ADD_USER_STOPPED': ('Il faut au moins un utilisateur pour utiliser l\'application\n'
                              'Fermeture de l\'application'),
-        'EMPLOYEE_NUMBER': 'Votre saisie ne correspond pas à un numéro d\'employé',
+        'EMPLOYEE_NUMBER': 'Ce numéro est déjà pris',
         'DEPARTMENT': 'Votre saisie ne correspond pas à un département',
         'SELECT_USER': 'Votre saisie ne correspond pas à un numéro valide',
         'SELECT_CLIENT': 'Votre saisie ne correspond pas à un numéro valide',

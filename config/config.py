@@ -25,6 +25,8 @@ is_nullable = [
     'date_start',
     'date_stop',
     'support_contact_id',
+    'total_amount',
+    'rest_amount',
 ]
 is_text = [
     'command',

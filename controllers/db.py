@@ -77,6 +77,9 @@ class Mysql:
     def get_permissions(self):
         return self.db_session.query(Permission).all()
 
+    def employee_number_exits(self, employee_number):
+        return self.db_session.query(EpicUser).filter(EpicUser.employee_number == employee_number).first()
+
     def _add_in_db(self, element_to_add):
         try:
             self.db_session.add(element_to_add)

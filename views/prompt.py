@@ -65,6 +65,7 @@ class Ask:
         return self._pre_prompt('total_amount', lambda: self.session.contract.total_amount)
 
     def rest_amount(self):
+        self.session.set_session(filter='REST_AMOUNT')
         return self._pre_prompt('rest_amount', lambda: self.session.contract.rest_amount)
 
     def email(self, email=None):
@@ -89,11 +90,8 @@ class Ask:
         return self._pre_prompt('employee_number', lambda: self.session.user.employee_number)
 
     def status(self):
-        self.session.set_session(filter='status')
-        return self._pre_prompt(
-            'status',
-            lambda: self.session.contract.status
-        )
+        self.session.set_session(filter='STATUS')
+        return self._pre_prompt('status', lambda: self.session.contract.status)
 
     def wait(self):
         self._prompt('wait')
@@ -207,7 +205,7 @@ class Ask:
     def _is_text(self, value):
         if self.session.filter == 'SECOND_TIME':
             return value == self.session.connected_user.password, value
-        if self.session.filter == 'status':
+        if self.session.filter == 'STATUS':
             return True, True if value.lower() == 'y' else False
         return True, value
 
@@ -226,10 +224,24 @@ class Ask:
         return date(year=int(year), month=int(month), day=int(day))
 
     def _is_valid_float(self, number):
-        return self._try_convert(number, float)
+        success, value = self._try_convert(number, float)
+        if value > (self.session.contract.total_amount or 0) and self.session.filter == 'REST_AMOUNT':
+            value = self.session.contract.total_amount
+        return success, value
 
     def _is_valid_int(self, number):
-        return self._try_convert(number, int)
+        success, value = self._try_convert(number, int)
+        if success is True and self._is_employee_number():
+            success = not self.db.employee_number_exits(value)
+        if success is True and self._is_department():
+            success = value > 0 and value < 4
+        return success, value
+
+    def _is_employee_number(self):
+        return self.session.status == 'ADD_USER' and self.session.user.employee_number is None
+
+    def _is_department(self):
+        return self.session.status == 'ADD_USER' and self.session.user.employee_number is not None
 
     def _try_convert(self, value, func):
         try:
