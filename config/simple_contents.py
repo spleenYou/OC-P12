@@ -9,8 +9,6 @@ NORMAL = {
 }
 
 ERROR = {
-        'ADD_USER_STOPPED': ('Il faut au moins un utilisateur pour utiliser l\'application\n'
-                             'Fermeture de l\'application'),
         'EMPLOYEE_NUMBER': 'Ce numéro est déjà pris',
         'DEPARTMENT': 'Votre saisie ne correspond pas à un département',
         'SELECT_USER': 'Votre saisie ne correspond pas à un numéro valide',
@@ -29,9 +27,13 @@ ERROR = {
         'PASSWORD_SECOND_TIME': 'Les mots de passe ne sont pas identiques',
         'EMAIL': 'Votre saisie ne correspond pas à une adresse mail',
         'CLIENT_EMAIL': 'Votre saisie ne correspond pas à une adresse mail',
+        'ADD_USER': 'L\'adresse mail de l\'utilisateur existe déjà',
+        'ADD_CLIENT': 'L\'adresse mail du client existe déjà',
 }
 
 FAILED = {
+        'STOPPED_FIRST_TIME': ('Il faut au moins un utilisateur pour utiliser l\'application\n'
+                               'Fermeture de l\'application'),
         'SELECT_USER': 'Merci d\'entrer un numéro',
         'SELECT_CLIENT': 'Merci d\'entrer un numéro',
         'SELECT_CONTRACT': 'Merci d\'entrer un numéro',

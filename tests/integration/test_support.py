@@ -257,7 +257,7 @@ class TestSupport:
         func.add_user(controller, commercial_user)
         func.add_client(controller, client_information)
         func.add_contract(controller, contract_information, 0)
-        func.add_event(controller, event_information, 0, 2, 0)
+        func.add_event(controller, event_information, 0, 1, 0)
         inputs = iter(
             [
                 'UPDATE EVENT',
@@ -278,6 +278,8 @@ class TestSupport:
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.main_menu()
         captured = capsys.readouterr()
+        for c in captured:
+            print(c)
         assert 'Mise à jour d\'un évènement' in captured.out
         assert 'Pas loin' in captured.out
         assert 'Evènement mis à jour' in captured.out
@@ -295,7 +297,7 @@ class TestSupport:
         func.add_user(controller, commercial_user)
         func.add_client(controller, client_information)
         func.add_contract(controller, contract_information, 0)
-        func.add_event(controller, event_information, 0, 2, 0)
+        func.add_event(controller, event_information, 0, 1, 0)
         inputs = iter(
             [
                 'DELETE EVENT',
@@ -326,7 +328,7 @@ class TestSupport:
         func.add_user(controller, commercial_user)
         func.add_client(controller, client_information)
         func.add_contract(controller, contract_information, 0)
-        func.add_event(controller, event_information, 0, 2, 0)
+        func.add_event(controller, event_information, 0, 1, 0)
         inputs = iter(
             [
                 'VIEW EVENT',

@@ -21,40 +21,39 @@ select_status = {
     'contract': 'SELECT_CONTRACT',
 }
 is_nullable = [
-    'notes',
-    'date_start',
-    'date_stop',
-    'support_contact_id',
-    'total_amount',
-    'rest_amount',
+    'NOTES',
+    'DATE_START',
+    'DATE_STOP',
+    'TOTAL_AMOUNT',
+    'REST_AMOUNT',
 ]
 is_text = [
-    'command',
-    'name',
-    'password',
-    'client_name',
-    'phone',
-    'company_name',
-    'location',
-    'notes',
-    'status'
+    'COMMAND',
+    'NAME',
+    'PASSWORD',
+    'CLIENT_NAME',
+    'PHONE',
+    'COMPANY_NAME',
+    'LOCATION',
+    'NOTES',
+    'STATUS'
 ]
 is_date = [
-    'date_start',
-    'date_stop',
+    'DATE_START',
+    'DATE_STOP',
 ]
 is_int = [
-    'attendees',
-    'employee_number',
-    'department'
+    'ATTENDEES',
+    'EMPLOYEE_NUMBER',
+    'DEPARTMENT'
 ]
 is_float = [
-    'total_amount',
-    'rest_amount',
+    'TOTAL_AMOUNT',
+    'REST_AMOUNT',
 ]
 is_email = [
-    'email',
-    'client_email'
+    'EMAIL',
+    'CLIENT_EMAIL'
 ]
 user_attrs = [
     'name',
@@ -82,15 +81,16 @@ event_attrs = [
     'attendees',
     'notes',
 ]
-status_without_content = [
+action_without_content = [
     'FORBIDDEN',
     'EXIT',
     'NO_CLIENT',
     'NO_CONTRACT',
     'NO_EVENT',
 ]
-authorized_commands = ['HELP', 'EXIT', 'PERMISSION', 'RESET', 'FILTER']
-
+authorized_action = ['HELP', 'EXIT', 'PERMISSION', 'RESET', 'FILTER']
+crud_action = ['ADD', 'UPDATE', 'VIEW', 'DELETE']
+app_model = ['USER', 'CLIENT', 'CONTRACT', 'EVENT']
 filter = {
     'VIEW USER': {
         'COMMERCIAL': 'Voir un utilisateur du département commercial',

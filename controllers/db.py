@@ -25,16 +25,25 @@ class Mysql:
         return Session()
 
     def number_of(self, model):
+        self.db_session.rollback()
         query = self.db_session.query(self._get_model(model))
         query = self._get_filter_method(model)(query)
         return query.count()
 
+    def get(self, model, number):
+        self.db_session.rollback()
+        query = self.db_session.query(self._get_model(model))
+        query = self._get_filter_method(model)(query)
+        return query.all()[number]
+
+    def get_list(self, model):
+        self.db_session.rollback()
+        query = self.db_session.query(self._get_model(model))
+        query = self._get_filter_method(model)(query)
+        return query.all()
+
     def get_department_list(self):
         return [d[0] for d in self.db_session.query(Department.name).order_by(Department.id).all()]
-
-    def add(self, model):
-        self._fill_missing_field(model)
-        return self._add_in_db(getattr(self.session, model))
 
     def update_password_user(self, email):
         count = self.db_session.query(EpicUser) \
@@ -43,13 +52,8 @@ class Mysql:
         self.db_session.commit()
         return count > 0
 
-    def get(self, model, number):
-        model_obj = self._get_model(model)
-        query = self.db_session.query(model_obj).order_by(model_obj.id)
-        query = self._get_filter_method(model)(query)
-        return query.all()[number]
-
     def get_user_password(self, email):
+        self.db_session.rollback()
         password = self.db_session.query(EpicUser) \
             .with_entities(EpicUser.password) \
             .filter(EpicUser.email == email).first()
@@ -57,41 +61,35 @@ class Mysql:
             return password[0]
         return None
 
-    def delete(self, model):
+    def delete(self):
+        self.db_session.rollback()
         try:
-            attr = getattr(self.session, model)
+            attr = getattr(self.session, self.session.model.lower())
             self.db_session.delete(attr)
             result = attr in self.db_session.deleted
             self.db_session.commit()
             return result
-        except Exception as ex:
-            print(ex)
+        except Exception:
             self.db_session.rollback()
             return False
-
-    def get_list(self, model):
-        query = self.db_session.query(self._get_model(model))
-        query = self._get_filter_method(model)(query)
-        return query.all()
 
     def get_permissions(self):
         return self.db_session.query(Permission).all()
 
     def employee_number_exits(self, employee_number):
+        self.db_session.rollback()
         return self.db_session.query(EpicUser).filter(EpicUser.employee_number == employee_number).first()
 
-    def _add_in_db(self, element_to_add):
+    def add(self):
+        self.db_session.rollback()
         try:
-            self.db_session.add(element_to_add)
+            self._fill_missing_field(self.session.model)
+            self.db_session.add(getattr(self.session, self.session.model.lower()))
             self.db_session.commit()
             return True
-        except IntegrityError as e:
-            print(f'IntegrityError : {e}')
+        except IntegrityError:
             self.db_session.rollback()
             return False
-
-    def _clean_filter(self):
-        return self.session.filter.replace('ALL_', '')
 
     def _user_filter(self, query):
         filters = {
@@ -111,6 +109,8 @@ class Mysql:
             'WITH_CONTRACT': lambda q: q.filter(Client.contracts.any()),
             'WITHOUT_CONTRACT': lambda q: q.filter(~Client.contracts.any()),
         }
+        if not self._for_all() and self.session.connected_user.department_id == 1:
+            query = query.filter(Client.commercial_contact_id == self.session.connected_user.id)
         return self._apply_filter(query, filters)
 
     def _contract_filter(self, query):
@@ -125,6 +125,8 @@ class Mysql:
         return self._apply_filter(query, filters)
 
     def _event_filter(self, query):
+        if not self._for_all() and self.session.connected_user.department_id == 2:
+            query = query.filter(Event.support_contact_id == self.session.connected_user.id)
         filters = {
             'WITH_SUPPORT': lambda q: q.filter(Event.support_contact.has()),
             'WITHOUT_SUPPORT': lambda q: q.filter(~Event.support_contact.has()),
@@ -136,40 +138,50 @@ class Mysql:
         return self._apply_filter(query, filters)
 
     def _apply_filter(self, query, filters):
-        filter = self._clean_filter()
-        if filter in filters:
-            query = filters[filter](query)
+        if self.session.filter in filters:
+            query = filters[self.session.filter](query)
+        query = self._apply_join(query)
+        return query
+
+    def _apply_join(self, query):
+        if not self._for_all() and self.session.connected_user.department_id == 1:
+            if self.session.model == 'CONTRACT':
+                query = query.join(Client).filter(Client.commercial_contact_id == self.session.connected_user.id)
+            if self.session.model == 'EVENT' and self.session.action != 'ADD':
+                query = query.join(Contract)
         return query
 
     def _for_all(self):
-        return 'ALL' in self.session.filter
+        return self.session.want_all
 
     def _fill_missing_field(self, model):
         match model:
-            case 'user':
+            case 'USER':
                 pass
-            case 'client':
+            case 'CLIENT':
                 self.session.client.commercial_contact_id = self.session.connected_user.id
-            case 'contract':
+            case 'CONTRACT':
                 self.session.contract.client_id = self.session.client.id
-            case 'event':
+            case 'EVENT':
                 self.session.event.contract_id = self.session.contract.id
+                if self.session.user.id is not None:
+                    self.session.event.support_contact_id = self.session.user.id
         return None
 
     def _get_model(self, model):
         model_table = {
-            'user': EpicUser,
-            'client': Client,
-            'contract': Contract,
-            'event': Event
+            'USER': EpicUser,
+            'CLIENT': Client,
+            'CONTRACT': Contract,
+            'EVENT': Event
         }
         return model_table[model]
 
     def _get_filter_method(self, model):
         method_filter = {
-            'user': self._user_filter,
-            'client': self._client_filter,
-            'contract': self._contract_filter,
-            'event': self._event_filter
+            'USER': self._user_filter,
+            'CLIENT': self._client_filter,
+            'CONTRACT': self._contract_filter,
+            'EVENT': self._event_filter
         }
         return method_filter[model]

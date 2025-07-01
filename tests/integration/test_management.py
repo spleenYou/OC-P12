@@ -288,12 +288,14 @@ class TestManagement:
             controller,
             management_user,
             commercial_user,
+            support_user,
             client_information,
             contract_information,
             event_information,
             monkeypatch,
             capsys):
         func.add_user(controller, commercial_user)
+        func.add_user(controller, support_user)
         func.add_client(controller, client_information)
         func.add_contract(controller, contract_information, 0)
         func.add_event(controller, event_information, 0, 1, 0)
@@ -302,7 +304,7 @@ class TestManagement:
                 'UPDATE EVENT',
                 '0',
                 '0',
-                '',
+                '0',
                 '',
                 'exit',
                 ''
@@ -312,6 +314,8 @@ class TestManagement:
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
         controller.main_menu()
         captured = capsys.readouterr()
+        for c in captured:
+            print(c)
         assert 'Evènement mis à jour' in captured.out
 
     def test_delete_event(

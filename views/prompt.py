@@ -27,95 +27,90 @@ class Ask:
         """
         self.display()
         return Confirm.ask(
-            f'\n[{config.validation_text_color}]{prompts.validation}[/{config.validation_text_color}]',
+            f'\n[{config.validation_text_color}]{prompts.VALIDATION}[/{config.validation_text_color}]',
             default=True
         )
 
     def name(self):
-        return self._pre_prompt('name', lambda: self.session.user.name)
+        return self._pre_prompt('NAME', lambda: self.session.user.name)
 
     def notes(self):
-        return self._pre_prompt('notes', lambda: self.session.contract.event.notes)
+        return self._pre_prompt('NOTES', lambda: self.session.contract.event.notes)
 
     def client_name(self):
-        return self._pre_prompt('client_name', lambda: self.session.client.name)
+        return self._pre_prompt('CLIENT_NAME', lambda: self.session.client.name)
 
     def company_name(self):
-        return self._pre_prompt('company_name', lambda: self.session.client.company_name)
+        return self._pre_prompt('COMPANY_NAME', lambda: self.session.client.company_name)
 
     def location(self):
-        return self._pre_prompt('location', lambda: self.session.contract.event.location)
+        return self._pre_prompt('LOCATION', lambda: self.session.contract.event.location)
 
     def command(self):
-        return self._pre_prompt('command')
+        return self._pre_prompt('COMMAND')
 
     def date_start(self):
-        return self._pre_prompt('date_start', lambda: self.session.contract.event.date_start)
+        return self._pre_prompt('DATE_START', lambda: self.session.contract.event.date_start)
 
     def date_stop(self):
-        return self._pre_prompt('date_stop', lambda: self.session.contract.event.date_start)
+        return self._pre_prompt('DATE_STOP', lambda: self.session.contract.event.date_start)
 
     def attendees(self):
-        return self._pre_prompt('attendees', lambda: self.session.contract.event.attendees)
+        return self._pre_prompt('ATTENDEES', lambda: self.session.contract.event.attendees)
 
     def phone(self):
-        return self._pre_prompt('phone', lambda: self.session.client.phone)
+        return self._pre_prompt('PHONE', lambda: self.session.client.phone)
 
     def total_amount(self):
-        return self._pre_prompt('total_amount', lambda: self.session.contract.total_amount)
+        return self._pre_prompt('TOTAL_AMOUNT', lambda: self.session.contract.total_amount)
 
     def rest_amount(self):
         self.session.set_session(filter='REST_AMOUNT')
-        return self._pre_prompt('rest_amount', lambda: self.session.contract.rest_amount)
+        return self._pre_prompt('REST_AMOUNT', lambda: self.session.contract.rest_amount)
 
-    def email(self, email=None):
-        return self._pre_prompt('email', lambda: self.session.user.email)
+    def email(self):
+        return self._pre_prompt('EMAIL', lambda: self.session.user.email)
 
     def client_email(self):
-        return self._pre_prompt('client_email', lambda: self.session.client.email)
+        return self._pre_prompt('CLIENT_EMAIL', lambda: self.session.client.email)
 
     def password(self):
         if self.session.filter == 'FIRST_TIME':
-            self.session.connected_user.password = self._pre_prompt('password')
+            self.session.connected_user.password = self._pre_prompt('PASSWORD')
             self.session.set_session(filter='SECOND_TIME')
-            self.session.connected_user.password = self._pre_prompt('password')
-            self.session.set_session(status='CONNECTION', filter='')
+            self.session.connected_user.password = self._pre_prompt('PASSWORD')
+            self.session.set_session(action='CONNECTION', filter='')
             return None
-        return self._pre_prompt('password')
+        return self._pre_prompt('PASSWORD')
 
     def department(self):
-        return self._pre_prompt('department', lambda: self.session.user.department_id)
+        return self._pre_prompt('DEPARTMENT', lambda: self.session.user.department_id)
 
     def employee_number(self):
-        return self._pre_prompt('employee_number', lambda: self.session.user.employee_number)
+        return self._pre_prompt('EMPLOYEE_NUMBER', lambda: self.session.user.employee_number)
 
     def status(self):
         self.session.set_session(filter='STATUS')
-        return self._pre_prompt('status', lambda: self.session.contract.status)
+        return self._pre_prompt('STATUS', lambda: self.session.contract.status)
 
     def wait(self):
-        self._prompt('wait')
+        self._prompt('WAIT')
 
     def select(self, model):
         previous_filter = self.session.filter
-        previous_status = self.session.status
-
-        def restore_session():
-            self.session.set_session(status=previous_status, filter=previous_filter)
-
-        self.session.set_session(status=config.select_status[model])
+        self.session.set_session(action='SELECT', model=model)
+        self._set_filter(previous_filter)
         while True:
             self.session.set_session(state='NORMAL')
-            self._set_filter(previous_status, previous_filter)
             number = self._prompt(model)
-            if number == '' and self._no_change_allowed():
-                restore_session()
+            if number == '' and self._no_change_allowed(model):
+                self._restore_session(previous_filter)
                 return None
             try:
                 number = int(number)
                 if self._is_number_valid(model, number):
                     self._set_session_model(model, number)
-                    restore_session()
+                    self._restore_session(previous_filter)
                     return None
                 else:
                     self.session.set_session(state='ERROR')
@@ -123,20 +118,26 @@ class Ask:
                 self.session.set_session(state='FAILED')
             self.wait()
 
+    def _restore_session(self, filter):
+        parsed = self.session.user_cmd.split('_')
+        self.session.set_session(filter=filter, action=parsed[0], model=parsed[1])
+
     def _is_number_valid(self, model, number):
         return number < self.db.number_of(model)
 
-    def _no_change_allowed(self):
-        return self.session.filter == 'SUPPORT' and self.session.status == 'SELECT_USER'
+    def _no_change_allowed(self, model):
+        return self.session.filter == 'SUPPORT'
 
     def _prompt(self, thing):
         self.display()
+        if self.session.want_all and thing != 'WAIT':
+            thing = thing + 'S'
         prompt = getattr(prompts, thing)
         is_password = False
-        if thing == 'department':
+        if thing == 'DEPARTMENT':
             departments = ' | '.join(f'{i + 1} {d}' for i, d in enumerate(self.db.get_department_list()))
             prompt = prompt.replace('departments', departments)
-        if thing == 'password':
+        if thing == 'PASSWORD':
             is_password = True
             if self.session.filter == 'SECOND_TIME':
                 prompt = prompt[:-1] + '(vérification) :'
@@ -146,41 +147,42 @@ class Ask:
             show_default=False
         )
 
-    def _set_filter(self, status, previous_filter):
-        if status in ['UPDATE_CONTRACT', 'DELETE_CONTRACT', 'VIEW_CONTRACT']:
+    def _set_filter(self, previous_filter):
+        if self.session.user_cmd in ['UPDATE_CONTRACT', 'DELETE_CONTRACT', 'VIEW_CONTRACT']:
             self.session.set_session(filter='WITH_CONTRACT')
-        elif status == 'DELETE_USER':
+        elif self.session.user_cmd == 'DELETE_USER':
             self.session.set_session(filter='FOR_DELETE')
         elif previous_filter != 'SUPPORT':
-            if status == 'ADD_EVENT':
+            if self.session.user_cmd == 'ADD_EVENT':
                 self.session.set_session(filter='WITHOUT_EVENT')
-            elif status in ['UPDATE_EVENT', 'DELETE_EVENT', 'VIEW_EVENT']:
+            elif self.session.user_cmd in ['UPDATE_EVENT', 'DELETE_EVENT', 'VIEW_EVENT']:
                 self.session.set_session(filter='WITH_EVENT')
 
     def _set_session_model(self, model, number):
         result = self.db.get(model, number)
-        setattr(self.session, model, result)
+        setattr(self.session, model.lower(), result)
 
     def _pre_prompt(self, thing, default_value=None):
-        previous_status = self.session.status
+        previous_user_cmd = self.session.user_cmd
         while True:
-            self.session.set_session(state='NORMAL')
+            self.session.set_session(user_cmd=previous_user_cmd, state='NORMAL')
             value = self._prompt(thing)
             if value == '':
-                if self.session.status.startswith('ADD') and thing in config.is_nullable:
+                if self.session.action == 'ADD' and thing in config.is_nullable:
+                    if thing == 'REST_AMOUNT':
+                        return self.session.contract.total_amount
                     return None
-                elif self.session.status.startswith('UPDATE'):
+                elif self.session.action == 'UPDATE':
                     return default_value()
                 else:
-                    self.session.set_session(status=thing.upper(), state='FAILED')
+                    self.session.set_session(user_cmd=thing.upper(), state='FAILED')
             else:
                 success, value = self._is_accepted_value(thing, value)
                 if success:
                     return value
                 else:
-                    self.session.set_session(status=thing.upper(), state="ERROR")
+                    self.session.set_session(user_cmd=thing.upper(), state="ERROR")
             self.wait()
-            self.session.set_session(status=previous_status)
 
     def _is_accepted_value(self, thing, value):
         list_method = {
@@ -189,7 +191,7 @@ class Ask:
             'is_int': self._is_valid_int,
             'is_float': self._is_valid_float,
             'is_email': self._is_valid_email,
-            'phone': self._is_valid_phone
+            'PHONE': self._is_valid_phone
         }
         for attr, method in list_method.items():
             if (hasattr(config, attr) and thing in getattr(config, attr)) or thing == attr:
@@ -238,10 +240,10 @@ class Ask:
         return success, value
 
     def _is_employee_number(self):
-        return self.session.status == 'ADD_USER' and self.session.user.employee_number is None
+        return self.session.user_cmd == 'ADD_USER' and self.session.user.employee_number is None
 
     def _is_department(self):
-        return self.session.status == 'ADD_USER' and self.session.user.employee_number is not None
+        return self.session.user_cmd == 'ADD_USER' and self.session.user.employee_number is not None
 
     def _try_convert(self, value, func):
         try:

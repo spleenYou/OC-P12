@@ -60,7 +60,7 @@ class Show:
         self._show_content(logo.logo)
 
     def _session_information(self):
-        if self.session.connected_user.id is not None and self.session.status != 'LOGIN_OK':
+        if self.session.connected_user.id is not None:
             row_list = [
                 [
                     'Numéro d\'employé',
@@ -97,38 +97,37 @@ class Show:
 
     def _find_title(self):
         state = self.session.state
-        status = self.session.status
-        action = status.split('_')[0]
-        if state == 'ERROR' and self.session.status not in titles.ERROR:
-            status = 'ERROR'
+        if self.session.action == 'SELECT':
+            title_text = 'SELECT_' + self.session.model
+        elif self.session.user_cmd != '' and self.session.action not in ['FORBIDDEN', 'TOKEN']:
+            title_text = self.session.user_cmd
+        else:
+            title_text = self.session.action
+        if state == 'ERROR' and title_text not in titles.ERROR:
+            title_text = 'ERROR'
         if state == 'FAILED':
-            if action not in titles.FAILED:
-                status = 'ERROR'
+            if title_text not in titles.FAILED:
+                title_text = 'ERROR'
             else:
-                status = action
-        elif 'ALL' in self.session.filter:
-            status = status + 'S'
-        title = getattr(titles, state)[status]
-        return title
+                title_text = self.session.action
+        elif self._is_for_all():
+            title_text = title_text + 'S'
+        return getattr(titles, state)[title_text]
+
+    def _is_for_all(self):
+        return self.session.want_all
 
     def _content(self):
         if self._content_needed():
-            status = self.session.status
-            if self.session.filter in ['STOPPED', 'FIRST_TIME', 'SECOND_TIME']:
-                status = self.session.status + '_' + self.session.filter
-            simple_content = self._simple_content_view(status, self.session.state)
+            simple_content = self._simple_content_text()
             if simple_content:
                 self._show_content(Text(simple_content, justify='center'))
             else:
-                complex_content = self._complex_content_view()
-                if complex_content:
-                    self._show_content(complex_content)
-                else:
-                    self._show_content(self._content_model_view())
+                self._show_content(self._complex_content_view())
         return None
 
     def _show_select_user(self):
-        users = self.db.get_list('user')
+        users = self.db.get_list('USER')
         row_list = []
         for index, user in enumerate(users):
             row_list.append(
@@ -143,7 +142,7 @@ class Show:
         return self._make_table(col_name='select_user', row_list=row_list)
 
     def _show_select_client(self):
-        clients = self.db.get_list('client')
+        clients = self.db.get_list('CLIENT')
         row_list = []
         for index, client in enumerate(clients):
             row_list.append(
@@ -156,7 +155,7 @@ class Show:
         return self._make_table(col_name='select_client', row_list=row_list)
 
     def _show_select_contract(self):
-        contracts = self.db.get_list('contract')
+        contracts = self.db.get_list('CONTRACT')
         row_list = []
         for index, contract in enumerate(contracts):
             row_list.append(
@@ -244,7 +243,7 @@ class Show:
         return datas
 
     def _get_row_users(self):
-        user_list = self.db.get_list('user')
+        user_list = self.db.get_list('USER')
         datas = []
         for user in user_list:
             datas.append(
@@ -259,7 +258,7 @@ class Show:
         return datas
 
     def _get_row_clients(self):
-        client_list = self.db.get_list('client')
+        client_list = self.db.get_list('CLIENT')
         datas = []
         for client in client_list:
             datas.append(
@@ -275,7 +274,7 @@ class Show:
         return datas
 
     def _get_row_contracts(self):
-        contract_list = self.db.get_list('contract')
+        contract_list = self.db.get_list('CONTRACT')
         datas = []
         for contract in contract_list:
             datas.append(
@@ -290,7 +289,7 @@ class Show:
         return datas
 
     def _get_row_events(self):
-        event_list = self.db.get_list('event')
+        event_list = self.db.get_list('EVENT')
         datas = []
         for event in event_list:
             datas.append(
@@ -316,24 +315,25 @@ class Show:
             if self.session.user.id is None:
                 return 'Non défini'
             else:
-                self.session.set_session(filter='ID')
-                event.support_contact = self.db.get('user', 0)
+                return f'{self.session.user.name} - {self.session.user.email}'
         return f'{event.support_contact.name} - {event.support_contact.email}'
 
-    def _simple_content_view(self, status, state):
-        state_dict = getattr(contents, state, {})
-        if status in state_dict:
-            return state_dict.get(status)
+    def _simple_content_text(self):
+        if self.session.action == 'SELECT':
+            content_text = 'SELECT_' + self.session.model
+        else:
+            content_text = self.session.user_cmd or self.session.action
+        if self.session.filter in ['FIRST_TIME', 'SECOND_TIME']:
+            content_text = content_text + '_' + self.session.filter
+        state_dict = getattr(contents, self.session.state, {})
+        if content_text in state_dict:
+            return state_dict.get(content_text)
         return None
 
     def _complex_content_view(self):
-        match self.session.status:
-            case 'SELECT_USER':
-                return self._show_select_user()
-            case 'SELECT_CLIENT':
-                return self._show_select_client()
-            case 'SELECT_CONTRACT':
-                return self._show_select_contract()
+        match self.session.action:
+            case 'SELECT':
+                return self._select_model()
             case 'PERMISSION':
                 return self._show_permissions()
             case 'HELP':
@@ -341,7 +341,18 @@ class Show:
             case 'FILTER':
                 return self._show_filter()
             case _:
+                if self.session.model != '':
+                    return self._content_model_view()
                 return None
+
+    def _select_model(self):
+        match self.session.model:
+            case 'USER':
+                return self._show_select_user()
+            case 'CLIENT':
+                return self._show_select_client()
+            case 'CONTRACT':
+                return self._show_select_contract()
 
     def _show_help(self):
         row_list = [
@@ -381,7 +392,6 @@ class Show:
         return Group(*tables)
 
     def _content_model_view(self):
-        model_status = self.session.status.split('_')[-1]
         get_row_methods = {
             'USER': self._get_row_user,
             'CLIENT': self._get_row_client,
@@ -393,12 +403,13 @@ class Show:
             'EVENTS': self._get_row_events
         }
         show_header = False
-        if 'ALL' in self.session.filter:
+        model = self.session.model
+        if self._is_for_all():
             show_header = True
-            model_status = model_status + 'S'
-        row_list = get_row_methods.get(model_status)()
+            model = model + 'S'
+        row_list = get_row_methods.get(model)()
         return self._make_table(
-            col_name=model_status.lower(),
+            col_name=model.lower(),
             row_list=row_list,
             show_header=show_header,
             show_lines=True,
@@ -414,7 +425,7 @@ class Show:
         return table
 
     def _select_event(self):
-        if self.session.status == 'ADD_EVENT':
+        if self.session.user_cmd == 'ADD_EVENT':
             return self.session.event
         return self.session.contract.event
 
@@ -428,7 +439,7 @@ class Show:
 
     def _content_needed(self):
         return (self.session.state != 'GOOD' and
-                not (self.session.status.startswith(('ADD', 'UPDATE', 'DELETE')) and
+                not (self.session.action in ['ADD', 'UPDATE', 'DELETE'] and
                      self.session.state == 'FAILED') and
-                self.session.status not in config.status_without_content and
-                not (self.session.status == 'CONNECTION' and self.session.state == 'NORMAL'))
+                self.session.action not in config.action_without_content and
+                not (self.session.action == 'CONNECTION' and self.session.state == 'NORMAL'))

@@ -1,7 +1,6 @@
 import locale
 import pytest
 import jwt
-import re
 from datetime import datetime, timedelta, date
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -133,9 +132,8 @@ def controller(session, db_session):
             self.db = mysql
             self.show = show(self.db, session)
             self.ask = ask(self.show, self.db, session)
-            self.email_regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
-            self.phone_regex = re.compile(r'^\+?[0-9](?:\d{1,3} ?){1,5}\d{1,4}$')
             self.permissions = None
+            self._has_user = True
 
     return MyController(Ask, Show, Mysql, Authentication, session)
 

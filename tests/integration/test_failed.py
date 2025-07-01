@@ -15,6 +15,8 @@ class TestFailed:
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         controller.main_menu()
         captured = capsys.readouterr()
+        for c in captured:
+            print(c)
         assert 'Aucun client n\'est enregistré' in captured.out
 
     def test_view_contract_without_contract(self, controller, commercial_user, monkeypatch, capsys):
@@ -30,7 +32,7 @@ class TestFailed:
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         controller.main_menu()
         captured = capsys.readouterr()
-        assert 'Aucun contrat n\'est enregistré' in captured.out
+        assert 'Cette action sur les contrats n\'est pas possible pour le moment' in captured.out
 
     def test_view_event_without_event(self, controller, commercial_user, monkeypatch, capsys):
         func.connect_user(controller, commercial_user, monkeypatch)
@@ -45,7 +47,7 @@ class TestFailed:
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         controller.main_menu()
         captured = capsys.readouterr()
-        assert 'Aucun évènement n\'est enregistré' in captured.out
+        assert 'Cette action sur les évènements n\'est pas possible pour le moment' in captured.out
 
     def test_command_with_wrong_token(self, controller, monkeypatch, management_user, capsys, commercial_user):
         func.add_user(controller, management_user)
@@ -60,7 +62,5 @@ class TestFailed:
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         controller.main_menu()
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert 'Déconnexion automatique' in captured.out
         assert 'Vous avez été déconnecté, merci de vous reconnecter' in captured.out

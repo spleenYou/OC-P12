@@ -9,36 +9,39 @@ from views.show import Show
 class TestController:
     def add_user(self, controller, user):
         controller.session.user = user
-        controller.db.add('user')
+        controller.session.set_session(action='ADD', model='USER')
+        controller.db.add()
         controller.session.reset_session()
 
     def add_client(self, controller, client, user_nb):
-        controller.session.connected_user = controller.db.get('user', user_nb)
+        controller.session.connected_user = controller.db.get('USER', user_nb)
         controller.session.client = client
-        controller.db.add('client')
+        controller.session.set_session(action='ADD', model='CLIENT')
+        controller.db.add()
         controller.session.reset_session()
 
     def add_contract(self, controller, contract, client_nb):
-        controller.session.client = controller.db.get('client', client_nb)
+        controller.session.client = controller.db.get('CLIENT', client_nb)
         controller.session.contract = contract
-        controller.db.add('contract')
+        controller.session.set_session(action='ADD', model='CONTRACT')
+        controller.db.add()
         controller.session.reset_session()
 
-    def add_event(self, controller, event, contract_nb, client_nb):
-        controller.session.client = controller.db.get('client', client_nb)
-        controller.session.contract = controller.db.get('contract', contract_nb)
+    def add_event(self, controller, event, contract_nb):
+        controller.session.contract = controller.db.get('CONTRACT', contract_nb)
         controller.session.event = event
-        controller.db.add('event')
+        controller.session.set_session(action='ADD', model='EVENT')
+        controller.db.add()
         controller.session.reset_session()
 
     def connect_user(self, controller, user_nb):
-        controller.session.connected_user = controller.db.get('user', user_nb)
+        controller.session.connected_user = controller.db.get('USER', user_nb)
         controller.permissions = controller.session.connected_user.department.permissions
         controller.auth.generate_token()
 
     def test_init_controller(self):
         ctrl = Controller(Ask, Show, Mysql, Authentication, Session)
-        assert ctrl.session.status == 'FIRST_LAUNCH'
+        assert ctrl.session.state == 'NORMAL'
         assert ctrl.session.user.id is None
         assert ctrl.session.user.name is None
 
@@ -57,7 +60,7 @@ class TestController:
         for c in captured:
             print(c)
         assert 'Premier lancement de l\'application' in captured.out
-        assert 'Création d\'utilisateur annulé' in captured.out
+        assert 'Ajout annulé' in captured.out
         assert 'Il faut au moins un utilisateur pour utiliser l\'application' in captured.out
         assert 'Fermeture de l\'application' in captured.out
 
@@ -109,9 +112,8 @@ class TestController:
         assert 'Les mots de passe ne sont pas identiques' in captured.out
 
     def test_start_with_user_and_login_failed(self, monkeypatch, controller, management_user, password, capsys):
-        controller.session.user = management_user
-        controller.db.add('user')
-        controller.session.user = controller.db.get('user', 0)
+        self.add_user(controller, management_user)
+        self.connect_user(controller, 0)
         inputs = iter(
             [
                 management_user.email,
@@ -233,7 +235,7 @@ class TestController:
         self.add_user(controller, management_user)
         self.connect_user(controller, 0)
         self.add_user(controller, commercial_user)
-        controller.session.status = 'UPDATE_USER'
+        controller.session.set_session(action='UPDATE', model='USER', user_cmd='UPDATE_USER', filter='NORMAL')
         inputs = iter(
             [
                 1,
@@ -249,6 +251,8 @@ class TestController:
         controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
+        for c in captured:
+            print(c)
         assert 'Commercial 2' in captured.out
         assert 'Utilisateur mis à jour' in captured.out
 
@@ -262,10 +266,10 @@ class TestController:
         self.add_user(controller, management_user)
         self.connect_user(controller, 0)
         self.add_user(controller, commercial_user)
-        controller.session.status = 'UPDATE_USER'
+        controller.session.set_session(action='UPDATE', model='USER', user_cmd='UPDATE_USER', filter='NORMAL')
         inputs = iter(
             [
-                1,
+                '1',
                 '',
                 '',
                 '',
@@ -280,6 +284,8 @@ class TestController:
         controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
+        for c in captured:
+            print(c)
         assert 'Erreur de saisie' in captured.out
         assert 'Votre saisie ne correspond pas à un département' in captured.out
         assert 'Utilisateur mis à jour' in captured.out
@@ -294,7 +300,7 @@ class TestController:
         self.add_user(controller, management_user)
         self.connect_user(controller, 0)
         self.add_user(controller, commercial_user)
-        controller.session.status = 'UPDATE_USER'
+        controller.session.set_session(action='UPDATE', model='USER', user_cmd='UPDATE_USER', filter='NORMAL')
         inputs = iter(
             [
                 1,
@@ -320,7 +326,7 @@ class TestController:
         self.add_user(controller, management_user)
         self.connect_user(controller, 0)
         self.add_user(controller, commercial_user)
-        controller.session.status = 'DELETE_USER'
+        controller.session.set_session(action='DELETE', model='USER', user_cmd='DELETE_USER', filter='NORMAL')
         inputs = iter(
             [
                 '0',
@@ -338,7 +344,7 @@ class TestController:
         self.add_user(controller, management_user)
         self.connect_user(controller, 0)
         self.add_user(controller, commercial_user)
-        controller.session.status = 'VIEW_USER'
+        controller.session.set_session(action='VIEW', model='USER', user_cmd='VIEW_USER', filter='NORMAL')
         monkeypatch.setattr('builtins.input', lambda *args: '1')
         controller._execute_crud()
         controller.show.display()
@@ -348,7 +354,7 @@ class TestController:
     def test_add_client(self, controller, monkeypatch, capsys, commercial_user, client_information):
         self.add_user(controller, commercial_user)
         self.connect_user(controller, 0)
-        controller.session.status = 'ADD_CLIENT'
+        controller.session.set_session(action='ADD', model='CLIENT', user_cmd='ADD_CLIENT', filter='NORMAL')
         inputs = iter(
             [
                 client_information.company_name,
@@ -369,7 +375,7 @@ class TestController:
         self.add_user(controller, commercial_user)
         self.connect_user(controller, 0)
         self.add_client(controller, client_information, 0)
-        controller.session.status = 'UPDATE_CLIENT'
+        controller.session.set_session(action='UPDATE', model='CLIENT', user_cmd='UPDATE_CLIENT', filter='NORMAL')
         inputs = iter(
             [
                 '0',
@@ -392,7 +398,7 @@ class TestController:
         self.add_user(controller, commercial_user)
         self.connect_user(controller, 0)
         self.add_client(controller, client_information, 0)
-        controller.session.status = 'DELETE_CLIENT'
+        controller.session.set_session(action='DELETE', model='CLIENT', user_cmd='DELETE_CLIENT', filter='NORMAL')
         inputs = iter(
             [
                 '0',
@@ -410,7 +416,7 @@ class TestController:
         self.add_user(controller, commercial_user)
         self.connect_user(controller, 0)
         self.add_client(controller, client_information, 0)
-        controller.session.status = 'VIEW_CLIENT'
+        controller.session.set_session(action='VIEW', model='CLIENT', user_cmd='VIEW_CLIENT', filter='NORMAL')
         monkeypatch.setattr('builtins.input', lambda *args: '0')
         controller._execute_crud()
         controller.show.display()
@@ -428,7 +434,7 @@ class TestController:
         self.add_user(controller, management_user)
         self.connect_user(controller, 0)
         self.add_client(controller, client_information, 0)
-        controller.session.status = 'ADD_CONTRACT'
+        controller.session.set_session(action='ADD', model='CONTRACT', user_cmd='ADD_CONTRACT', filter='NORMAL')
         inputs = iter(
             [
                 '0',
@@ -457,7 +463,7 @@ class TestController:
         self.connect_user(controller, 0)
         self.add_client(controller, client_information, 0)
         self.add_contract(controller, contract_information, 0)
-        controller.session.status = 'UPDATE_CONTRACT'
+        controller.session.set_session(action='UPDATE', model='CONTRACT', user_cmd='UPDATE_CONTRACT', filter='NORMAL')
         inputs = iter(
             [
                 '0',
@@ -488,7 +494,7 @@ class TestController:
         self.connect_user(controller, 0)
         self.add_client(controller, client_information, 0)
         self.add_contract(controller, contract_information, 0)
-        controller.session.status = 'DELETE_CONTRACT'
+        controller.session.set_session(action='DELETE', model='CONTRACT', user_cmd='DELETE_CONTRACT', filter='NORMAL')
         inputs = iter(
             [
                 '0',
@@ -515,7 +521,7 @@ class TestController:
         self.connect_user(controller, 0)
         self.add_client(controller, client_information, 0)
         self.add_contract(controller, contract_information, 0)
-        controller.session.status = 'VIEW_CONTRACT'
+        controller.session.set_session(action='VIEW', model='CONTRACT', user_cmd='VIEW_CONTRACT', filter='NORMAL')
         inputs = iter(['0', '0'])
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         controller._execute_crud()
@@ -538,7 +544,7 @@ class TestController:
         self.connect_user(controller, 0)
         self.add_client(controller, client_information, 0)
         self.add_contract(controller, contract_information, 0)
-        controller.session.status = 'ADD_EVENT'
+        controller.session.set_session(action='ADD', model='EVENT', user_cmd='ADD_EVENT', filter='NORMAL')
         inputs = iter(
             [
                 '0',
@@ -572,14 +578,13 @@ class TestController:
             event_information):
         self.add_user(controller, commercial_user)
         self.add_user(controller, support_user)
-        self.connect_user(controller, 0)
-        self.add_client(controller, client_information, 0)
-        self.add_contract(controller, contract_information, 0)
+        self.connect_user(controller, user_nb=0)
+        self.add_client(controller, client_information, user_nb=0)
+        self.add_contract(controller, contract_information, client_nb=0)
         self.connect_user(controller, 1)
-        self.add_event(controller, event_information, 0, 0)
-        controller.session.status = 'UPDATE_EVENT'
-        controller.session.client = controller.db.get('client', 0)
-        controller.session.contract = controller.db.get('contract', 0)
+        self.add_event(controller, event_information, contract_nb=0)
+        controller.session.set_session(action='UPDATE', model='EVENT', user_cmd='UPDATE_EVENT', filter='NORMAL')
+        controller.session.contract = controller.db.get('CONTRACT', 0)
         inputs = iter(
             [
                 '0',
@@ -618,8 +623,8 @@ class TestController:
         self.add_client(controller, client_information, 0)
         self.add_contract(controller, contract_information, 0)
         self.connect_user(controller, 1)
-        self.add_event(controller, event_information, 0, 0)
-        controller.session.status = 'DELETE_EVENT'
+        self.add_event(controller, event_information, 0)
+        controller.session.set_session(action='DELETE', model='EVENT', user_cmd='DELETE_EVENT', filter='NORMAL')
         inputs = iter(
             [
                 '0',
@@ -650,8 +655,8 @@ class TestController:
         self.add_client(controller, client_information, 0)
         self.add_contract(controller, contract_information, 0)
         self.connect_user(controller, 1)
-        self.add_event(controller, event_information, 0, 0)
-        controller.session.status = 'VIEW_EVENT'
+        self.add_event(controller, event_information, 0)
+        controller.session.set_session(action='VIEW', model='EVENT', user_cmd='VIEW_EVENT', filter='NORMAL')
         inputs = iter(
             [
                 '0',
