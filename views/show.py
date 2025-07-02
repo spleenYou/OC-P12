@@ -374,7 +374,7 @@ class Show:
                         show_lines=True,
                         show_header=False,
                         justify='center',
-                        title='COMMAND : '+category
+                        title='COMMAND : ' + category
                     )
                 )
             )
@@ -429,9 +429,9 @@ class Show:
         return date.strftime('%d %b %Y') if date else 'Non défini'
 
     def _content_needed(self):
-        return (self.session.state != 'GOOD' and
-                not ((self.session.action in config.crud_action) and
-                     self.session.state == 'FAILED' and
-                     self.session.filter != 'FIRST_TIME') and
-                self.session.action not in config.action_without_content and
-                not (self.session.action == 'CONNECTION' and self.session.state == 'NORMAL'))
+        return (self.session.state != 'GOOD'
+                and not ((self.session.action in config.crud_action)
+                         and self.session.state == 'FAILED'
+                         and self.session.filter != 'FIRST_TIME')
+                and self.session.action not in config.action_without_content
+                and not (self.session.action == 'CONNECTION' and self.session.state == 'NORMAL'))

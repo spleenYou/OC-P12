@@ -37,7 +37,7 @@ class TestCommercial:
         captured = capsys.readouterr()
         assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
-    def test_delete_user(self, controller,  monkeypatch, capsys):
+    def test_delete_user(self, controller, monkeypatch, capsys):
         inputs = iter(
             [
                 'DELETE USER',

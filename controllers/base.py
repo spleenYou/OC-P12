@@ -192,12 +192,12 @@ class Controller:
         return self.session.user_cmd.startswith(('exit', 'EXIT')) or self.session.action == 'TOKEN'
 
     def _authorized_action(self):
-        return (self.session.action in config.authorized_action and
-                self.session.model in ['', 'PASSWORD'])
+        return (self.session.action in config.authorized_action
+                and self.session.model in ['', 'PASSWORD'])
 
     def _is_crud_command(self):
-        return (self.session.action in config.crud_action and
-                self.session.model in config.app_model)
+        return (self.session.action in config.crud_action
+                and self.session.model in config.app_model)
 
     def _user_in_db(self):
         return self.db.number_of('USER') > 0
@@ -205,8 +205,8 @@ class Controller:
     def _has_permission(self):
         if self.permissions is None and self.session.action == 'ADD':
             return True
-        return (self.session.action == 'VIEW' or
-                getattr(self.permissions, self.session.user_cmd.lower()))
+        return (self.session.action == 'VIEW'
+                or getattr(self.permissions, self.session.user_cmd.lower()))
 
     def _find_password_in_db(self, email):
         password = self.db.get_user_password(email)
