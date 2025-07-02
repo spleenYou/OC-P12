@@ -17,7 +17,7 @@ class Ask:
         self.db = db
         self.console = Console()
         self.email_regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
-        self.phone_regex = re.compile(r'^\+?[0-9](?:\d{1,3} ?){1,5}\d{1,4}$')
+        self.phone_regex = re.compile(r'^(?:\+[\d ]{8,15}|0[\d ]{7,14})$')
 
     def validation(self):
         """Shows a validation question
@@ -163,9 +163,9 @@ class Ask:
         setattr(self.session, model.lower(), result)
 
     def _pre_prompt(self, thing, default_value=None):
-        previous_user_cmd = self.session.user_cmd
+        previous_action = self.session.action
         while True:
-            self.session.set_session(user_cmd=previous_user_cmd, state='NORMAL')
+            self.session.set_session(action=previous_action, state='NORMAL')
             value = self._prompt(thing)
             if value == '':
                 if self.session.action == 'ADD' and thing in config.is_nullable:
@@ -175,13 +175,13 @@ class Ask:
                 elif self.session.action == 'UPDATE':
                     return default_value()
                 else:
-                    self.session.set_session(user_cmd=thing.upper(), state='FAILED')
+                    self.session.set_session(action=thing.upper(), state='FAILED')
             else:
                 success, value = self._is_accepted_value(thing, value)
                 if success:
                     return value
                 else:
-                    self.session.set_session(user_cmd=thing.upper(), state="ERROR")
+                    self.session.set_session(action=thing.upper(), state="ERROR")
             self.wait()
 
     def _is_accepted_value(self, thing, value):

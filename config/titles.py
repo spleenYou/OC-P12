@@ -19,14 +19,8 @@ NORMAL = {
     'PASSWORD': 'Définition du mot de passe',
     'PERMISSION': 'Tableau des permissions',
     'SELECT_USER': 'Sélection d\'un utilisateur',
-    'SELECT_USER_FOR_DELETE': 'Sélection d\'un utilisateur',
     'SELECT_CLIENT': 'Selection d\'un client',
-    'SELECT_CLIENT_WITH_EVENT': 'Selection d\'un client',
-    'SELECT_CLIENT_WITHOUT_EVENT': 'Selection d\'un client',
-    'SELECT_CLIENT_WITH_CONTRACT': 'Selection d\'un client',
     'SELECT_CONTRACT': 'Selection d\'un contrat',
-    'SELECT_CONTRACT_WITH_EVENT': 'Selection d\'un contrat',
-    'SELECT_CONTRACT_WITHOUT_EVENT': 'Selection d\'un contrat',
     'UPDATE_USER': 'Mise à jour d\'un utilisateur',
     'UPDATE_CLIENT': 'Mise à jour d\'un client',
     'UPDATE_CONTRACT': 'Mise à jour d\'un contrat',
@@ -42,8 +36,7 @@ NORMAL = {
 }
 
 ERROR = {
-    'ADD_USER': 'Création de l\'utilisateur impossible',
-    'ADD_CONTRACT': 'Création du contrat impossible',
+    'ADD': 'Création impossible',
     'ERROR': 'Erreur de saisie',
     'TOKEN': 'Déconnexion automatique',
     'FORBIDDEN': 'Vous n\'êtes pas autorisé à faire cette action',
@@ -54,22 +47,22 @@ GOOD = {
     'ADD_CLIENT': 'Client ajouté',
     'ADD_CONTRACT': 'Contrat ajouté',
     'ADD_EVENT': 'Evènement ajouté',
-    'UPDATE_USER': 'Utilisateur mis à jour',
-    'UPDATE_CLIENT': 'Client mis à jour',
-    'UPDATE_CONTRACT': 'Contrat mis à jour',
-    'UPDATE_EVENT': 'Evènement mis à jour',
+    'CONNECTION': '[green]Connexion réussie[/green]',
     'DELETE_USER': 'Utilisateur supprimé',
     'DELETE_CLIENT': 'Client supprimé',
     'DELETE_CONTRACT': 'Contrat supprimé',
     'DELETE_EVENT': 'Evènement supprimé',
-    'CONNECTION': '[green]Connexion réussie[/green]'
+    'UPDATE_USER': 'Utilisateur mis à jour',
+    'UPDATE_CLIENT': 'Client mis à jour',
+    'UPDATE_CONTRACT': 'Contrat mis à jour',
+    'UPDATE_EVENT': 'Evènement mis à jour',
 }
 
 FAILED = {
     'ADD': 'Ajout annulé',
+    'CONNECTION': 'Erreur de connexion',
+    'DELETE': 'Suppression annulée',
+    'FAILED': 'Erreur de saisie',
     'STOPPED': 'Ajout annulé',
     'UPDATE': 'Mise à jour annulée',
-    'DELETE': 'Suppression annulée',
-    'ERROR': 'Erreur de saisie',
-    'CONNECTION': 'Erreur de connexion'
 }

@@ -89,37 +89,40 @@ class Show:
         state = self.session.state.lower()
         border_style = getattr(config, state + '_' + 'border_style')
         text_color = getattr(config, state + '_' + 'text_color')
-        title = self._find_title()
+        title = self._find_text('title')
         self._show_content(
             f'[bold {text_color}]' + title + f'[/bold {text_color}]',
             border_style
         )
 
-    def _find_title(self):
-        state = self.session.state
-        if self.session.action == 'SELECT':
-            title_text = 'SELECT_' + self.session.model
-        elif self.session.user_cmd != '' and self.session.action not in ['FORBIDDEN', 'TOKEN']:
-            title_text = self.session.user_cmd
-        else:
-            title_text = self.session.action
-        if state == 'ERROR' and title_text not in titles.ERROR:
-            title_text = 'ERROR'
-        if state == 'FAILED':
-            if title_text not in titles.FAILED:
-                title_text = 'ERROR'
-            else:
-                title_text = self.session.action
-        elif self._is_for_all():
-            title_text = title_text + 'S'
-        return getattr(titles, state)[title_text]
+    def _find_text(self, config_name):
+        text = None
+        config_module = {
+            'title': titles,
+            'simple_content': contents
+        }
+        available_titles = getattr(config_module[config_name], self.session.state)
+        possibilities = [
+            self.session.action,
+            self.session.action + '_' + self.session.model,
+            self.session.model + '_' + self.session.filter,
+            self.session.state,
+        ]
+        for possibility in possibilities:
+            if possibility in available_titles:
+                text = possibility
+                if self._is_for_all():
+                    text = text + 'S'
+                text = available_titles[text]
+                break
+        return text
 
     def _is_for_all(self):
         return self.session.want_all
 
     def _content(self):
         if self._content_needed():
-            simple_content = self._simple_content_text()
+            simple_content = self._find_text('simple_content')
             if simple_content:
                 self._show_content(Text(simple_content, justify='center'))
             else:
@@ -318,18 +321,6 @@ class Show:
                 return f'{self.session.user.name} - {self.session.user.email}'
         return f'{event.support_contact.name} - {event.support_contact.email}'
 
-    def _simple_content_text(self):
-        if self.session.action == 'SELECT':
-            content_text = 'SELECT_' + self.session.model
-        else:
-            content_text = self.session.user_cmd or self.session.action
-        if self.session.filter in ['FIRST_TIME', 'SECOND_TIME']:
-            content_text = content_text + '_' + self.session.filter
-        state_dict = getattr(contents, self.session.state, {})
-        if content_text in state_dict:
-            return state_dict.get(content_text)
-        return None
-
     def _complex_content_view(self):
         match self.session.action:
             case 'SELECT':
@@ -439,7 +430,7 @@ class Show:
 
     def _content_needed(self):
         return (self.session.state != 'GOOD' and
-                not (self.session.action in ['ADD', 'UPDATE', 'DELETE'] and
+                not (self.session.action in config.crud_action and
                      self.session.state == 'FAILED') and
                 self.session.action not in config.action_without_content and
                 not (self.session.action == 'CONNECTION' and self.session.state == 'NORMAL'))

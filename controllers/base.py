@@ -25,9 +25,9 @@ class Controller:
         self.session.action = 'FIRST_LAUNCH'
         if not self._user_in_db():
             self.ask.wait()
-            self.session.set_session(user_cmd='ADD_USER', action='ADD', model='USER', filter='FIRST_TIME')
+            self.session.set_session(action='ADD', model='USER', filter='FIRST_TIME')
             if not self._execute_crud():
-                self.session.set_session(state='FAILED', user_cmd='', action='STOPPED')
+                self.session.set_session(state='FAILED', model='STOPPED')
                 self.ask.wait()
                 return None
             self.auth.generate_secret_key()

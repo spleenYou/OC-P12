@@ -32,7 +32,6 @@ is_text = [
     'NAME',
     'PASSWORD',
     'CLIENT_NAME',
-    'PHONE',
     'COMPANY_NAME',
     'LOCATION',
     'NOTES',

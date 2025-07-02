@@ -1,6 +1,5 @@
 NORMAL = {
         'FIRST_LAUNCH': 'Un utilisateur de l\'équipe Management va être créé\nafin de pouvoir continuer',
-        'NO_CLIENT_WITHOUT_EVENT': 'Pas de client avec contrat sans évènement',
         'MAIN_MENU': ('Merci d\'entrer la commande correspondant à ce que vous souhaitez faire\n\n'
                       'Entrer "HELP" pour avoir la description des commandes\n'
                       'Entrer "EXIT" pour quitter l\'application'),
@@ -44,7 +43,7 @@ FAILED = {
         'DELETE_EVENT': 'Evènement non supprimé',
         'NAME': 'Le nom de l\'utilisateur ne peut être vide',
         'CLIENT_NAME': 'Le nom du contact ne peut être vide',
-        'COMPANY_NAME': 'L nom de l\'entreprise ne peut être vide',
+        'COMPANY_NAME': 'Le nom de l\'entreprise ne peut être vide',
         'LOCATION': 'Le lieu de l\'évènement ne peut être vide',
         'COMMAND': 'La commande ne peut être vide',
         'ATTENDEES': 'Le nombre de participant ne peut être vide',
