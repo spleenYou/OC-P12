@@ -422,8 +422,8 @@ class Show:
 
     def _get_contract_status(self, contract):
         if contract.status:
-            return 'Terminé'
-        return 'En cours'
+            return 'Signé'
+        return 'En attente'
 
     def _format_date(self, date):
         return date.strftime('%d %b %Y') if date else 'Non défini'
@@ -431,6 +431,7 @@ class Show:
     def _content_needed(self):
         return (self.session.state != 'GOOD' and
                 not ((self.session.action in config.crud_action) and
-                     self.session.state == 'FAILED') and
+                     self.session.state == 'FAILED' and
+                     self.session.filter != 'FIRST_TIME') and
                 self.session.action not in config.action_without_content and
                 not (self.session.action == 'CONNECTION' and self.session.state == 'NORMAL'))

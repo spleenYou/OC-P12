@@ -1,3 +1,4 @@
+import pytest
 import func
 
 
@@ -13,7 +14,8 @@ class TestFailed:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         for c in captured:
             print(c)
@@ -30,7 +32,8 @@ class TestFailed:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         assert 'Cette action sur les contrats n\'est pas possible pour le moment' in captured.out
 
@@ -45,7 +48,8 @@ class TestFailed:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         assert 'Cette action sur les évènements n\'est pas possible pour le moment' in captured.out
 
@@ -60,7 +64,8 @@ class TestFailed:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         assert 'Déconnexion automatique' in captured.out
         assert 'Vous avez été déconnecté, merci de vous reconnecter' in captured.out

@@ -53,6 +53,6 @@ FAILED = {
         'SELECT_CLIENT': 'Merci d\'entrer un numéro',
         'SELECT_CONTRACT': 'Merci d\'entrer un numéro',
         'SELECT_USER': 'Merci d\'entrer un numéro',
-        'STOPPED_FIRST_TIME': ('Il faut au moins un utilisateur pour utiliser l\'application\n'
+        'ADD_FIRST_TIME': ('Il faut au moins un utilisateur pour utiliser l\'application\n'
                                'Fermeture de l\'application'),
 }

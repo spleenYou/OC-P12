@@ -1,4 +1,4 @@
-import os
+import sys
 from config import config
 
 
@@ -66,7 +66,7 @@ class Controller:
                 self.session.set_session(action='UNKNOWN', state='ERROR')
             self.ask.wait()
             if self._stop_app():
-                os._exit(os.EX_OK)
+                sys.exit()
             self.session.reset_session()
 
     def _check_possibility(self):

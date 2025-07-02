@@ -3,7 +3,6 @@ import pytest
 
 
 class TestCommercial:
-
     @pytest.fixture(autouse=True)
     def setup(self, controller, commercial_user, monkeypatch):
         func.connect_user(controller, commercial_user, monkeypatch)
@@ -18,7 +17,8 @@ class TestCommercial:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
@@ -32,7 +32,8 @@ class TestCommercial:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
@@ -46,7 +47,8 @@ class TestCommercial:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
@@ -61,7 +63,8 @@ class TestCommercial:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         assert 'Sélection d\'un utilisateur' in captured.out
         assert 'Informations sur l\'utilisateur' in captured.out
@@ -81,7 +84,8 @@ class TestCommercial:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         for c in captured:
             print(c)
@@ -105,7 +109,8 @@ class TestCommercial:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         assert 'Mise à jour d\'un client' in captured.out
         assert client_information.name in captured.out
@@ -124,7 +129,8 @@ class TestCommercial:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         for c in captured:
             print(c)
@@ -144,7 +150,8 @@ class TestCommercial:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         assert 'Informations sur le client' in captured.out
         assert client_information.name in captured.out
@@ -165,7 +172,8 @@ class TestCommercial:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
@@ -193,7 +201,8 @@ class TestCommercial:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         for c in captured:
             print(c)
@@ -224,7 +233,8 @@ class TestCommercial:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         assert 'Mise à jour d\'un contrat' in captured.out
         assert 'Contrat mis à jour' in captured.out
@@ -250,7 +260,8 @@ class TestCommercial:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         assert 'Suppression d\'un contrat' in captured.out
         assert 'Contrat supprimé' in captured.out
@@ -275,7 +286,8 @@ class TestCommercial:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         assert 'Informations sur le contrat' in captured.out
 
@@ -309,7 +321,8 @@ class TestCommercial:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         for c in captured:
             print(c)
@@ -339,7 +352,8 @@ class TestCommercial:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
@@ -368,7 +382,8 @@ class TestCommercial:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         assert 'Suppression d\'un évènement' in captured.out
         assert 'Evènement supprimé' in captured.out
@@ -399,6 +414,7 @@ class TestCommercial:
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: True)
-        controller.main_menu()
+        with pytest.raises(SystemExit):
+            controller.main_menu()
         captured = capsys.readouterr()
         assert 'Informations sur l\'évènement' in captured.out

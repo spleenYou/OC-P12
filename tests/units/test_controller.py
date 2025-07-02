@@ -1,3 +1,4 @@
+import pytest
 from controllers.base import Controller
 from controllers.authentication import Authentication
 from controllers.session import Session
@@ -80,8 +81,12 @@ class TestController:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.start(None)
+        with pytest.raises(SystemExit) as excinfo:
+            controller.start(None)
         captured = capsys.readouterr()
+        for c in captured:
+            print(c)
+        assert excinfo.value.code is None
         assert 'Définition du mot de passe' in captured.out
         assert 'Erreur de saisie' in captured.out
         assert 'Votre mot de passe ne peut pas être vide' in captured.out
@@ -104,7 +109,12 @@ class TestController:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.start(None)
+        with pytest.raises(SystemExit) as excinfo:
+            controller.start(None)
+        captured = capsys.readouterr()
+        for c in captured:
+            print(c)
+        assert excinfo.value.code is None
         captured = capsys.readouterr()
         assert 'Définition du mot de passe' in captured.out
         assert 'Veuillez définir votre mot de passe' in captured.out
@@ -139,8 +149,12 @@ class TestController:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.main_menu()
+        with pytest.raises(SystemExit) as excinfo:
+            controller.main_menu()
         captured = capsys.readouterr()
+        for c in captured:
+            print(c)
+        assert excinfo.value.code is None
         assert 'Menu principal' in captured.out
         assert 'Merci d\'entrer la commande correspondant à ce que vous souhaitez faire' in captured.out
         assert 'Entrer "HELP" pour avoir la description des commandes' in captured.out
@@ -158,8 +172,12 @@ class TestController:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.main_menu()
+        with pytest.raises(SystemExit) as excinfo:
+            controller.main_menu()
         captured = capsys.readouterr()
+        for c in captured:
+            print(c)
+        assert excinfo.value.code is None
         assert 'Erreur de saisie' in captured.out
         assert 'Cette commande est inconnue' in captured.out
 
@@ -175,8 +193,12 @@ class TestController:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.main_menu()
+        with pytest.raises(SystemExit) as excinfo:
+            controller.main_menu()
         captured = capsys.readouterr()
+        for c in captured:
+            print(c)
+        assert excinfo.value.code is None
         assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
     def test_exit_command(self, controller, monkeypatch, management_user, capsys):
@@ -189,8 +211,12 @@ class TestController:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.main_menu()
+        with pytest.raises(SystemExit) as excinfo:
+            controller.main_menu()
         captured = capsys.readouterr()
+        for c in captured:
+            print(c)
+        assert excinfo.value.code is None
         assert 'Au revoir' in captured.out
 
     def test_help(self, controller, monkeypatch, management_user, capsys):
@@ -205,7 +231,12 @@ class TestController:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.main_menu()
+        with pytest.raises(SystemExit) as excinfo:
+            controller.main_menu()
+        captured = capsys.readouterr()
+        for c in captured:
+            print(c)
+        assert excinfo.value.code is None
         captured = capsys.readouterr()
         assert 'Aide' in captured.out
         assert 'Syntaxe : ACTION CATEGORIE *' in captured.out
@@ -227,7 +258,12 @@ class TestController:
             ]
         )
         monkeypatch.setattr('rich.prompt.Prompt.ask', lambda *args, **kwargs: next(inputs))
-        controller.main_menu()
+        with pytest.raises(SystemExit) as excinfo:
+            controller.main_menu()
+        captured = capsys.readouterr()
+        for c in captured:
+            print(c)
+        assert excinfo.value.code is None
         captured = capsys.readouterr()
         assert 'Tableau des permissions' in captured.out
 
@@ -479,7 +515,9 @@ class TestController:
         controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
-        assert 'Terminé' in captured.out
+        for c in captured:
+            print(c)
+        assert 'Mise à jour d\'un contrat' in captured.out
         assert 'Contrat mis à jour' in captured.out
 
     def test_delete_contract(
