@@ -1,3 +1,4 @@
+import os
 from config import config
 
 
@@ -65,7 +66,7 @@ class Controller:
                 self.session.set_session(action='UNKNOWN', state='ERROR')
             self.ask.wait()
             if self._stop_app():
-                return None
+                os._exit(os.EX_OK)
             self.session.reset_session()
 
     def _check_possibility(self):
@@ -156,6 +157,9 @@ class Controller:
                 self.session.set_session(filter='SUPPORT')
                 if self._user_in_db():
                     self.ask.select('USER')
+                    if self.session.action == 'UPDATE':
+                        self.session.event.support_contact_id = self.session.user.id
+                        self.db.db_session.commit()
 
     def _fill_session(self):
         if self.session.action == 'VIEW':
@@ -176,15 +180,20 @@ class Controller:
         return None
 
     def _reset_password(self):
+        self.session.set_session(state='ERROR')
         if self.ask.validation():
             self.session.connected_user.password = None
+            self.db.db_session.commit()
             self.start(self.session.connected_user.email)
+        else:
+            self.session.set_session(state='FAILED')
 
     def _stop_app(self):
         return self.session.user_cmd.startswith(('exit', 'EXIT')) or self.session.action == 'TOKEN'
 
     def _authorized_action(self):
-        return self.session.action in config.authorized_action
+        return (self.session.action in config.authorized_action and
+                self.session.model in ['', 'PASSWORD'])
 
     def _is_crud_command(self):
         return (self.session.action in config.crud_action and

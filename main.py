@@ -1,5 +1,4 @@
 import argparse
-import os
 import locale
 from controllers.base import Controller
 from views.prompt import Ask
@@ -25,7 +24,6 @@ def main():
     args = parser.parse_args()
     app = Controller(Ask, Show, Mysql, Authentication, Session)
     app.start(args.login)
-    os._exit(os.EX_OK)
 
 
 if __name__ == "__main__":

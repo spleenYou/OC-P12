@@ -103,9 +103,9 @@ class Show:
         }
         available_titles = getattr(config_module[config_name], self.session.state)
         possibilities = [
+            self.session.action + '_' + self.session.filter,
             self.session.action,
             self.session.action + '_' + self.session.model,
-            self.session.model + '_' + self.session.filter,
             self.session.state,
         ]
         for possibility in possibilities:
@@ -430,7 +430,7 @@ class Show:
 
     def _content_needed(self):
         return (self.session.state != 'GOOD' and
-                not (self.session.action in config.crud_action and
+                not ((self.session.action in config.crud_action) and
                      self.session.state == 'FAILED') and
                 self.session.action not in config.action_without_content and
                 not (self.session.action == 'CONNECTION' and self.session.state == 'NORMAL'))

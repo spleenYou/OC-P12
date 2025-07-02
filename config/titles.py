@@ -38,6 +38,7 @@ NORMAL = {
 ERROR = {
     'ADD': 'Création impossible',
     'ERROR': 'Erreur de saisie',
+    'RESET_PASSWORD': 'Suppression du mot de passe',
     'TOKEN': 'Déconnexion automatique',
     'FORBIDDEN': 'Vous n\'êtes pas autorisé à faire cette action',
 }
@@ -63,6 +64,7 @@ FAILED = {
     'CONNECTION': 'Erreur de connexion',
     'DELETE': 'Suppression annulée',
     'FAILED': 'Erreur de saisie',
+    'RESET_PASSWORD': 'Suppression du mot de passe annulée',
     'STOPPED': 'Ajout annulé',
     'UPDATE': 'Mise à jour annulée',
 }

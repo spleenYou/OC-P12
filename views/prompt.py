@@ -27,7 +27,7 @@ class Ask:
         """
         self.display()
         return Confirm.ask(
-            f'\n[{config.validation_text_color}]{prompts.VALIDATION}[/{config.validation_text_color}]',
+            f'\n[{config.validation_text_color}]  {prompts.VALIDATION}[/{config.validation_text_color}]',
             default=True
         )
 

@@ -86,6 +86,7 @@ action_without_content = [
     'NO_CLIENT',
     'NO_CONTRACT',
     'NO_EVENT',
+    'RESET',
 ]
 authorized_action = ['HELP', 'EXIT', 'PERMISSION', 'RESET', 'FILTER']
 crud_action = ['ADD', 'UPDATE', 'VIEW', 'DELETE']
