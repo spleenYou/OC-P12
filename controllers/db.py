@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import and_
 from .models import Base, EpicUser, Department, Permission, Client, Contract, Event
 from sqlalchemy.exc import IntegrityError
 
@@ -117,8 +118,14 @@ class Mysql:
         if not (self.session.client.id is None or self._for_all()):
             query = query.filter(Contract.client_id == self.session.client.id)
         filters = {
-            'FINISHED': lambda q: q.filter(Contract.status is True),
-            'NOT_FINISHED': lambda q: q.filter(Contract.status is False),
+            'PAID': lambda q: q.filter(Contract.rest_amount == 0),
+            'UNPAID': lambda q: q.filter(Contract.rest_amount == Contract.total_amount),
+            'PARTIAL_PAID': lambda q: and_(
+                q.filter(Contract.rest_amount != Contract.total_amount),
+                q.filter(Contract.rest_amount > 0)
+            ),
+            'SIGNED': lambda q: q.filter(Contract.status is True),
+            'UNSIGNED': lambda q: q.filter(Contract.status is False),
             'WITH_EVENT': lambda q: q.filter(Contract.event.has()),
             'WITHOUT_EVENT': lambda q: q.filter(~Contract.event.has()),
         }

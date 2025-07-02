@@ -106,8 +106,11 @@ filter = {
     'VIEW CONTRACT': {
         'WITH_EVENT': 'Voir un contrat qui a un au moins un évènement',
         'WITHOUT_EVENT': 'Voir un contrat qui n\'a pas d\'évènement',
-        'FINISHED': 'Voir un contrat qui est terminé',
-        'NOT_FINISHED': 'Voir un contrat qui n\'est pas terminé',
+        'SIGNED': 'Voir un contrat qui est signé',
+        'UNSIGNED': 'Voir un contrat qui n\'est pas signé',
+        'PAID': 'Voir un contrat qui est payé',
+        'UNPAID': 'Voir un contrat qui n\'est pas payé',
+        'PARTIAL_PAID': 'Voir un contrat qui est partiellement payé',
     },
     'VIEW EVENT': {
         'WITH_SUPPORT': 'Voir un évènement qui a un utilisateur support',
