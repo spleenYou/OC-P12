@@ -59,6 +59,8 @@ source .venv/bin/activate
 
 You need to create a mysql database and put the parameters in the .env file
 
+Diagram : [![img.png](img/db_diag.png)](https://dbdiagram.io/d/Epic-Event-686664bbf413ba35081cee03)
+
 ### Env variables
 
 Create a file name '.env' to set environnement variables for the application with the following parameters :
