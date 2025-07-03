@@ -3,13 +3,12 @@ import jwt
 from datetime import datetime, timedelta, timezone
 import secrets
 from argon2 import PasswordHasher
-from dotenv import set_key, load_dotenv, find_dotenv, get_key
+from dotenv import set_key, load_dotenv, find_dotenv
 
 
 class Authentication:
     def __init__(self, session):
         load_dotenv()
-        self.dotenv_path = find_dotenv()
         self.password_hasher = PasswordHasher(
             time_cost=int(os.getenv('TIME_COST')),
             memory_cost=int(os.getenv('MEMORY_COST')),
@@ -20,7 +19,7 @@ class Authentication:
         self.session = session
 
     def generate_secret_key(self):
-        set_key(self.dotenv_path, 'SECRET_KEY', 'epicEvent-' + secrets.token_urlsafe(64))
+        set_key(find_dotenv(), 'SECRET_KEY', 'epicEvent-' + secrets.token_urlsafe(64))
         return True
 
     def generate_token(self):
@@ -28,7 +27,7 @@ class Authentication:
             payload={
                 'exp': datetime.now(tz=timezone.utc) + timedelta(hours=5)
             },
-            key=get_key(self.dotenv_path, 'SECRET_KEY')
+            key=os.getenv('SECRET_KEY')
         )
         return True
 
@@ -36,7 +35,7 @@ class Authentication:
         try:
             jwt.decode(
                 jwt=self.session.token,
-                key=get_key(self.dotenv_path, 'SECRET_KEY'),
+                key=os.getenv('SECRET_KEY'),
                 algorithms=['HS256']
             )
             return True
