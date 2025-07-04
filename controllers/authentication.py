@@ -10,7 +10,7 @@ class Authentication:
     """Handle the authentication
 
     Args:
-        session (obj): Session's object
+        session (obj): Session object
     """
 
     def __init__(self, session):
