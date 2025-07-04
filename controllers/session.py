@@ -2,6 +2,8 @@ from controllers.models import EpicUser, Client, Contract, Event
 
 
 class Session:
+    "Manage the user session"
+
     def __init__(self):
         self.reset_session()
         self.connected_user = EpicUser()
