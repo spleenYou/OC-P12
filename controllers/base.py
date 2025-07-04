@@ -3,6 +3,16 @@ from config import config
 
 
 class Controller:
+    """Manage the application
+
+    Args:
+        ask : class that manages prompts
+        show : class that manages that is displayed
+        db : class that manages the database
+        auth : class that manages authentication
+        session: class that manages the session
+    """
+
     def __init__(self, ask, show, db, auth, session):
         self.session = session()
         self.auth = auth(self.session)
@@ -13,6 +23,13 @@ class Controller:
         self._has_user = False
 
     def _check_token_and_perm(self):
+        """Check the token validity and users permissions
+
+        Returns:
+            (bool): True if there is no user registered in db or tken is valid and user has permission for the command,
+                    else False
+        """
+
         if self._has_user:
             if not self.auth.check_token():
                 self.session.set_session(action='TOKEN', state='ERROR', user_cmd='')
@@ -23,6 +40,12 @@ class Controller:
         return True
 
     def start(self, email):
+        """Verify if it's the first launch and manage the connexion of the app
+
+        Args:
+            email (str): email address passed in args when user start the application
+        """
+
         self.session.action = 'FIRST_LAUNCH'
         if not self._user_in_db():
             self.ask.wait()
@@ -38,7 +61,7 @@ class Controller:
         self.session.set_session(action='CONNECTION')
         if not email:
             email = self.ask.email()
-        password_in_db = self._find_password_in_db(email)
+        password_in_db = self._get_password_in_db(email)
         password = self.ask.password()
         if self.auth.check_password(password, password_in_db):
             self._prepare_session(email)
@@ -49,6 +72,8 @@ class Controller:
             self.ask.wait()
 
     def main_menu(self):
+        "Manage the main menu, check if the command you have entered is available"
+
         while True:
             self.session.set_session(action='MAIN_MENU', state='NORMAL')
             user_input = self.ask.command().upper()
@@ -70,6 +95,8 @@ class Controller:
             self.session.reset_session()
 
     def _check_possibility(self):
+        "Check the command can be executed with the database elements"
+
         if self.session.action == 'ADD':
             if self.session.model in ['USER', 'CLIENT']:
                 return True
@@ -105,6 +132,12 @@ class Controller:
         return False
 
     def _save_model(self):
+        """Create a copy of a model for the update command
+
+        Returns:
+            Save (dict): parameters required to restore a model
+        """
+
         save = {}
         model_to_save = getattr(self.session, self.session.model.lower())
         for attr in getattr(config, self.session.model.lower() + '_attrs'):
@@ -112,11 +145,18 @@ class Controller:
         return save
 
     def _restore_model(self, save):
+        """Restore a model from a save if update is canceled
+
+        Args:
+            Save (dict): parameters required to restore a model
+        """
+
         model_to_restore = getattr(self.session, self.session.model.lower())
         for attr in getattr(config, self.session.model.lower() + '_attrs'):
             setattr(model_to_restore, attr, save[attr])
 
     def _execute_command(self):
+        "Return the "
         match self.session.action:
             case 'ADD':
                 return self.db.add()
@@ -128,6 +168,7 @@ class Controller:
                 return self.db.delete()
 
     def _fill_model(self):
+        "Fill in the model parameters according to what the user will answer"
         match self.session.model:
             case 'USER':
                 self.session.user.name = self.ask.name()
@@ -160,8 +201,10 @@ class Controller:
                     if self.session.action == 'UPDATE':
                         self.session.event.support_contact_id = self.session.user.id
                         self.db.db_session.commit()
+        return None
 
     def _fill_session(self):
+        "Fill in the model needed with data from the database"
         if self.session.action == 'VIEW':
             if self._want_all():
                 return None
@@ -187,9 +230,10 @@ class Controller:
             self.start(self.session.connected_user.email)
         else:
             self.session.set_session(state='FAILED')
+        return None
 
     def _stop_app(self):
-        return self.session.user_cmd.startswith(('exit', 'EXIT')) or self.session.action == 'TOKEN'
+        return self.session.action in ['exit', 'EXIT', 'TOKEN']
 
     def _authorized_action(self):
         return (self.session.action in config.authorized_action
@@ -208,7 +252,7 @@ class Controller:
         return (self.session.action == 'VIEW'
                 or getattr(self.permissions, self.session.user_cmd.lower()))
 
-    def _find_password_in_db(self, email):
+    def _get_password_in_db(self, email):
         password = self.db.get_user_password(email)
         if password is None:
             self._define_password(email)
@@ -219,37 +263,41 @@ class Controller:
         self.session.set_session(action='PASSWORD', filter='FIRST_TIME')
         self.ask.password()
         self.db.update_password_user(email)
+        return None
 
     def _prepare_session(self, email):
+        "Define session parameters when login ok"
+
         self.session.set_session(state='GOOD', filter='EMAIL')
         self.session.connected_user.email = email
         self.session.connected_user = self.db.get('USER', 0)
         self.permissions = self.session.connected_user.department.permissions
         self.auth.generate_token()
+        return None
 
     def _set_session(self, user_input):
+        "Set session parameters based on user input"
+
         model = None
         parsed = user_input.split(' ')
-        parsed = self._set_for_all(parsed)
+        parsed = self._set_want_all(parsed)
         if len(parsed) > 1:
             model = parsed[1]
-        filter = self._check_filter(parsed[2:])
+        filter = '_'.join(parsed[2:])
         self.session.set_session(
             action=parsed[0],
             model=model,
             filter=filter,
             user_cmd='_'.join(parsed[0:2])
         )
+        return None
 
     def _want_all(self):
         return self.session.want_all
 
-    def _set_for_all(self, parsed):
+    def _set_want_all(self, parsed):
         if 'ALL' in parsed:
             parsed.remove('ALL')
             if 'VIEW' in parsed:
                 self.session.set_session(want_all=True)
         return parsed
-
-    def _check_filter(self, parsed):
-        return '_'.join(parsed)

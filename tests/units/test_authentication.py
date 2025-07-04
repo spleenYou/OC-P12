@@ -7,40 +7,21 @@ class TestAuthentication:
     def test_generate_secret_key(self, authentication):
         assert authentication.generate_secret_key() is True
 
-    def test_generate_token(self, authentication, monkeypatch):
-        written = {}
-        monkeypatch.setattr(
-            target='controllers.authentication.get_key',
-            name=lambda path, key: 'my_secret_key'
-        )
-
-        def fake_set_key(dotenv_path, key, value):
-            written[key] = value
-            return True
-
-        monkeypatch.setattr(
-            target='controllers.authentication.set_key',
-            name=fake_set_key
-        )
+    def test_generate_token(self, authentication, monkeypatch, secret):
+        monkeypatch.setenv('SECRET_KEY', secret)
         assert authentication.generate_token() is True
         assert authentication.session.token is not None
-        decoded = jwt.decode(authentication.session.token, 'my_secret_key', algorithms=['HS256'])
+        decoded = jwt.decode(authentication.session.token, secret, algorithms=['HS256'])
         assert datetime.fromtimestamp(decoded['exp']) > datetime.now()
         assert datetime.fromtimestamp(decoded['exp']) < datetime.now() + timedelta(hours=10)
 
     def test_check_token_valid(self, monkeypatch, authentication, secret, token):
-        monkeypatch.setattr(
-            target='controllers.authentication.get_key',
-            name=lambda path, key: secret
-        )
+        monkeypatch.setenv('SECRET_KEY', secret)
         authentication.session.token = token
         assert authentication.check_token() is True
 
     def test_check_token_valid_fail(self, monkeypatch, authentication, secret, invalid_token):
-        monkeypatch.setattr(
-            target='controllers.authentication.get_key',
-            name=lambda path, key: secret if key == 'SECRET_KEY' else invalid_token
-        )
+        monkeypatch.setenv('SECRET_KEY', secret)
         assert authentication.check_token() is False
 
     def test_hash_password(self, authentication, password):
