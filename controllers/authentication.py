@@ -28,15 +28,14 @@ class Authentication:
         "Generate a secret key for the password encryption and set it in the .env file"
 
         set_key(find_dotenv(), 'SECRET_KEY', 'epicEvent-' + secrets.token_urlsafe(64))
+        load_dotenv(override=True)
         return True
 
     def generate_token(self):
         "Generate a token for the user session with a time expiration"
 
         self.session.token = jwt.encode(
-            payload={
-                'exp': datetime.now(tz=timezone.utc) + timedelta(hours=5)
-            },
+            payload={'exp': datetime.now(tz=timezone.utc) + timedelta(hours=5)},
             key=os.getenv('SECRET_KEY')
         )
         return True
