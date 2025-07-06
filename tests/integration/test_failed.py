@@ -17,8 +17,6 @@ class TestFailed:
         with pytest.raises(SystemExit):
             controller.main_menu()
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert 'Aucun client n\'est enregistré' in captured.out
 
     def test_view_contract_without_contract(self, controller, commercial_user, monkeypatch, capsys):

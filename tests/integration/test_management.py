@@ -328,8 +328,6 @@ class TestManagement:
         with pytest.raises(SystemExit):
             controller.main_menu()
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert 'Evènement mis à jour' in captured.out
 
     def test_delete_event(

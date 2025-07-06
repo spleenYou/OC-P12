@@ -87,8 +87,6 @@ class TestCommercial:
         with pytest.raises(SystemExit):
             controller.main_menu()
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert 'Ajout d\'un client' in captured.out
         assert 'Client ajouté' in captured.out
 
@@ -132,8 +130,6 @@ class TestCommercial:
         with pytest.raises(SystemExit):
             controller.main_menu()
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert 'Suppression d\'un client' in captured.out
         assert 'Client supprimé' in captured.out
 
@@ -204,8 +200,6 @@ class TestCommercial:
         with pytest.raises(SystemExit):
             controller.main_menu()
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert 'Mise à jour d\'un contrat' in captured.out
         assert 'Contrat mis à jour' in captured.out
 
@@ -324,8 +318,6 @@ class TestCommercial:
         with pytest.raises(SystemExit):
             controller.main_menu()
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert 'Ajout d\'un évènement' in captured.out
         assert 'Evènement ajouté' in captured.out
 

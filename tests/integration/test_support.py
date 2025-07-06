@@ -292,8 +292,6 @@ class TestSupport:
         with pytest.raises(SystemExit):
             controller.main_menu()
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert 'Mise à jour d\'un évènement' in captured.out
         assert 'Pas loin' in captured.out
         assert 'Evènement mis à jour' in captured.out

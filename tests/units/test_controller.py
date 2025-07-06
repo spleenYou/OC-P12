@@ -58,8 +58,6 @@ class TestController:
         monkeypatch.setattr('rich.prompt.Confirm.ask', lambda *args, **kwargs: False)
         controller.start(None)
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert 'Premier lancement de l\'application' in captured.out
         assert 'Ajout annulé' in captured.out
         assert 'Il faut au moins un utilisateur pour utiliser l\'application' in captured.out
@@ -84,8 +82,6 @@ class TestController:
         with pytest.raises(SystemExit) as excinfo:
             controller.start(None)
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert excinfo.value.code is None
         assert 'Définition du mot de passe' in captured.out
         assert 'Erreur de saisie' in captured.out
@@ -112,8 +108,6 @@ class TestController:
         with pytest.raises(SystemExit) as excinfo:
             controller.start(None)
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert excinfo.value.code is None
         captured = capsys.readouterr()
         assert 'Définition du mot de passe' in captured.out
@@ -152,8 +146,6 @@ class TestController:
         with pytest.raises(SystemExit) as excinfo:
             controller.main_menu()
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert excinfo.value.code is None
         assert 'Menu principal' in captured.out
         assert 'Merci d\'entrer la commande correspondant à ce que vous souhaitez faire' in captured.out
@@ -175,8 +167,6 @@ class TestController:
         with pytest.raises(SystemExit) as excinfo:
             controller.main_menu()
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert excinfo.value.code is None
         assert 'Erreur de saisie' in captured.out
         assert 'Cette commande est inconnue' in captured.out
@@ -196,8 +186,6 @@ class TestController:
         with pytest.raises(SystemExit) as excinfo:
             controller.main_menu()
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert excinfo.value.code is None
         assert 'Vous n\'êtes pas autorisé à faire cette action' in captured.out
 
@@ -214,8 +202,6 @@ class TestController:
         with pytest.raises(SystemExit) as excinfo:
             controller.main_menu()
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert excinfo.value.code is None
         assert 'Au revoir' in captured.out
 
@@ -234,8 +220,6 @@ class TestController:
         with pytest.raises(SystemExit) as excinfo:
             controller.main_menu()
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert excinfo.value.code is None
         captured = capsys.readouterr()
         assert 'Aide' in captured.out
@@ -261,8 +245,6 @@ class TestController:
         with pytest.raises(SystemExit) as excinfo:
             controller.main_menu()
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert excinfo.value.code is None
         captured = capsys.readouterr()
         assert 'Tableau des permissions' in captured.out
@@ -287,8 +269,6 @@ class TestController:
         controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert 'Commercial 2' in captured.out
         assert 'Utilisateur mis à jour' in captured.out
 
@@ -320,8 +300,6 @@ class TestController:
         controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert 'Erreur de saisie' in captured.out
         assert 'Votre saisie ne correspond pas à un département' in captured.out
         assert 'Utilisateur mis à jour' in captured.out
@@ -515,8 +493,6 @@ class TestController:
         controller._execute_crud()
         controller.show.display()
         captured = capsys.readouterr()
-        for c in captured:
-            print(c)
         assert 'Mise à jour d\'un contrat' in captured.out
         assert 'Contrat mis à jour' in captured.out
 
