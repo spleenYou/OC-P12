@@ -7,10 +7,19 @@ import config.config as config
 
 
 class NewPrompt(Prompt):
+    "Replace the ':' by ' ' at the end of prompts"
     prompt_suffix = ' '
 
 
 class Ask:
+    """Manage prompts
+
+    Args:
+        show (obj): show object
+        db (obj): database object
+        session (obj): session obj
+    """
+
     def __init__(self, show, db, session):
         self.display = show.display
         self.session = session
@@ -32,71 +41,76 @@ class Ask:
         )
 
     def name(self):
-        return self._pre_prompt('NAME', lambda: self.session.user.name)
+        return self._verifiy_input('NAME', lambda: self.session.user.name)
 
     def notes(self):
-        return self._pre_prompt('NOTES', lambda: self.session.contract.event.notes)
+        return self._verifiy_input('NOTES', lambda: self.session.contract.event.notes)
 
     def client_name(self):
-        return self._pre_prompt('CLIENT_NAME', lambda: self.session.client.name)
+        return self._verifiy_input('CLIENT_NAME', lambda: self.session.client.name)
 
     def company_name(self):
-        return self._pre_prompt('COMPANY_NAME', lambda: self.session.client.company_name)
+        return self._verifiy_input('COMPANY_NAME', lambda: self.session.client.company_name)
 
     def location(self):
-        return self._pre_prompt('LOCATION', lambda: self.session.contract.event.location)
+        return self._verifiy_input('LOCATION', lambda: self.session.contract.event.location)
 
     def command(self):
-        return self._pre_prompt('COMMAND')
+        return self._verifiy_input('COMMAND')
 
     def date_start(self):
-        return self._pre_prompt('DATE_START', lambda: self.session.contract.event.date_start)
+        return self._verifiy_input('DATE_START', lambda: self.session.contract.event.date_start)
 
     def date_stop(self):
-        return self._pre_prompt('DATE_STOP', lambda: self.session.contract.event.date_start)
+        return self._verifiy_input('DATE_STOP', lambda: self.session.contract.event.date_start)
 
     def attendees(self):
-        return self._pre_prompt('ATTENDEES', lambda: self.session.contract.event.attendees)
+        return self._verifiy_input('ATTENDEES', lambda: self.session.contract.event.attendees)
 
     def phone(self):
-        return self._pre_prompt('PHONE', lambda: self.session.client.phone)
+        return self._verifiy_input('PHONE', lambda: self.session.client.phone)
 
     def total_amount(self):
-        return self._pre_prompt('TOTAL_AMOUNT', lambda: self.session.contract.total_amount)
+        return self._verifiy_input('TOTAL_AMOUNT', lambda: self.session.contract.total_amount)
 
     def rest_amount(self):
         self.session.set_session(filter='REST_AMOUNT')
-        return self._pre_prompt('REST_AMOUNT', lambda: self.session.contract.rest_amount)
+        return self._verifiy_input('REST_AMOUNT', lambda: self.session.contract.rest_amount)
 
     def email(self):
-        return self._pre_prompt('EMAIL', lambda: self.session.user.email)
+        return self._verifiy_input('EMAIL', lambda: self.session.user.email)
 
     def client_email(self):
-        return self._pre_prompt('CLIENT_EMAIL', lambda: self.session.client.email)
+        return self._verifiy_input('CLIENT_EMAIL', lambda: self.session.client.email)
 
     def password(self):
         if self.session.filter == 'FIRST_TIME':
-            self.session.connected_user.password = self._pre_prompt('PASSWORD')
+            self.session.connected_user.password = self._verifiy_input('PASSWORD')
             self.session.set_session(filter='SECOND_TIME')
-            self.session.connected_user.password = self._pre_prompt('PASSWORD')
+            self.session.connected_user.password = self._verifiy_input('PASSWORD')
             self.session.set_session(action='CONNECTION', filter='')
             return None
-        return self._pre_prompt('PASSWORD')
+        return self._verifiy_input('PASSWORD')
 
     def department(self):
-        return self._pre_prompt('DEPARTMENT', lambda: self.session.user.department_id)
+        return self._verifiy_input('DEPARTMENT', lambda: self.session.user.department_id)
 
     def employee_number(self):
-        return self._pre_prompt('EMPLOYEE_NUMBER', lambda: self.session.user.employee_number)
+        return self._verifiy_input('EMPLOYEE_NUMBER', lambda: self.session.user.employee_number)
 
     def status(self):
         self.session.set_session(filter='STATUS')
-        return self._pre_prompt('STATUS', lambda: self.session.contract.status)
+        return self._verifiy_input('STATUS', lambda: self.session.contract.status)
 
     def wait(self):
         self._prompt('WAIT')
 
     def select(self, model):
+        """Manage when need to select a model from database and fill in session model parameter
+
+        Args:
+            model (str): name of a model
+        """
         previous_filter = self.session.filter
         self.session.set_session(action='SELECT', model=model)
         self._set_filter(previous_filter)
@@ -129,6 +143,14 @@ class Ask:
         return self.session.filter == 'SUPPORT'
 
     def _prompt(self, thing):
+        """Manage the prompt text
+
+        Args:
+            thing (str): name of text in config/prompts.py
+
+        Returns:
+            (str): user input
+        """
         self.display()
         if self.session.want_all and thing != 'WAIT':
             thing = thing + 'S'
@@ -162,7 +184,16 @@ class Ask:
         result = self.db.get(model, number)
         setattr(self.session, model.lower(), result)
 
-    def _pre_prompt(self, thing, default_value=None):
+    def _verifiy_input(self, thing, default_value=None):
+        """Check the data entered by the user and return it if valid
+
+        Args:
+            thing (str): name of the wanted data
+            default_value (bool, str, int, float, date): default value of the wanted data if needed
+
+        Returns:
+            (bool, str, int, float, date): user value or default value
+        """
         previous_action = self.session.action
         while True:
             self.session.set_session(action=previous_action, state='NORMAL')
