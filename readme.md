@@ -33,6 +33,11 @@ There are three teams, commercial, support and management. Each team has specifi
 
 #### Creation
 
+Clone the project
+```
+git clone https://github.com/spleenYou/OC-P12.git
+```
+
 Create the environment with poetry.
 
 ```
@@ -85,7 +90,9 @@ Please visit the [argon2 documentation](https://argon2-cffi.readthedocs.io/en/st
 
 ## Application Description
 
-launch the script and choose what you want to do.
+For a better experience, the application is designed for a minimum window width of 120 pixels.
+
+Launch the script and choose what you want to do.
 
 ```
 python main.py

@@ -56,7 +56,14 @@ class Show:
         os.system(command)
 
     def _logo(self):
-        self._show_content(logo.logo)
+        showd_logo = []
+        size = os.get_terminal_size()
+        max = size.columns - 12
+        if max > 107:
+            max = 107
+        for line in logo.logo:
+            showd_logo.append(line[:max])
+        self._show_content('\n'.join(showd_logo))
 
     def _session_information(self):
         if self.session.connected_user.id is not None:
