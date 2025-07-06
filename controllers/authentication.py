@@ -14,7 +14,6 @@ class Authentication:
     """
 
     def __init__(self, session):
-        load_dotenv()
         self.password_hasher = PasswordHasher(
             time_cost=int(os.getenv('TIME_COST')),
             memory_cost=int(os.getenv('MEMORY_COST')),

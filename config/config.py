@@ -8,6 +8,18 @@ error_text_color = 'red'
 failed_text_color = 'dark_orange'
 good_text_color = 'green'
 validation_text_color = 'yellow'
+env = [
+    'DB_USER',
+    'DB_PASSWORD',
+    'DB_HOST',
+    'DB_PORT',
+    'DB_NAME',
+    'TIME_COST',
+    'MEMORY_COST',
+    'PARALLELISM',
+    'HASH_LEN',
+    'SALT_LEN',
+]
 permission_table = [
     'add_user', 'update_user', 'delete_user',
     'add_client', 'update_client', 'delete_client',
