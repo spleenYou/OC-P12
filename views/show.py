@@ -12,21 +12,22 @@ import config.config as config
 
 
 class Show:
+    """Manages what is displayed on the console
+
+    Args:
+        db (obj): database object
+        session (obj): session object
+    """
+
     def __init__(self, db, session):
         self.session = session
         self.db = db
         self.rich_console = Console(highlight=False)
 
-    def display(self, content=None, align='center'):
-        """Manages the display on the console
-
-        Args:
-            title (str): Title to show
-            content (list): List of the text to show
-            align (str): Position of the content. Three possiblities left, center or right
-        """
+    def display(self):
+        "Manages the display on the console"
         self._clear_screen()
-        self._head_menu()
+        self._logo()
         self._session_information()
         self._title()
         self._content()
@@ -54,9 +55,7 @@ class Show:
             command = "cls"
         os.system(command)
 
-    def _head_menu(self):
-        "Shows the name of the program decorated"
-
+    def _logo(self):
         self._show_content(logo.logo)
 
     def _session_information(self):
