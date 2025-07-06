@@ -1,3 +1,4 @@
+from pathlib import Path
 import argparse
 import locale
 from controllers.base import Controller
@@ -17,13 +18,21 @@ sentry_sdk.init(
 )
 
 
+def _env_file_exists():
+    file_obj = Path('.env')
+    return file_obj.is_file()
+
+
 def main():
     "Retrieve the email argument (if given) before launching the application"
-    parser = argparse.ArgumentParser()
-    parser.add_argument('login', nargs='?', default=None, help="Email needed as login")
-    args = parser.parse_args()
-    app = Controller(Ask, Show, Mysql, Authentication, Session)
-    app.start(args.login)
+    if _env_file_exists():
+        parser = argparse.ArgumentParser()
+        parser.add_argument('login', nargs='?', default=None, help="Email needed as login")
+        args = parser.parse_args()
+        app = Controller(Ask, Show, Mysql, Authentication, Session)
+        app.start(args.login)
+    else:
+        print('.env file non trouvé')
 
 
 if __name__ == "__main__":
