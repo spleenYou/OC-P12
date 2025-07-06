@@ -11,7 +11,9 @@ from controllers.session import Session
 from controllers.base import Controller
 from views.show import Show
 from views.prompt import Ask
+from dotenv import load_dotenv
 
+load_dotenv()
 locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
 
 

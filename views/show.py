@@ -1,4 +1,5 @@
 import os
+import shutil
 import datetime
 from rich.console import Console, Group
 from rich.panel import Panel
@@ -57,7 +58,7 @@ class Show:
 
     def _logo(self):
         showd_logo = []
-        size = os.get_terminal_size()
+        size = shutil.get_terminal_size(fallback=(80, 24))
         max = size.columns - 12
         if max > 107:
             max = 107

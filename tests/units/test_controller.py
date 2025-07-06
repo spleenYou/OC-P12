@@ -109,7 +109,6 @@ class TestController:
             controller.start(None)
         captured = capsys.readouterr()
         assert excinfo.value.code is None
-        captured = capsys.readouterr()
         assert 'Définition du mot de passe' in captured.out
         assert 'Veuillez définir votre mot de passe' in captured.out
         assert 'Erreur de saisie' in captured.out
@@ -221,7 +220,6 @@ class TestController:
             controller.main_menu()
         captured = capsys.readouterr()
         assert excinfo.value.code is None
-        captured = capsys.readouterr()
         assert 'Aide' in captured.out
         assert 'Syntaxe : ACTION CATEGORIE *' in captured.out
         assert '* Pour voir les filtres disponibles taper FILTER' in captured.out
@@ -246,7 +244,6 @@ class TestController:
             controller.main_menu()
         captured = capsys.readouterr()
         assert excinfo.value.code is None
-        captured = capsys.readouterr()
         assert 'Tableau des permissions' in captured.out
 
     def test_update_user_change_name(self, controller, monkeypatch, management_user, capsys, commercial_user):
