@@ -229,7 +229,7 @@ class Show:
                             f"{self.session.client.commercial_contact.email}")),
             ('Montant total', str(self.session.contract.total_amount or '0')),
             ('Reste à payer', str(self.session.contract.rest_amount or '0')),
-            ('Statut', self._get_contract_status(self.session.contract)),
+            ('Statut', self._get_contract_status_text(self.session.contract)),
             ('Date de création', self._format_date(self.session.contract.date_creation or datetime.datetime.now()))
         ]
         return datas
@@ -292,7 +292,7 @@ class Show:
                     contract.client.company_name,
                     str(contract.total_amount),
                     str(contract.rest_amount),
-                    self._get_contract_status(contract),
+                    self._get_contract_status_text(contract),
                     self._format_date(contract.date_creation),
                 ]
             )
@@ -427,10 +427,10 @@ class Show:
             return self.session.event
         return self.session.contract.event
 
-    def _get_contract_status(self, contract):
+    def _get_contract_status_text(self, contract):
         if contract.status:
             return 'Signé'
-        return 'En attente'
+        return 'Non signé'
 
     def _format_date(self, date):
         return date.strftime('%d %b %Y') if date else 'Non défini'
