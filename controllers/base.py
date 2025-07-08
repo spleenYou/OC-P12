@@ -196,7 +196,7 @@ class Controller:
                     self.session.event.date_stop = self.ask.date_stop()
                     self.session.event.notes = self.ask.notes()
                 self.session.set_session(filter='SUPPORT')
-                if self._user_in_db():
+                if self._user_in_db() and self.session.connected_user.department_id != 2:
                     self.ask.select('USER')
                     if self.session.action == 'UPDATE':
                         self.session.event.support_contact_id = self.session.user.id
