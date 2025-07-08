@@ -25,7 +25,7 @@ class EpicUser(Base):
     department_id = Column(Integer, ForeignKey('departments.id'), nullable=False)
     date_creation = Column(DateTime, default=func.now())
     department = relationship('Department', back_populates='users')
-    clients = relationship('Client', back_populates='commercial_contact')
+    clients = relationship('Client', back_populates='commercial_contact', cascade='all, delete-orphan')
     events = relationship('Event', back_populates='support_contact')
 
     @property

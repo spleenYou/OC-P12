@@ -37,6 +37,7 @@ NORMAL = {
 
 ERROR = {
     'ADD': 'Création impossible',
+    'DELETE': 'Suppression impossible',
     'ERROR': 'Erreur de saisie',
     'RESET_PASSWORD': 'Suppression du mot de passe',
     'TOKEN': 'Déconnexion automatique',
